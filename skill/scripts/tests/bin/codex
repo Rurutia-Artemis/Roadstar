@@ -20,7 +20,7 @@ if "app-server" in args:
         msg = json.loads(line)
         method = msg.get("method")
         if method == "initialize":
-            assert msg["params"]["clientInfo"] == {"name": "roundtable", "version": "0.3"}
+            assert msg["params"]["clientInfo"] == {"name": "roadstar", "version": "1.0"}
             reply = {"id": msg["id"], "result": {"userAgent": "offline-stub"}}
         elif method == "initialized":
             initialized = True
