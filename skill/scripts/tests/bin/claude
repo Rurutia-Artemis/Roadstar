@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Offline Claude control protocol stub; never sends an inference request.
+set -euo pipefail
+exec python3 -u -c '
+import datetime
+import json
+import os
+import sys
+
+args = sys.argv[1:]
+assert args == ["-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
+                "--strict-mcp-config", "--no-session-persistence", "--settings", "{\"remoteControlAtStartup\":false}"]
+assert os.environ.get("DISABLE_AUTOUPDATER") == "1"
+trace = os.environ.get("FAKE_TRACE_FILE")
+if trace:
+    with open(trace, "a", encoding="utf-8") as out:
+        out.write(json.dumps({"cli": "claude", "args": args, "cwd": os.getcwd()}) + "\n")
+initialized = False
+now = datetime.datetime.now(datetime.timezone.utc)
+weekly = (now + datetime.timedelta(days=3)).isoformat()
+session = (now + datetime.timedelta(hours=1)).isoformat()
+used = float(os.environ.get("FAKE_CLAUDE_USED", "1"))
+for line in sys.stdin:
+    msg = json.loads(line)
+    assert msg["type"] == "control_request"
+    request = msg["request"]
+    if request["subtype"] == "initialize":
+        assert msg["request_id"] == "i1"
+        initialized = True
+        body = {}
+    elif request["subtype"] == "get_usage":
+        assert initialized and request["skip_behaviors"] is True and msg["request_id"] == "u1"
+        fable = float(os.environ.get("FAKE_CLAUDE_FABLE", str(used)))
+        scoped = [{"display_name": "Fable", "utilization": fable, "resets_at": weekly}]
+        if os.environ.get("FAKE_CLAUDE_NO_FABLE"):
+            scoped = []
+        body = {"subscription_type": "max", "rate_limits_available": True, "rate_limits": {
+            "five_hour": {"utilization": used, "resets_at": session},
+            "seven_day": {"utilization": used, "resets_at": weekly}, "model_scoped": scoped,
+            "limits": [{"kind": "session", "percent": used, "resets_at": session, "severity": "none"},
+                       {"kind": "weekly_all", "percent": used, "resets_at": weekly, "severity": "none"},
+                       {"kind": "weekly_scoped", "percent": fable, "resets_at": weekly,
+                        "severity": "none", "scope": {"model": {"display_name": "Fable"}}}]}}
+    else:
+        raise AssertionError(request)
+    print(json.dumps({"type": "system", "subtype": "stub-notification"}), flush=True)
+    print(json.dumps({"type": "control_response", "response": {
+        "request_id": msg["request_id"], "subtype": "success", "response": body}}), flush=True)
+' "$@"

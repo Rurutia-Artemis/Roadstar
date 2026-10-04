@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Offline Codex protocol/exec stub. Python keeps line-oriented JSON precise.
+set -euo pipefail
+exec python3 -u -c '
+import json
+import os
+import sys
+import time
+
+args = sys.argv[1:]
+trace = os.environ.get("FAKE_TRACE_FILE")
+if trace:
+    with open(trace, "a", encoding="utf-8") as out:
+        out.write(json.dumps({"cli": "codex", "args": args, "cwd": os.getcwd()}) + "\n")
+
+if "app-server" in args:
+    assert args == ["-s", "read-only", "-a", "never", "app-server"], args
+    initialized = False
+    for line in sys.stdin:
+        msg = json.loads(line)
+        method = msg.get("method")
+        if method == "initialize":
+            assert msg["params"]["clientInfo"] == {"name": "roundtable", "version": "0.3"}
+            reply = {"id": msg["id"], "result": {"userAgent": "offline-stub"}}
+        elif method == "initialized":
+            initialized = True
+            continue
+        elif method == "account/rateLimits/read":
+            assert initialized
+            now = int(time.time())
+            cards = int(os.environ.get("FAKE_CODEX_CARDS", "2"))
+            used = float(os.environ.get("FAKE_CODEX_USED", "1"))
+            primary = {"usedPercent": used, "windowDurationMins": 10080, "resetsAt": now + 3 * 86400}
+            secondary = None
+            if "FAKE_CODEX_FIVE_HOUR" in os.environ:
+                secondary = {"usedPercent": float(os.environ["FAKE_CODEX_FIVE_HOUR"]), "windowDurationMins": 300, "resetsAt": now + 3600}
+            result = {"accountId": "DO_NOT_PRINT_ACCOUNT_ID", "rateLimits": {
+                "primary": primary, "secondary": secondary, "planType": "pro",
+                "credits": {"hasCredits": True, "balance": "62500"}, "rateLimitReachedType": None},
+                "rateLimitResetCredits": {"availableCount": cards, "credits": [
+                    {"status": "available", "title": "reset", "expiresAt": now + 86400} for _ in range(cards)]}}
+            reply = {"id": msg["id"], "result": result}
+        else:
+            raise AssertionError(method)
+        # A notification before every answer catches readers that assume one line.
+        print(json.dumps({"method": "stub/notification"}), flush=True)
+        print(json.dumps(reply), flush=True)
+    sys.exit(0)
+
+assert args and args.pop(0) == "exec", args
+resumed = ""
+if args and args[0] == "resume":
+    args.pop(0)
+    resumed = args.pop(0)
+    assert not any(flag in args for flag in ("-m", "-s", "-C")), args
+model, effort, output, schema = "inherited", "inherited", None, None
+while args:
+    arg = args.pop(0)
+    if arg in ("-m", "-c", "-s", "-C", "-o", "--output-schema", "--disable"):
+        value = args.pop(0)
+        if arg == "-m": model = value
+        if arg == "-c": effort = value.split("=", 1)[1]
+        if arg == "-o": output = value
+        if arg == "--output-schema": schema = value
+        if arg == "--disable": assert value == "fast_mode"
+    else:
+        assert arg in ("--skip-git-repo-check", "-"), arg
+assert output
+print("OpenAI Codex v0.158.0 (offline stub)")
+print("--------")
+print("model: " + model)
+print("reasoning effort: " + effort)
+print("session id: 00000000-0000-4000-8000-000000000009")
+if resumed:
+    print("resumed: " + resumed)
+print("--------")
+prompt = sys.stdin.read()
+time.sleep(float(os.environ.get("FAKE_CODEX_DELAY", "0")))
+status = int(os.environ.get("FAKE_CODEX_EXIT", "0"))
+if status:
+    for i in range(25):
+        print("stub failure line " + str(i))
+    sys.exit(status)
+with open(output, "w", encoding="utf-8") as out:
+    if schema:
+        data = {"verdict": "PASS", "checklist": [], "new_issues": [], "open_issue_verdicts": [],
+                "alternative": "", "reply_to_chair": "", "questions_for_chair": []}
+        definition = json.load(open(schema, encoding="utf-8"))
+        assert set(data) == set(definition["required"])
+        json.dump(data, out)
+        out.write("\n")
+    else:
+        out.write(prompt)
+print("tokens used")
+print("1,234")
+' "$@"

@@ -1,0 +1,301 @@
+{
+  "scenarios": {
+    "A_codex_rich": {
+      "chair_says": "这周 Claude 这边紧，Codex 额度特别多，我手里还有两张 Codex 重置卡。能派的全派 Codex。",
+      "quota": "Claude：5 小时 70%（1 小时后重置）｜本周 88%（3 天后重置）｜Fable 40% → 紧。Codex：本周 20%（6 天后重置）｜重置卡 2 张 → 宽。"
+    },
+    "B_claude_rich": {
+      "chair_says": "Opus 额度多，Codex 快用完了，这周别指望它。",
+      "quota": "Claude：5 小时 10%｜本周 20%（5 天后重置）｜Fable 8% → 宽。Codex：本周 96%（3 天后重置）｜重置卡 0 张 → 空。"
+    },
+    "C_both_tight": {
+      "chair_says": "你定。",
+      "quota": "Claude：5 小时 40%｜本周 80%（2 天后重置）｜Fable 30% → 紧。Codex：本周 86%（4 天后重置）｜重置卡 0 张 → 紧。"
+    },
+    "D_hard_instruction": {
+      "chair_says": "这个项目比较重要，我不太放心让 Codex 写。代码一律 Opus 5.5 最高强度，Codex 只审不写。另外这周 Claude 这边紧，Codex 多。",
+      "quota": "Claude：5 小时 60%｜本周 85%（3 天后重置）｜Fable 35% → 紧。Codex：本周 15% → 宽。"
+    }
+  },
+  "tables": {
+    "reverie": {
+      "project": "Reverie：macOS 副屏面板 app（SwiftUI），音乐页 + 额度页。仓库在本机，可 git worktree。Codex 的 workspace-write 沙箱编不过 SwiftUI 宏插件（上次四个任务都只验了各自文件）。",
+      "tasks": [
+        {
+          "id": "S0",
+          "name": "记录旧版行为与截图基线",
+          "desc": "跑旧版 app 截图、记下现有行为做对照基线",
+          "size": "小",
+          "needs": [
+            "real_device"
+          ],
+          "difficulty_expected": "易"
+        },
+        {
+          "id": "S1",
+          "name": "把单文件源码拆成按职责分目录的多文件",
+          "desc": "约 1500 行搬运，不改行为，拆完全量编译要过",
+          "size": "中",
+          "needs": [
+            "swiftui_build"
+          ],
+          "difficulty_expected": "中",
+          "big_move": true
+        },
+        {
+          "id": "S6",
+          "name": "三套视觉方向出图给主席选",
+          "desc": "出三套界面方向的实机截图，主席挑一套",
+          "size": "中",
+          "needs": [
+            "chair_review",
+            "real_device"
+          ],
+          "difficulty_expected": "中",
+          "visual": true
+        },
+        {
+          "id": "T6",
+          "name": "额度解析器",
+          "desc": "解析 CodexBar 快照 JSON 成额度项，接口签名已写，带单测，纯逻辑",
+          "size": "中",
+          "needs": [],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "T9",
+          "name": "播放状态归并与 Apple Music 红心",
+          "desc": "多数据源的 Now Playing 状态归并、切源不串台，含异步与状态机",
+          "size": "中",
+          "needs": [
+            "swiftui_build"
+          ],
+          "difficulty_expected": "难"
+        },
+        {
+          "id": "T5",
+          "name": "窗口驱逐器",
+          "desc": "把落到副屏的别的 App 窗口挪回主屏，依赖辅助功能权限和系统行为，要真机",
+          "size": "中",
+          "needs": [
+            "real_device",
+            "system_permission"
+          ],
+          "difficulty_expected": "难",
+          "sensitive": true
+        },
+        {
+          "id": "T10",
+          "name": "部署与回滚脚本",
+          "desc": "写 /Applications、改 LaunchAgent（launchctl），带计划测试 25 例",
+          "size": "中",
+          "needs": [
+            "outside_workspace"
+          ],
+          "difficulty_expected": "难",
+          "sensitive": true
+        },
+        {
+          "id": "S7",
+          "name": "把各模块接进 app 并全量编译",
+          "desc": "跨文件接线，要 SwiftUI 构建通过",
+          "size": "中",
+          "needs": [
+            "swiftui_build"
+          ],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "S9",
+          "name": "README 与 CHANGELOG",
+          "desc": "按定稿方案更新文档",
+          "size": "小",
+          "needs": [],
+          "difficulty_expected": "易"
+        }
+      ]
+    },
+    "ruvo": {
+      "project": "RUVO：卡牌价格网站（Node 构建脚本 + 静态页面 + 截图比对工具）。有 npm test。Codex 沙箱起不了本地静态服务和 Chromium（上次 T0、T3b 浏览器验收 0 张截图）。",
+      "tasks": [
+        {
+          "id": "T0",
+          "name": "截图比对工具加手机视口",
+          "desc": "改 Playwright 截图/比对脚本，开发过程本身要起本地服务和 Chromium 反复看图",
+          "size": "中",
+          "needs": [
+            "browser_dev",
+            "local_server"
+          ],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "T3b",
+          "name": "首页榜单与筛选",
+          "desc": "构建脚本输出完整母集、客户端先筛后排；有 31 个单测可跑；最终要在浏览器里看首页",
+          "size": "中",
+          "needs": [
+            "browser_verify"
+          ],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "T4",
+          "name": "单卡页涨幅与売れ方",
+          "desc": "数据管线（下采样、三价涨幅）+ 页面 + 日文文案",
+          "size": "大",
+          "needs": [
+            "browser_verify",
+            "foreign_copy"
+          ],
+          "difficulty_expected": "难"
+        },
+        {
+          "id": "T8",
+          "name": "记录与说明文档",
+          "desc": "更新 plan 执行记录和 README 段落",
+          "size": "小",
+          "needs": [],
+          "difficulty_expected": "易"
+        },
+        {
+          "id": "T-S",
+          "name": "店铺陈列分析文档",
+          "desc": "读竞品与现有数据，写一份分析文档，不改代码",
+          "size": "中",
+          "needs": [],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "T9",
+          "name": "批量把旧字段名替换为新字段名",
+          "desc": "40 个文件里机械替换 + 跑测试",
+          "size": "小",
+          "needs": [],
+          "difficulty_expected": "易"
+        }
+      ]
+    },
+    "mia": {
+      "project": "Mia：微信助手（Node 网关 + Swift 日程桥 + Obsidian 共享记忆）。有单测与评测脚本。",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "人设与路由说明文档",
+          "desc": "中文 skill 文档，描述人设与指令路由",
+          "size": "小",
+          "needs": [
+            "chinese_copy"
+          ],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "T2",
+          "name": "重复提醒、定时汇报、无日期待办",
+          "desc": "含时区与夏令时、跨日停机恢复、发送上限、幂等；接口已写清，有单测",
+          "size": "大",
+          "needs": [],
+          "difficulty_expected": "难"
+        },
+        {
+          "id": "T3",
+          "name": "功能评测脚本",
+          "desc": "脚本本身会反复调用 Codex Luna 跑评测（上次 78 次）",
+          "size": "中",
+          "needs": [
+            "calls_models"
+          ],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "T4",
+          "name": "联网确认日历授权",
+          "desc": "要联网装依赖并走一次授权流程",
+          "size": "小",
+          "needs": [
+            "network"
+          ],
+          "difficulty_expected": "易"
+        },
+        {
+          "id": "T5",
+          "name": "写记忆种子到 Obsidian",
+          "desc": "往外置盘 Obsidian 库写种子文件",
+          "size": "小",
+          "needs": [
+            "outside_workspace"
+          ],
+          "difficulty_expected": "易",
+          "sensitive": true
+        },
+        {
+          "id": "T6",
+          "name": "构建并发版 Host",
+          "desc": "升级常驻 Host，会重启微信链路（生产）",
+          "size": "中",
+          "needs": [
+            "production"
+          ],
+          "difficulty_expected": "中",
+          "sensitive": true
+        }
+      ]
+    },
+    "cardestiny": {
+      "project": "Cardestiny：Expo/React Native 卡牌占卜 app，含付费墙与券账本。tsc / lint / 场景测试可跑。",
+      "tasks": [
+        {
+          "id": "E1",
+          "name": "状态与服务层",
+          "desc": "状态管理与服务层改造",
+          "size": "中",
+          "needs": [],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "E2a",
+          "name": "结果页与付费墙",
+          "desc": "付费墙、券账本原子提交，涉及钱",
+          "size": "中",
+          "needs": [],
+          "difficulty_expected": "难",
+          "sensitive": true
+        },
+        {
+          "id": "E2b",
+          "name": "引擎与匹配",
+          "desc": "测算引擎与匹配逻辑",
+          "size": "中",
+          "needs": [],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "E3",
+          "name": "每日循环",
+          "desc": "每日签主按钮与状态",
+          "size": "小",
+          "needs": [],
+          "difficulty_expected": "中"
+        },
+        {
+          "id": "F1",
+          "name": "字体子集与接线",
+          "desc": "思源宋体子集化并接进 app",
+          "size": "小",
+          "needs": [],
+          "difficulty_expected": "易"
+        },
+        {
+          "id": "C1",
+          "name": "英日文案评审",
+          "desc": "评审英文与日文文案",
+          "size": "小",
+          "needs": [
+            "foreign_copy"
+          ],
+          "difficulty_expected": "中"
+        }
+      ]
+    }
+  }
+}

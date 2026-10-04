@@ -1,0 +1,52 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "verdict": {"type": "string", "enum": ["PASS", "NO_PASS"]},
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": {"type": "string"},
+          "status": {"type": "string", "enum": ["ok", "weak", "missing"]},
+          "note": {"type": "string"}
+        },
+        "required": ["item", "status", "note"]
+      }
+    },
+    "new_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "severity": {"type": "string", "enum": ["blocking", "should", "nit"]},
+          "scope": {"type": "string", "enum": ["in", "out"]},
+          "title": {"type": "string"},
+          "evidence": {"type": "string"},
+          "suggestion": {"type": "string"}
+        },
+        "required": ["severity", "scope", "title", "evidence", "suggestion"]
+      }
+    },
+    "open_issue_verdicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "verdict": {"type": "string", "enum": ["resolved", "still_open", "escalate"]},
+          "reason": {"type": "string"}
+        },
+        "required": ["id", "verdict", "reason"]
+      }
+    },
+    "alternative": {"type": "string"},
+    "reply_to_chair": {"type": "string"},
+    "questions_for_chair": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["verdict", "checklist", "new_issues", "open_issue_verdicts", "alternative", "reply_to_chair", "questions_for_chair"]
+}

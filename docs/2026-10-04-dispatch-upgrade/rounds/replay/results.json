@@ -1,0 +1,1525 @@
+[
+ {
+  "table": "reverie",
+  "scenario": "B_claude_rich",
+  "run": 1,
+  "rows": [
+   {
+    "id": "S0",
+    "difficulty": "易",
+    "verify_condition": "要真机：旧版 app 在本机接副屏跑起来，截图和行为记录齐全（音乐页、额度页、副屏窗口行为各有截图和文字说明）",
+    "env": "本机真机（接副屏），不进 Codex 沙箱；子代理在本机启动旧版 app 并用 screencapture 截图，如需屏幕录制权限由主席先授权",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "主席说 Codex 这周别指望，读数也是空，按「Codex 紧、Claude 多」一列排；要真机，执行环境排除 Codex。照表「要浏览器、模拟器、本地服务」是 Opus/high，这件只是记录现状、不做开发，按取证类给 rt-builder-light（Sonnet/medium），不照表派的理由在此。必须在 S1 之前做完，作为拆分后的对照基线。",
+    "verify_method": "易：执行方自测，Argo 读产出的截图目录和行为记录，逐项对照任务书列出的页面和行为是否都覆盖到",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "截图文件清单 + 行为记录文档（rounds/exec-S0.md），写进 plan §11"
+   },
+   {
+    "id": "S1",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：拆分后 xcodebuild 全量编译通过；git diff -M 显示只有搬运和必要的访问级别调整，无行为改动；启动后与 S0 截图基线对得上",
+    "env": "本机，要 SwiftUI 构建，不进 Codex 沙箱（沙箱编不过 SwiftUI 宏插件）；大搬运，先单独在主干落地，再开后面的并行 worktree",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "1500 行搬运本身机械，但 Swift 的 private 作用域跨文件会失效，要判断访问级别，且必须全量编译过，按「接口和验收写清楚的实现」判中；中实现在「Codex 紧、Claude 多」一列是 Opus/high，派 rt-builder。大搬运类按规则先单独落地，T6/T9/T5/T10 等它合进主干后再开 worktree。",
+    "verify_method": "中：本应换一家跑证据。Codex 空；网页 Pro 读不到仓库也跑不了 SwiftUI 构建，这件的证据全靠本机编译和 diff，所以跳过 Pro，直接由 rt-checker（Opus/high）另开会话跑 xcodebuild、git diff -M --stat 查搬运相似度、启动截图对照 S0，注明「同家验收」",
+    "verifier": {
+     "side": "claude",
+     "model": "opus"
+    },
+    "evidence": "xcodebuild 输出摘要（成功行与警告数）+ git diff -M 相似度统计 + 与 S0 的截图对照，写进 rounds/check-S1.md"
+   },
+   {
+    "id": "S6",
+    "difficulty": "中",
+    "verify_condition": "要真机加主席看：三套方向各有实机截图（音乐页、额度页），主席选定一套并记入账本",
+    "env": "本机真机（副屏），要 SwiftUI 构建，不进 Codex 沙箱；Argo 加载 vela 写任务书和方向说明，子代理在独立 worktree 做三套并截图",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "界面视觉加主席反复看，表里三列都是 Opus/high，省不了；Codex 这周不可用，「Codex 先写 Opus 改」的路子也走不通。主会话只写任务书和方向说明（带 vela 检查单），实现派 rt-builder。排在 S1 落地之后。",
+    "verify_method": "主席在实机截图里挑一套，Argo 把选择和理由写进账本；未选中的两套分支保留到 S7 合并后再删",
+    "verifier": {
+     "side": "chair",
+     "model": "主席"
+    },
+    "evidence": "三套实机截图 + 主席选定记录（ledger.md 主席指令区）"
+   },
+   {
+    "id": "T6",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：单测全部通过，覆盖正常快照、缺字段、格式异常、空数组等用例；接口签名与 plan 一致",
+    "env": "本机命令行跑单测即可；按规则沙箱能验，但 Codex 空、主席也说别用，交 Claude 子代理在独立 worktree 做",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "接口签名已写、带单测、纯逻辑，属于接口和验收写清楚的中实现；「Codex 紧、Claude 多」一列中实现是 Opus/high，派 rt-builder，S1 落地后与 T9/T5/T10 并行。",
+    "verify_method": "中：换一家。Codex 空，按规则先请网页 Pro 审 diff 和单测输出（解析边界、错误处理）；Pro 走不通时改由 rt-checker 另开会话重跑单测并审，注明「同家验收」",
+    "verifier": {
+     "side": "pro",
+     "model": "网页 GPT Pro"
+    },
+    "evidence": "单测命令与输出摘要（通过数/总数）+ Pro 审稿意见原文，写进 rounds/check-T6.md"
+   },
+   {
+    "id": "T9",
+    "difficulty": "难",
+    "verify_condition": "要 SwiftUI 构建：全量编译通过；状态机单测覆盖切源、并发回调乱序、源消失；本机实测多源切换不串台、红心状态正确",
+    "env": "本机，要 SwiftUI 构建，不进 Codex 沙箱；独立 worktree",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "多数据源归并含异步与状态机，命中并发和跨模块不变量，判难；「Codex 紧、Claude 多」一列难实现是 Opus/xhigh，派 rt-builder-hard。",
+    "verify_method": "难：要换一家。Codex 空，先请网页 Pro 审状态机和并发处理的 diff（喂 diff、状态图、单测输出）；编译和实测证据只能本机出，由 rt-checker 另开会话跑并注明「同家取证」，Pro 的审稿意见为跨家结论",
+    "verifier": {
+     "side": "pro",
+     "model": "网页 GPT Pro"
+    },
+    "evidence": "xcodebuild 与单测输出摘要 + 多源切换实测记录 + Pro 审稿意见原文，写进 rounds/check-T9.md"
+   },
+   {
+    "id": "T5",
+    "difficulty": "难",
+    "verify_condition": "要真机：主席授予辅助功能权限后，落到副屏的其他 App 窗口能被挪回主屏；未授权时有明确提示、不崩溃；多显示器排列变化时行为正确",
+    "env": "本机真机（接副屏），依赖辅助功能权限，不进 Codex 沙箱；权限授予要主席在系统设置里点",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "依赖系统权限和系统窗口行为，命中权限类，判难。执行环境先排除 Codex；表里「要本地服务/真机」一行是 Opus/high，难度再往上取 rt-builder-hard（Opus/xhigh），不照表的理由在此。",
+    "verify_method": "权限类不接受同家验收。Codex 空，先请网页 Pro 审 diff（权限检测、未授权分支、失败路径）；真机行为由主席授予权限后实测，Argo 记录挪窗结果。Pro 也走不通时停下问主席，不改成 Opus 同家验收",
+    "verifier": {
+     "side": "pro",
+     "model": "网页 GPT Pro"
+    },
+    "evidence": "真机实测记录（授权前后、各窗口场景）+ 截图 + Pro 审稿意见原文，写进 rounds/check-T5.md"
+   },
+   {
+    "id": "T10",
+    "difficulty": "难",
+    "verify_condition": "25 例计划测试全部通过（先在临时前缀下跑，不碰真实路径）；真实部署一次、回滚一次，/Applications 与 LaunchAgent 状态和预期一致，launchctl 查询结果对得上",
+    "env": "要写 /Applications 和 LaunchAgent（launchctl），属于工作区外，不派 Codex 沙箱，也不交子代理执行真实写入；只能 Argo 或主席做",
+    "executor": {
+     "side": "argo",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "写工作区外，规则限定 Argo 或主席执行；涉及权限、回滚和幂等，判难。为守住「主会话不自己写代码」，Argo 先写任务书，脚本和 25 例测试可由 rt-builder-hard 在工作区内用临时前缀写好；对 /Applications 和 launchctl 的真实写入由 Argo 在主席点头后执行。",
+    "verify_method": "权限、迁移类不接受同家验收。Codex 空，先请网页 Pro 审脚本、回滚逻辑和 25 例测试输出；Pro 走不通时停下问主席，不降成 Opus 同家验收",
+    "verifier": {
+     "side": "pro",
+     "model": "网页 GPT Pro"
+    },
+    "evidence": "25 例测试命令与输出摘要（通过数/总数）+ 真实部署和回滚前后的 ls /Applications、launchctl print 输出 + Pro 审稿意见原文，写进 rounds/check-T10.md"
+   },
+   {
+    "id": "S7",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：所有模块接入后 xcodebuild 全量编译通过；启动后音乐页、额度页都能显示，与 S6 选定方向一致",
+    "env": "本机，要 SwiftUI 构建，不进 Codex 沙箱；在 Argo 按依赖顺序合并 S6/T6/T9/T5 之后的主干上做",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "跨文件接线，各模块接口已在前面定下，按中实现判；「Codex 紧、Claude 多」一列是 Opus/high，派 rt-builder。worktree 合并由 Argo 按依赖顺序做，S7 只负责接线和全量编译。",
+    "verify_method": "中：本应换一家。Codex 空；Pro 跑不了构建，这件证据是编译和启动，跳过 Pro，由 rt-checker（Opus/high）另开会话跑全量编译和启动截图，注明「同家验收」；合完后 Argo 再跑一次全量验收",
+    "verifier": {
+     "side": "claude",
+     "model": "opus"
+    },
+    "evidence": "xcodebuild 全量输出摘要 + 启动截图，写进 rounds/check-S7.md"
+   },
+   {
+    "id": "S9",
+    "difficulty": "易",
+    "verify_condition": "命令行能验：README 与 CHANGELOG 内容和定稿 plan 一致，提到的路径、命令都存在",
+    "env": "本机工作区内改文档，命令行即可",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "按定稿方案更新文档，照抄模式，判易；「Codex 紧、Claude 多」一列易活是 Sonnet/medium，派 rt-builder-light，排在 S7 之后。",
+    "verify_method": "易：执行方自测，Argo 读 diff，核对文档里的命令和路径",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "git diff 摘要 + 路径存在性检查输出"
+   }
+  ],
+  "conflicts": [],
+  "notes": "我按 division-of-labor 的「Codex 紧、Claude 多」这一列排了全部九件。主席这周不让用 Codex，quota 读数 Codex 用到 96%、3 天后才重置、重置卡 0 张，正好落在「空」档；Claude 三项最高 20%，是「宽」档。主席的话和读数方向一致，所以 conflicts 为空。Codex 空意味着没有另一家能跑证据。Pro 读不到仓库，也跑不了构建，所以证据只能在本机出的 S1、S7 我跳过 Pro，交 rt-checker 另开会话验，这两件注明「同家验收」。T6、T9 先请网页 Pro 审 diff。T6 在 Pro 走不通时退回 Opus 另开会话，同样注明「同家验收」；T9 的编译和实测证据也由 rt-checker 跑，标「同家取证」。T5（辅助功能权限）和 T10（写 /Applications、LaunchAgent）属于权限类，规则不接受同家验收：只能由 Pro 审，Pro 也走不通时停下问主席，等 Codex 3 天后重置或由主席另外安排，不降成 Opus 同家验收。T10 的真实写入只由 Argo 执行，而且要主席先点头；脚本可以在工作区内用临时前缀写和测。顺序依次是：S0 截基线；S1 单独落地；S6、T6、T9、T5、T10 各开 worktree 并行；Argo 按依赖顺序合并；S7 接线并全量编译；最后 S9。派活前要按规则再跑一次 quota-status.py。"
+ },
+ {
+  "table": "ruvo",
+  "scenario": "A_codex_rich",
+  "run": 1,
+  "rows": [
+   {
+    "id": "T9",
+    "difficulty": "易",
+    "verify_condition": "命令行能验：npm test 全过；grep 旧字段名在 40 个文件里零命中",
+    "env": "Codex workspace-write 沙箱，主干上单独落地（大搬运先做，做完再开并行）",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-luna",
+     "effort": "high"
+    },
+    "reason": "机械批量替换，照表「易」在 Claude 紧、Codex 多一栏给 Luna / high；属于批量改名的大搬运，排在第一个单独落地，T3b、T4 在它之后基于新字段名开 worktree",
+    "verify_method": "执行方自测跑 npm test 和 grep；Argo 读 diff 抽查替换是否只动了字段名",
+    "verifier": {
+     "side": "argo",
+     "model": "argo"
+    },
+    "evidence": "npm test 输出摘要 + grep 旧字段名零命中的命令与输出 + diff 统计"
+   },
+   {
+    "id": "T0",
+    "difficulty": "中",
+    "verify_condition": "要浏览器和本地服务：手机视口截图能生成、比对脚本对手机视口出结果；脚本改动另有命令行可跑部分",
+    "env": "Claude 子代理，独立 worktree，本机起本地静态服务和 Chromium（Codex 沙箱起不了，上次 0 张截图）",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "开发过程本身要起本地服务和 Chromium 反复看图，执行环境压过主席「全派 Codex」的方向（主席说的是能派的才派）；照表「要浏览器」一栏 Claude 紧时这类整件给 Opus，用 rt-builder。占 Claude 额度，见 conflicts",
+    "verify_method": "Claude 做的给 Codex 只读审：读 diff，核对执行方提交的手机视口截图文件与比对输出是否与脚本逻辑一致。照表本该是 6.1 Sol / high，因本机 models_cache 里没有 gpt-6.1-sol，改用 Astra / high 只读",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "执行方产出的手机与桌面视口截图文件路径、比对脚本运行输出；Codex 只读审的意见写进 rounds/check-T0.md"
+   },
+   {
+    "id": "T3b",
+    "difficulty": "中",
+    "verify_condition": "31 个单测命令行可验；最终在浏览器里看首页榜单与筛选，要本地服务",
+    "env": "开发在 Codex workspace-write 沙箱（独立 worktree，T9 落地后开）；浏览器验收在 Claude 子代理，本机起服务",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "开发不需要浏览器，只有验收要；照表「要浏览器」一栏 Claude 紧、Codex 多：Codex 写、Sonnet 子代理跑验收。中实现在这一栏给 Astra / high，Codex 宽不降档",
+    "verify_method": "Sonnet 子代理（rt-builder-light）跑 31 个单测，起本地静态服务打开首页，按 plan 验收标准逐条核对母集完整、先筛后排的结果并截图；跨家验收",
+    "verifier": {
+     "side": "claude",
+     "model": "sonnet"
+    },
+    "evidence": "npm test 31 例结果摘要 + 首页筛选前后截图 + 逐条验收对照，写进 rounds/check-T3b.md"
+   },
+   {
+    "id": "T4",
+    "difficulty": "难",
+    "verify_condition": "数据管线（下采样、三价涨幅）用测试和样例数据命令行验；单卡页要浏览器看；日文文案要过 Opus 改稿",
+    "env": "管线与页面在 Codex workspace-write 沙箱（独立 worktree，T9 落地后开）；日文改稿与浏览器验收在 Claude 子代理，本机起服务",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "大活，管线到页面跨模块，下采样要取舍，判难；难实现沙箱能验，照表给 Astra / high。日文文案按表「Codex 先写 Opus 改」：Astra 出初稿，再派 Opus / high（rt-builder）只改文案。浏览器验收在 Claude 侧",
+    "verify_method": "代码部分：Sonnet 子代理（rt-builder-light）跑 npm test、用样例数据核对下采样点数与三价涨幅算式、起服务看单卡页截图，跨家。日文改稿部分：Opus 改完交 Codex Astra / high 只读审，也是跨家。照表 Claude 紧一栏验收 Codex 的活可用 Codex 另一型号，这里难活按验收分级换一家跑证据，代价是多花一点 Claude 额度",
+    "verifier": {
+     "side": "claude",
+     "model": "sonnet"
+    },
+    "evidence": "测试输出 + 样例数据的涨幅与下采样断言结果 + 单卡页截图 + 日文改稿 diff 与 Codex 只读意见，写进 rounds/check-T4.md"
+   },
+   {
+    "id": "T-S",
+    "difficulty": "中",
+    "verify_condition": "命令行可验：文档存在且覆盖 plan 要回答的问题，每条结论能对回竞品材料或现有数据文件",
+    "env": "Codex workspace-write 沙箱，只写分析文档这一个文件，不动代码",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "不改代码的分析文档，要判断不只是取证；表里「取证」一栏给 Luna 或 6.1 Sol 只读，这里要写文件且要推理，又因 models_cache 里没有 gpt-6.1-sol，改用 Astra / high。同家验收，见 verify_method",
+    "verify_method": "同家验收：Codex Luna / high 只读，逐条核对结论引用的文件与数据是否存在、数字是否对得上。依据是 Claude 紧、Codex 多一栏允许 Codex 另一型号审，且本活不涉钱、权限、迁移",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-luna"
+    },
+    "evidence": "结论与来源文件的对照清单（每条结论对应的文件路径与行或数据字段），写进 rounds/check-T-S.md"
+   },
+   {
+    "id": "T8",
+    "difficulty": "易",
+    "verify_condition": "命令行可验：plan 执行记录与 README 段落按任务书更新，内容与各任务 check 记录一致",
+    "env": "Codex workspace-write 沙箱，所有任务合并、全量验收后最后做",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-luna",
+     "effort": "high"
+    },
+    "reason": "文档易活，照表给 Luna / high；执行记录的事实来自主会话的调度与验收结果，Argo 先把这些写进任务书再派",
+    "verify_method": "执行方自测；Argo 读 diff，核对执行记录里的数字与 rounds/check-*.md 一致",
+    "verifier": {
+     "side": "argo",
+     "model": "argo"
+    },
+    "evidence": "diff + 执行记录与各 check 文件的数字对照"
+   }
+  ],
+  "conflicts": [
+   "主席说「能派的全派 Codex」，Claude 读数是紧（周窗 88%，派活按 90% 当顶，只剩约 2 个点）。执行环境把 T0 整件压到 Opus / high，T4 的日文改稿要 Opus / high，T3b、T4 的浏览器验收要 Sonnet 子代理，这几件都得花 Claude 额度，可能撞顶。排法：T0 按环境给 Opus；Claude 侧这几件串行跑，不并行；派前派后各读一次额度记账；到 90% 就按梯子先挂到 5 小时窗重置后（约 1 小时），周窗再到顶就问主席是等 3 天后重置，还是把 T4 日文改稿退回 Codex 只出初稿、T3b/T4 浏览器验收改由 Argo 在主会话里看。"
+  ],
+  "notes": "派活顺序：T9 先在主干单独落地（批量改名属于大搬运）；之后 T0、T3b、T4、T-S 各开 worktree 并行，Claude 侧的 T0、T4 改稿和两次 Sonnet 验收因额度紧改成串行；全部合并、全量验收后再做 T8。同家验收的只有 T-S（Astra 写、Luna 只读审），在该行已注明；T0 是 Claude 做、Codex 审，T3b、T4 是 Codex 做、Claude 跑证据，都算跨家。型号核对：本机 ~/.codex/models_cache.json（今天 14:05 拉取，codex-cli 0.158.0）里没有 gpt-6.1-sol，只有 gpt-6-astra、gpt-6-sol、gpt-6-luna 等，和 models.md 不一致；按 models.md「以缓存为准」，原本给 6.1 Sol 的位置（T0 验收、T-S 执行）改成 Astra，纪要里报一句。如果 Argo 用 dex-exec 试派确认 6.1 Sol 能用，T0 验收可回到表里的 6.1 Sol / high。Codex 读数是宽（周 20%），两张重置卡这次用不上，留着等到顶时由主席决定刷不刷。所有 Codex 调用显式传 --effort，并带 --disable fast_mode。"
+ },
+ {
+  "table": "ruvo",
+  "scenario": "B_claude_rich",
+  "run": 1,
+  "rows": [
+   {
+    "id": "T9",
+    "difficulty": "易",
+    "verify_condition": "40 个文件里旧字段名 grep 计数为 0，新字段名出现位置与替换清单一致；npm test 全部通过（报具体通过数）",
+    "env": "本地工作区，命令行即可验收，不需要浏览器和服务",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "机械批量替换属于易，主席说这周别指望 Codex，Codex 额度 96% 进了空档，所以从表里 Luna 那一格改走「Codex 紧、Claude 多」列的 Sonnet / medium（rt-builder-light）。批量改名算大搬运，排第一个单独落地，合进 main 后再给 T0、T3b、T4、T-S 开并行 worktree，免得字段名冲突",
+    "verify_method": "执行方自测：跑 grep 计数和 npm test，把输出贴进 exec 记录；Argo 读 diff，抽查替换有没有误伤同名子串",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "grep -rn 旧字段名 的计数输出（为 0）、npm test 摘要（通过/失败数）、git diff --stat"
+   },
+   {
+    "id": "T0",
+    "difficulty": "中",
+    "verify_condition": "截图比对脚本支持手机视口（视口尺寸写进任务书），对首页和单卡页各产出桌面与手机两套截图，比对报告能识别出人为制造的差异；npm test 全部通过",
+    "env": "Claude 侧本地，开发过程要起本地静态服务和 Chromium，Codex 沙箱起不了（上次 0 张截图）",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境先于额度：开发本身就要开浏览器和本地服务，整件给 Opus / high（rt-builder），开 worktree 并行。接口清楚，难度判中",
+    "verify_method": "中难度原本要换一家验收；Codex 空，网页 Pro 跑不了浏览器和本地服务，所以由 rt-checker（Opus / high）另开会话跑本地服务和 Playwright，属同家验收，纪要注明",
+    "verifier": {
+     "side": "claude",
+     "model": "opus"
+    },
+    "evidence": "rt-checker 的命令与输出摘要：起服务命令、截图文件清单与张数、手机视口尺寸、比对报告（含一处人为差异被抓到）、npm test 摘要，写进 plan §11 和 rounds/check-T0.md"
+   },
+   {
+    "id": "T3b",
+    "difficulty": "中",
+    "verify_condition": "构建脚本输出完整母集（条数等于源数据条数），客户端先筛后排；31 个单测全部通过；本地起服务后，浏览器首页的榜单和各筛选组合结果跟单测预期一致",
+    "env": "Claude 侧本地；开发能用命令行和单测，验收要本地服务加浏览器，Codex 沙箱验不了",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "有 31 个单测把接口写清楚了，难度判中；验收要浏览器，按表走 Opus / high（rt-builder），开 worktree 并行。Codex 这周不用",
+    "verify_method": "rt-checker（Opus / high）另开会话跑 31 个单测，起本地服务，用 Playwright 截首页和三组以上筛选组合并核对顺序；Codex 空，网页 Pro 跑不了浏览器，属同家验收，纪要注明",
+    "verifier": {
+     "side": "claude",
+     "model": "opus"
+    },
+    "evidence": "npm test 摘要（31 个通过数）、母集条数对比、首页与筛选组合截图及对应排序核对表，写进 plan §11 和 rounds/check-T3b.md"
+   },
+   {
+    "id": "T4",
+    "difficulty": "难",
+    "verify_condition": "下采样和三价涨幅计算对任务书给的样例数据得出预期值（含跨日边界和缺价样本），新增单测与现有单测全部通过；单卡页在浏览器里正确显示涨幅和売れ方；日文文案附中文对照，主席看中文对照确认",
+    "env": "Claude 侧本地；数据管线命令行能验，页面要本地服务加浏览器",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "数据管线要定下采样口径、三价涨幅算法和时间跨日处理，属取舍加跨模块，判难，用 Opus / xhigh（rt-builder-hard）；按表浏览器活和日文文案是 Opus / high，这里因为难度上调到 xhigh。日文文案按用户规则交付时附中文对照，主席不读日文，只看对照拍板。开 worktree 并行",
+    "verify_method": "rt-checker（Opus / high）另开会话跑管线单测和样例比对，起服务截单卡页；管线 diff 和算法说明贴给网页 Pro 做一遍逻辑复审（Pro 不读仓库也跑不了命令，只审贴过去的 diff）；跑证据这部分属同家验收，纪要注明。文案由主席看中文对照确认",
+    "verifier": {
+     "side": "claude",
+     "model": "opus"
+    },
+    "evidence": "样例数据输入输出对照表、npm test 摘要、单卡页截图、Pro 复审回复原文、日文文案与中文对照表，写进 plan §11 和 rounds/check-T4.md"
+   },
+   {
+    "id": "T-S",
+    "difficulty": "中",
+    "verify_condition": "分析文档覆盖任务书列出的竞品和现有数据维度，每条结论标明出处（文件或数据位置），数字能回查到原数据；不改任何代码文件（git diff 只有这份文档）",
+    "env": "本地只读取材加写一份文档，不需要浏览器、服务和联网",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "表里取证给 Sonnet，这件要从数据里下判断写成分析，超出取证，所以没照表派，改给 Opus / high（rt-builder）。Codex 这周不用",
+    "verify_method": "文档是纯文本，能整份贴给网页 Pro，按「Codex 空先请网页 Pro」做跨家审稿；Argo 抽查三处数字回查原数据",
+    "verifier": {
+     "side": "pro",
+     "model": "GPT Pro（网页）"
+    },
+    "evidence": "Pro 审稿回复原文（阻塞项和建议项）、Argo 抽查三处数字的出处核对、git diff --stat 只含文档"
+   },
+   {
+    "id": "T8",
+    "difficulty": "易",
+    "verify_condition": "README 段落与实际改动一致（命令、视口、字段名对得上）；plan 执行记录写齐每件活的执行方、验收证据位置、失败次数和额度读数差",
+    "env": "本地工作区，命令行即可",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "文档更新属易，按 Codex 紧列走 Sonnet / medium（rt-builder-light）只写 README；plan 执行记录属于 plan 改稿，由 Argo 在全部验收通过后自己追加。排在最后，依赖其余五件合并完",
+    "verify_method": "执行方自测 README 里的命令能跑；Argo 读 diff 对照各件验收记录",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "README diff、README 中命令的实跑输出、plan 执行记录与 rounds/check-T*.md 的对照"
+   }
+  ],
+  "conflicts": [],
+  "notes": "主席的硬话和额度读数这次方向一致，没有撞上：主席说这周别用 Codex，读数也是 Codex 本周 96%、3 天后重置、重置卡 0 张，已进空档；Claude 三项都宽，主会话是 Opus 5.5，Fable 不用。所以六件全派 Claude 侧，Codex 一件不派（dex-exec 遇到空档本来也会拒派），表里本该给 Luna 的易活改给 Sonnet。同家验收要注明的是 T0、T3b、T4：这三件中难度要换一家验收，但 Codex 空，网页 Pro 跑不了本地服务、浏览器和 npm test，所以跑证据由 rt-checker（Opus / high）另开会话来做；T4 的管线 diff 另外贴给 Pro 做一遍逻辑复审。T-S 是纯文档，交网页 Pro 跨家审。执行顺序是 T9 先单独落地并合进 main；然后 T0、T3b、T4、T-S 各开 worktree 并行（四个 Opus 子代理，Claude 额度宽，撑得住）；Argo 按依赖合并后跑一次全量 npm test 加首页和单卡页截图；最后做 T8。T4 的日文文案交付时附中文对照，主席只看中文拍板。派活前后各读一次 quota-status.py，读数差记进账本调度记录。"
+ },
+ {
+  "table": "ruvo",
+  "scenario": "C_both_tight",
+  "run": 1,
+  "rows": [
+   {
+    "id": "T9",
+    "difficulty": "易",
+    "verify_condition": "命令行能验：全仓 grep 旧字段名命中 0 条，npm test 全部通过（与改前基线测试数一致）",
+    "env": "Codex 沙箱 workspace-write，主工作区单独落地（不开并行 worktree）",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-luna",
+     "effort": "medium"
+    },
+    "reason": "机械批量替换，照表是 Luna / high；两边都紧，按梯子第一步降一档到 medium，Luna 消耗约 Sol 的二十分之一，不挤 Codex 剩下的 4 个点。40 个文件统一改名属于批量改名，会碰到 T3b、T4 要改的构建脚本，先单独落地合进主干，再开后面的活。",
+    "verify_method": "执行方自测：跑 grep 和 npm test 并贴输出；Argo 读 diff，确认只改了字段名、没有误伤同名子串",
+    "verifier": {
+     "side": "argo",
+     "model": "argo 主会话"
+    },
+    "evidence": "diff；grep 旧字段名的输出（0 条）；npm test 输出（通过数与基线对照）"
+   },
+   {
+    "id": "T0",
+    "difficulty": "中",
+    "verify_condition": "要本地服务和 Chromium：手机视口截图能生成，比对脚本对手机视口出差异报告；原桌面视口截图与比对结果不回退",
+    "env": "Claude 子代理在本机 worktree 起本地静态服务和 Chromium 开发；Codex 沙箱起不了服务和浏览器（上次 0 张截图），不进沙箱",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "medium"
+    },
+    "reason": "开发本身要反复开浏览器看图，执行环境压过额度，只能 Claude 侧做；照表你定列是 Opus / high，两边都紧按梯子第一步降到 medium。rt-builder 定义钉的是 high，派前确认能否按 medium 调用，不能就保持 high、改走梯子第二步（串行）。",
+    "verify_method": "跨家：Codex 6.1 Sol 只读审 diff 和执行方产出的截图、比对报告；浏览器实跑证据由 rt-builder-light（Sonnet）在新会话重跑截图比对补上，这一段属于同家验收，纪要注明",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "diff；手机与桌面视口截图文件；比对脚本输出；Sonnet 重跑的命令与输出摘要；Codex 只读审稿意见，写进 rounds/check-T0.md"
+   },
+   {
+    "id": "T3b",
+    "difficulty": "中",
+    "verify_condition": "命令行加浏览器：31 个单测全部通过；构建产物含完整母集；浏览器打开首页，榜单先筛后排、筛选切换结果正确",
+    "env": "Claude 子代理本机 worktree；单测命令行可跑，首页验收要起本地服务和浏览器，Codex 沙箱做不了这段验收",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "medium"
+    },
+    "reason": "接口和验收写清楚的中实现；验收要浏览器，照表你定列是 Opus / high。Claude 本周 80%、2 天后重置，离 90% 顶还有 10 个点，Codex 86%、4 天后重置只剩 4 个点，Claude 这边更空，所以不拆成 Codex 写加 Sonnet 验；两边都紧按梯子降到 medium（覆盖不了就保持 high 并串行）。排在 T0 之后串行。",
+    "verify_method": "跨家：Codex 6.1 Sol 只读审 diff 并在沙箱跑 31 个单测；首页浏览器验收由 rt-builder-light（Sonnet）起本地服务截图核对，属同家验收，纪要注明",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "diff；npm test 输出（31 个通过数）；构建产物母集条数；首页筛选前后截图；Codex 审稿意见，写进 rounds/check-T3b.md"
+   },
+   {
+    "id": "T4",
+    "difficulty": "难",
+    "verify_condition": "命令行加浏览器：下采样与三价涨幅有单测覆盖边界（缺价、单点、跨日）并全部通过；单卡页在浏览器里涨幅与売れ方显示正确；日文文案附中文对照，经另一家审过",
+    "env": "Claude 子代理本机 worktree；单测命令行可跑，页面验收要本地服务和浏览器，不进 Codex 沙箱",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "数据管线要定下采样和涨幅口径，跨构建与页面两层，判难；还带日文文案，文案一行照表固定 Opus / high。难实现照表看哪边更空，Claude 更空，原本给 rt-builder-hard（xhigh），两边都紧按梯子降一档到 high，正好落到 rt-builder。体量大，任务书里把管线和页面加文案分两段写，串行排在 T3b 之后。",
+    "verify_method": "跨家：Codex 6.1 Sol 只读审管线逻辑和日文文案（对照中文说明），沙箱跑单测；页面浏览器截图由 rt-builder-light（Sonnet）补，属同家验收，纪要注明。主席不读日文，写手不能自己放行文案",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "diff；单测输出（含边界用例）；单卡页截图；日文文案与中文对照表；Codex 审稿意见，写进 rounds/check-T4.md"
+   },
+   {
+    "id": "T-S",
+    "difficulty": "中",
+    "verify_condition": "文档能判：结论每条有数据或竞品出处可查，覆盖任务书列的分析问题，没改代码（git diff 只有这份文档）",
+    "env": "Claude 子代理只读读仓库数据加写一份文档；竞品资料若要联网，由子代理在本机取，不进 Codex 沙箱",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "要取舍和下判断的分析文档，判中，给 Opus 而不是 Sonnet。不阻塞其他活，按梯子第三步挂到 Claude 周窗 2 天后重置再派，重置后强度不用降，用 rt-builder 的 high。",
+    "verify_method": "跨家：Codex 6.1 Sol 只读核对文档里的数据引用和推理；Codex 届时仍紧（4 天后才重置），用 medium",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "文档本身；git diff --stat（只有这份文档）；Codex 抽查数据出处的意见，写进 rounds/check-T-S.md"
+   },
+   {
+    "id": "T8",
+    "difficulty": "易",
+    "verify_condition": "命令行加读稿：README 段落与实际改动一致，链接和命令能跑；plan 执行记录覆盖每件活的执行方、验收证据和额度读数差",
+    "env": "Codex 沙箱 workspace-write 改 README；plan 执行记录由 Argo 主会话写",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-luna",
+     "effort": "medium"
+    },
+    "reason": "照写的文档活，照表 Luna / high 或 Sonnet / medium；Luna 最省，两边都紧降到 medium。plan 执行记录属于 plan 改稿，归 Argo 自己写，不派出去。所有活验收完之后最后跑。",
+    "verify_method": "执行方自测（README 里的命令跑一遍）；Argo 读 diff",
+    "verifier": {
+     "side": "argo",
+     "model": "argo 主会话"
+    },
+    "evidence": "README diff；README 内命令的运行输出；plan 执行记录段落"
+   }
+  ],
+  "conflicts": [],
+  "notes": "主席说「你定」，没有硬话，所以和额度没有冲突可报。两边读数都是紧：Claude 周窗 80%、2 天后重置，Codex 周窗 86%、4 天后重置，重置卡 0 张。按 90% 当顶算，Claude 剩约 10 个点，Codex 剩约 4 个点，Claude 更空也更早重置，所以要浏览器的三件和分析文档放 Claude，Codex 只接 Luna 级的机械活和 6.1 Sol 只读审。按两边都紧的梯子走了三步：第一步全线降一档强度；第二步改串行，顺序是 T9 先单独落地，再 T0、T3b、T4，最后 T8；第三步把 T-S 挂到 Claude 2 天后重置再派。重置卡 0 张，跑到顶就停，纪要写重置时刻。同家验收要注明的有 T0、T3b、T4 三件：浏览器那段由 Sonnet 子代理跑，和 Opus 执行方同属 Claude；跨家的部分由 Codex 6.1 Sol 只读审 diff 和单测，Codex 沙箱起不了服务和 Chromium。Codex 审稿照表本是 6.1 Sol / high，两边都紧降成 medium，T4 的管线逻辑和日文文案如果 medium 审出来证据不够，再升回 high。rt-builder 的强度钉在 high，T0、T3b 要降到 medium 得在派活前确认能不能覆盖，覆盖不了就保持 high，只靠串行和挂起省额度。这次没有钱、权限、迁移类的活，同家验收不触红线。派活前要按规则再跑一次 quota-status.py，每批派完记一次读数差。"
+ },
+ {
+  "table": "mia",
+  "scenario": "A_codex_rich",
+  "run": 1,
+  "rows": [
+   {
+    "id": "T1",
+    "difficulty": "中",
+    "verify_condition": "命令行可验：文档里列出的每条指令路由都能在网关路由代码里找到对应处理（逐条对照表），人设段落与现有配置一致；中文文风由 Argo 通读放行",
+    "env": "Codex 沙箱可开发可验收（纯文档，只读代码即可）",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "主席硬话「能派的全派 Codex」排第一，Codex 能写中文文档，所以起稿给 Astra/high（表中 Claude 紧 Codex 多列：中实现给 Astra/high）。中文文案一行表上写 Opus/high 省不了，或 Codex 先写 Opus 改，这里取后者：Astra 起稿后由 rt-builder（Opus 5.5/high）只做一轮中文改稿。Claude 周窗 88%，离 90% 顶只剩 2 个点，若改稿前越线就交主席决定是否由 Codex 单独完成",
+    "verify_method": "Codex 另一型号只读核对路由事实（文档条目对代码），输出逐条对照；Argo 读最终 diff 判文风",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "文档 diff；路由逐条对照表（文档条目→代码文件与函数）；改稿前后 diff"
+   },
+   {
+    "id": "T2",
+    "difficulty": "难",
+    "verify_condition": "命令行可验：已有单测全过，并新增覆盖时区切换与夏令时前后、跨日停机后恢复不漏发不重发、发送上限截断、同一提醒重放幂等的用例且全过",
+    "env": "Codex 沙箱可开发可验收（无浏览器、无联网、无外部写入，单测在沙箱内跑）",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "命中时区与夏令时、幂等与重发、定时跨日，判难；沙箱能验，主席要全派 Codex，按表给 Astra/high。体量大，开独立 worktree，排在 T6 发版之前",
+    "verify_method": "Codex 另一型号只读审 diff 并在只读模式跑单测；同家验收（Astra 做、6.1 Sol 验），原因是主席定 Claude 紧，表上该列写 Codex 另一型号只读审，本件不属钱、权限、迁移类",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "单测命令与输出（通过数/失败数）；DST、跨日恢复、上限、幂等四类用例清单与各自结果；审稿意见 rounds/check-T2.md"
+   },
+   {
+    "id": "T3",
+    "difficulty": "中",
+    "verify_condition": "命令行可验：脚本在 mock 模式下单测全过、调用次数与结果汇总格式正确；再由主会话在沙箱外小样本真跑一次（例如 3 条用例），确认能真实调起 Luna 并产出报告",
+    "env": "开发和 mock 验收在 Codex 沙箱；真跑要联网调 Codex CLI，沙箱内做不了，放到主会话 Bash 执行",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "接口清楚的脚本实现判中；沙箱能写能 mock 验，按主席硬话和表给 Astra/high。脚本自己会反复调 Luna（上次 78 次），按成本规则单列一行预算，真跑次数先压到小样本，全量评测排到 T2 合并之后",
+    "verify_method": "Codex 另一型号只读审脚本并跑 mock 单测（同家验收，理由同 T2）；Argo 在沙箱外跑小样本真跑并记派活前后 Codex 读数差",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "mock 单测输出；小样本真跑日志（调用次数、报告文件）；真跑前后 quota-status 读数差记入账本调度记录"
+   },
+   {
+    "id": "T4",
+    "difficulty": "易",
+    "verify_condition": "命令行可验：依赖装上（lockfile diff、安装日志无报错），授权状态查询命令返回已授权",
+    "env": "要联网装依赖，Codex 沙箱不能联网，不进沙箱；授权若弹系统确认框需主席点一次",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "执行环境排在额度方向前面，联网类不进 Codex 沙箱，所以主席的「全派 Codex」够不着这件；活小且机械，按易给 rt-builder-light（Sonnet 5.5/medium），在 Claude 紧的情况下最省。等 Claude 5 小时窗 1 小时后重置再派",
+    "verify_method": "易：执行方自测，Argo 读安装日志与授权状态输出",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "安装日志摘要；lockfile diff；授权状态查询命令与输出"
+   },
+   {
+    "id": "T5",
+    "difficulty": "易",
+    "verify_condition": "命令行可验：外置盘 Obsidian 库里种子文件按清单全部存在，内容与种子规格逐条一致，回读无乱码",
+    "env": "写工作区外（/Volumes/RuruData 的 Obsidian 库），只能 Argo 或主席做，不派 Codex 沙箱",
+    "executor": {
+     "side": "argo",
+     "model": "opus",
+     "effort": "跟会话设置"
+    },
+    "reason": "纪律规定写 Obsidian 不派 Codex 沙箱，执行环境压过主席的「全派 Codex」和额度方向；Argo 主会话照种子清单写入，活小，Claude 消耗低",
+    "verify_method": "易：Argo 写完回读自测；另请 Codex Luna 只读核对文件清单与内容（便宜，顺着主席的 Codex 方向），沙箱读不到外置盘时退回 Argo 回读并在账本注明",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-luna"
+    },
+    "evidence": "写入文件列表与大小/哈希；回读内容对照种子规格的结果"
+   },
+   {
+    "id": "T6",
+    "difficulty": "中",
+    "verify_condition": "要真实生产环境：构建产物版本号正确；Host 重启后健康检查通过、进程启动时间更新、微信链路收发一条测试消息成功；保留可回滚的上一版",
+    "env": "动生产（常驻 Host 重启、微信链路中断），不进 Codex 沙箱，只能 Argo 或主席做；开工前要主席明确授权",
+    "executor": {
+     "side": "argo",
+     "model": "opus",
+     "effort": "跟会话设置"
+    },
+    "reason": "生产类按纪律只能 Argo 或主席，执行环境压过主席的「全派 Codex」；流程清楚判中。依赖 T2、T3 合并且全量验收通过后才发；主席授权这一句写进账本主席指令区",
+    "verify_method": "Claude 做的给 Codex 6.1 Sol/high 只读审：读构建日志、健康检查与链路测试输出；主席在微信端确认收到测试消息",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "构建日志与版本号；重启前后进程启动时间；健康检查命令输出；测试消息往返记录；回滚版本位置"
+   }
+  ],
+  "conflicts": [
+   "主席说「能派的全派 Codex」，但 T4（联网）、T5（写 Obsidian）、T6（动生产）按执行环境和纪律不能进 Codex 沙箱，只能落在 Claude 侧；Claude 周窗已 88%，离派活顶线 90% 只剩 2 个点，这三件加 T1 改稿都要花 Claude 额度。安排：Claude 侧的活全部等 5 小时窗 1 小时后重置再开，周窗一旦越过 90% 就停下问主席。",
+   "T1 中文文案：表上写 Opus/high 省不了，主席硬话要全派 Codex。照硬话由 Astra 起稿，Opus 只改一轮；如果改稿前 Claude 周窗越线，问主席是让 Codex 单独完成还是刷卡等重置。",
+   "验收配对：SKILL 第 9 节要求中、难活换一家验，但主席定 Claude 紧，表上这一列写 Codex 另一型号只读审。T2（难）、T3（中）因此是同家验收（Astra 做、6.1 Sol 验），这样做的代价是盲区可能重合，主席要换成 rt-checker 跨家验就说一声。"
+  ],
+  "notes": "额度读数：Claude 紧（周窗 88%，3 天后重置；5 小时窗 70%，1 小时后重置；Fable 40%），Codex 宽（周窗 20%，6 天后重置，重置卡 2 张）。Codex 这边不用走梯子，重置卡用不上。同家验收的有 T2、T3，都是 Codex Astra 做、gpt-6.1-sol 只读验，两件都不属钱、权限、迁移类。依赖顺序：T2、T3 各开 worktree 并行，T1、T4、T5 和它们互不依赖；T6 等 T2、T3 合并且全量验收通过，再拿到主席的生产授权才发。T3 真跑会调 Codex Luna，按成本规则单列预算，真跑只做小样本，记派活前后 Codex 读数差。主会话型号按实际会话记账（本场按 Opus 记）。models_cache.json 的 slug 核对这次是 fixture 回放，没有跑。"
+ },
+ {
+  "table": "cardestiny",
+  "scenario": "D_hard_instruction",
+  "run": 1,
+  "rows": [
+   {
+    "id": "E1",
+    "difficulty": "难",
+    "verify_condition": "tsc --noEmit 0 错误；lint 0 错误；现有场景测试全部通过；状态与服务层的对外接口和 plan 写的一致，旧调用点全部迁完（grep 旧接口名命中 0）",
+    "env": "命令行可验，不需要浏览器、模拟器或真机；Claude 子代理在独立 worktree 开发。E2a/E2b/E3 都压在这一层上，所以 E1 先单独落地",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "max"
+    },
+    "reason": "主席硬话『代码一律 Opus 5.5 最高强度，Codex 只审不写』排第一，压过额度方向（按 §7 的『Claude 紧、Codex 多』本该给 Astra）。难度判难：主席说了项目『重要、不放心』，而且状态层改造牵涉跨模块不变量。主席说『最高强度』，算点名 max；rt-builder-hard 钉的是 xhigh，派活时要显式覆盖成 max",
+    "verify_method": "跨家验收：Codex gpt-6.1-sol / high 只读审 diff，在只读沙箱里复跑 tsc、lint、场景测试",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "rounds/check-E1.md：tsc/lint/场景测试的命令和输出摘要（通过数和失败数）、旧接口 grep 结果、Codex 审稿意见原文"
+   },
+   {
+    "id": "E2a",
+    "difficulty": "难",
+    "verify_condition": "tsc/lint 0 错误，场景测试全部通过。新增的场景测试要覆盖四种情况：一次购买只扣券、只记账一次；重复点击或重发只记一次（幂等）；中途失败整笔回滚、账本不留半条；余额永不为负。付费墙在未付费和已付费两种状态下行为都对",
+    "env": "命令行可验（场景测试），E1 合入后开独立 worktree；不需要真机，也不碰生产支付",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "max"
+    },
+    "reason": "主席硬话：代码只给 Opus 最高强度。涉及钱，还有原子提交和幂等，判难。按规定钱类不接受同家验收，正好由 Codex 来审。Codex 额度宽，所以验收从表里的 6.1 Sol 升到 Astra",
+    "verify_method": "跨家验收：Codex gpt-6-astra / high 只读审 diff，复跑场景测试，逐条对照四条账本不变量查代码路径",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "rounds/check-E2a.md：每条新增场景测试的名称和结果、全量测试输出摘要、Astra 对原子提交和幂等路径的审查原文"
+   },
+   {
+    "id": "E2b",
+    "difficulty": "难",
+    "verify_condition": "tsc/lint 0 错误；用固定输入跑引擎和匹配的场景测试，输出与 plan 给的期望值逐条一致；边界输入（空牌组、重复卡、极值）都有测试且通过；原有场景测试全部通过",
+    "env": "命令行可验，E1 合入后开独立 worktree，可以和 E2a 并行（额度吃紧时改成串行）",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "max"
+    },
+    "reason": "主席硬话：代码只给 Opus 最高强度。难度判难：主席说『重要、不放心』，引擎匹配逻辑出错用户看不出来，只能靠测试兜",
+    "verify_method": "跨家验收：Codex gpt-6.1-sol / high 只读审 diff，复跑引擎场景测试，抽查边界用例",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "rounds/check-E2b.md：固定输入对期望输出的测试结果表、命令输出摘要、Codex 审稿意见原文"
+   },
+   {
+    "id": "E3",
+    "difficulty": "难",
+    "verify_condition": "tsc/lint 0 错误。新增的跨日测试要覆盖：本地时区午夜前后各签一次，算作两天；同一天重复点击不重复发放；手机切换时区以后不能多签也不能漏签；签到状态在重启 app 后保持。原有场景测试全部通过",
+    "env": "命令行可验（注入时钟的场景测试），E1 合入后开独立 worktree",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "max"
+    },
+    "reason": "主席硬话：代码只给 Opus 最高强度。体量小，但每日签涉及定时跨日、时区和幂等，按 §5 判难",
+    "verify_method": "跨家验收：Codex gpt-6.1-sol / high 只读审 diff，复跑跨日和时区测试",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6.1-sol"
+    },
+    "evidence": "rounds/check-E3.md：跨日、时区、重复点击各条测试的结果，命令输出摘要，Codex 审稿意见原文"
+   },
+   {
+    "id": "F1",
+    "difficulty": "易",
+    "verify_condition": "脚本把子集字体的 cmap 和 app 全部中文文案的字符集做比对，缺字 0；子集文件明显小于原字体（写明前后字节数）；字体已在 app 的字体加载配置里注册，并用在 plan 指定的组件上；tsc/lint 0 错误",
+    "env": "命令行可验（fonttools 子集化加比对脚本），独立 worktree；本机要装 fonttools，所以不进 Codex 沙箱",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "max"
+    },
+    "reason": "活本身是照模式的机械操作，判易。按 §7『易』本该给 Luna 或 Sonnet，但这是代码，主席硬话把代码一律交给 Opus 最高强度，所以 Opus max 也做。这样做额度花得重，已写进 conflicts",
+    "verify_method": "执行方自测（跑比对脚本，贴出缺字数），Argo 读 diff。属于同家验收：易活按 §8 允许",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "rounds/check-F1.md：比对脚本的命令和输出（缺字数）、子集前后的字节数、注册字体处的 diff 摘要"
+   },
+   {
+    "id": "C1",
+    "difficulty": "中",
+    "verify_condition": "英文和日文文案逐条都有结论（保留或改，改的给出改后文本），覆盖率 100%；每条附中文对照，意思与中文原意一致；日文按独立写作的标准评，不当英文的直译件；按术语表核对卡名和品牌名",
+    "env": "纯文本，不跑代码；Codex 只读沙箱就能完成评审",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "这是文案评审，不写代码，主席『Codex 只审』的话允许 Codex 来做。§7 文案一行写的是 Opus/high，也允许『Codex 先写 Opus 改』。Claude 紧、Codex 宽，所以由 Astra 先出逐条评审，Opus 把意见改定，再附中文对照交主席。主席不读英日文，写手不能自己放行",
+    "verify_method": "跨家验收：Claude rt-checker（Opus 5.5 / high）逐条核对 Astra 的意见，改定最终文案，生成中英日三栏对照",
+    "verifier": {
+     "side": "claude",
+     "model": "opus"
+    },
+    "evidence": "rounds/check-C1.md：逐条评审表（原文、问题、改后文本、中文对照）和覆盖率计数，rt-checker 改定的地方注明理由"
+   }
+  ],
+  "conflicts": [
+   "主席硬话『代码一律 Opus 5.5 最高强度』和额度撞上了：Claude 周窗已用 85%，读数为紧，3 天后才重置，派活按 90% 当顶，只剩约 5 个点；Codex 只用了 15%，额度宽。我按硬话把 E1、E2a、E2b、E3、F1 五件代码活全部排给 Opus max，代价是这五件很可能把 Claude 周窗推过 90%。到顶时的处理顺序：先把并行改成串行，E1 之后 E2a、E2b、E3 逐件跑；再把 F1 这类不急的挂到 3 天后重置；然后问主席刷不刷重置卡，或者允许降到 xhigh。降强度会碰主席的『最高强度』，所以不默默降，要先问。",
+   "主席说『最高强度』，我当作点名 max。models.md 的 Opus 行只列了 high/xhigh，rt-builder-hard 也钉在 xhigh，派活时要显式覆盖成 max。覆盖不了的话按 xhigh 派，并在纪要里报一句。",
+   "主席自己说了『Claude 紧、Codex 多』。按这个方向，§7 本该把难活和中活给 Astra、易活给 Luna，但主席硬话『Codex 只审不写』优先，所以 Codex 这次只做验收和 C1 文案评审，它宽裕的额度基本用不上。"
+  ],
+  "notes": "额度读数：Claude 5 小时窗 60%、周窗 85%、Fable 35%，取最差档为紧；Codex 周窗 15%，为宽。顺序：E1 先单独落地并通过验收，然后 E2a、E2b、E3、F1 各开 worktree 并行；Claude 额度逼近 90% 时改成串行，Argo 按依赖顺序合并，合完跑一次全量 tsc、lint 和场景测试。验收配对：Opus 写的代码全部交 Codex 只读审，属于跨家；钱类的 E2a 由 Astra 审，满足钱类不接受同家验收的规定。只有 F1 是同家验收（Opus 执行，Argo 读 diff），这是易活，按 §8 允许。C1 由 Codex Astra 评审、Claude rt-checker 复核改定，属于跨家，交付主席时附中文对照。Codex 验收一律走 dex-exec.sh 默认的 -s read-only，带 --disable fast_mode。成本按派活前后的读数差记进账本调度记录。"
+ },
+ {
+  "table": "reverie",
+  "scenario": "A_codex_rich",
+  "run": 1,
+  "rows": [
+   {
+    "id": "S0",
+    "difficulty": "易",
+    "verify_condition": "旧版 app 在副屏真机跑起来，音乐页、额度页各有截图，现有行为逐条记进基线文件（每条可在新版上复查）",
+    "env": "开发本身要真机：要在本机副屏跑旧版 GUI 并截图，Codex 沙箱跑不了 GUI，整件留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "执行环境压过主席「全派 Codex」：真机截图只有 Claude 侧能做，主席原话是「能派的」，这件派不了。活本身是机械记录，按易给 rt-builder-light 省 Claude 周窗（表里「开发本身要环境」那格写 Opus/high，这里没照表，因为只是截图记录、不写代码）。等 5 小时窗 1 小时后重置再派。",
+    "verify_method": "执行方自测（截图齐、行为清单每条有对应截图），Argo 读截图和清单",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "rounds/exec-S0 下的截图文件列表与基线行为清单；screencapture 命令与输出"
+   },
+   {
+    "id": "S1",
+    "difficulty": "中",
+    "verify_condition": "单文件按职责拆成多文件，xcodebuild 全量编译退出码 0；git diff 只有搬运和访问级别调整，无行为改动；S0 基线行为在真机上复查一致",
+    "env": "开发本身要 SwiftUI 构建：边拆边编，Codex workspace-write 沙箱编不过 SwiftUI 宏插件，整件留 Claude 侧；大搬运，先单独落地再开并行",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境压过主席「全派 Codex」：沙箱编不过 SwiftUI，上次四个任务就只验了各自文件，拆给 Codex 等于没法验全量编译。中实现给 rt-builder（Opus/high）。大搬运先落地，其余任务等它合进主干再开 worktree。",
+    "verify_method": "换一家：Codex Astra/medium 只读审 diff，确认纯搬运、无逻辑改动；编译证据由 Claude 侧 xcodebuild 日志提供（Codex 沙箱编不了，只审 diff）",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "xcodebuild build 输出摘要与退出码；git diff --stat 与 rounds/check-S1.md 里 Codex 审查结论；S0 基线复查截图"
+   },
+   {
+    "id": "T6",
+    "difficulty": "中",
+    "verify_condition": "按已写签名实现 CodexBar 快照 JSON 解析，单测覆盖正常快照、缺字段、未知字段、空数组、非法 JSON，测试命令全部通过",
+    "env": "命令行沙箱能验：纯 Swift 逻辑，不依赖 SwiftUI 宏，单测在沙箱里能跑",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "主席「能派的全派 Codex」，这件纯逻辑、沙箱能验，按表 Claude 紧 Codex 多的「中实现」格给 Astra/high。",
+    "verify_method": "同家验收：Claude 周窗紧，按表用 Codex 另一型号 Luna/high 只读重跑单测、审边界用例；最终在 S7 的全量编译里再过一次",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-luna"
+    },
+    "evidence": "单测命令与通过数/失败数；rounds/check-T6.md 里 Luna 的审查要点；S7 xcodebuild 日志里 T6 文件参与编译"
+   },
+   {
+    "id": "T9",
+    "difficulty": "难",
+    "verify_condition": "多数据源 Now Playing 归并的状态机单测覆盖切源、并发回调乱序、源消失，切源不串台；Apple Music 红心在真机上点一次能同步；xcodebuild 全量编译通过",
+    "env": "开发本身要 SwiftUI 构建：异步与状态机要边编边改，沙箱编不过 SwiftUI，整件留 Claude 侧，不拆给 Codex",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "执行环境压过主席「全派 Codex」。含异步、状态机、多源并发，判难，给 rt-builder-hard（Opus/xhigh），没照表那格的 Opus/high，因为难度高；若 Claude 周窗到 90% 顶，按梯子先降到 Opus/high。",
+    "verify_method": "换一家：Codex Astra/high 只读审 diff，重点看并发与状态迁移（Codex 额度多，强度从表里的 medium 提到 high）；构建和单测证据由 Claude 侧日志提供，Argo 在真机上切一次源、点一次红心",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "状态机单测命令与通过数；xcodebuild 输出；rounds/check-T9.md 里 Codex 审查结论；真机切源与红心操作记录"
+   },
+   {
+    "id": "T5",
+    "difficulty": "难",
+    "verify_condition": "别的 App 窗口落到副屏时在设定时限内被挪回主屏；本 app 自己的面板不被挪；未授予辅助功能权限时不崩溃、给出提示；真机上用至少两个第三方 App 复现通过",
+    "env": "开发本身要真机和系统权限：依赖辅助功能权限和多显示器下的系统行为，要边跑边改，Codex 沙箱碰不到，整件留 Claude 侧；授予辅助功能权限那一步由主席在系统设置里点",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "执行环境压过主席「全派 Codex」。依赖系统权限和系统行为、根因常不明，判难，给 rt-builder-hard。权限变更属于要先确认的事，授权由主席亲自做一次。",
+    "verify_method": "权限类不接受同家验收：Codex Astra/high 只读审代码路径与权限处理；真机行为由 Argo 跑驱逐场景并截图/读窗口列表取证，主席看一次结果",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "rounds/check-T5.md 里 Codex 审查结论；真机驱逐前后的窗口位置记录（窗口列表输出）与截图；无权限分支的运行日志"
+   },
+   {
+    "id": "T10",
+    "difficulty": "难",
+    "verify_condition": "部署与回滚脚本的 25 例计划测试全部通过（沙箱里用工作区内临时路径替身 /Applications 与 LaunchAgent 目录）；真部署后 app 在 /Applications、LaunchAgent 加载成功，回滚后恢复到旧版且 launchctl 状态一致",
+    "env": "只有真动工作区外那一步要：脚本谁写都行，Codex 在沙箱里只碰工作区内临时路径跑 25 例；真写 /Applications、改 LaunchAgent（launchctl）那一步只能 Argo 或主席做",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "主席「能派的全派 Codex」：写脚本和跑计划测试派 Codex，涉及写工作区外与回滚幂等，判难，按表给 Astra/high。真部署与真回滚不派 Codex 沙箱，由 Argo 亲自跑。",
+    "verify_method": "写工作区外类不接受同家验收：Argo 读脚本 diff 并亲自在本机跑一次真部署和一次真回滚；Claude 周窗即使紧这件也必须 Claude 侧验",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "25 例测试输出与通过数；真部署与回滚的命令、launchctl list 输出、/Applications 下版本号前后对比，写进 rounds/check-T10.md"
+   },
+   {
+    "id": "S7",
+    "difficulty": "中",
+    "verify_condition": "各模块（T6、T9、T5 及 S6 选定方向）接进 app，xcodebuild 全量编译退出码 0，真机启动后音乐页、额度页都能显示，S0 基线行为复查一致",
+    "env": "开发本身要 SwiftUI 构建：跨文件接线要边编边改，沙箱编不过，整件留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境压过主席「全派 Codex」。接口已定的接线，判中，给 rt-builder（Opus/high）。依赖前面各件合完，Argo 按依赖顺序合并后再派。",
+    "verify_method": "换一家：Codex Astra/medium 只读审接线 diff；全量编译和真机冒烟由 Claude 侧日志与 Argo 真机启动取证",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "xcodebuild 全量输出与退出码；真机启动截图；rounds/check-S7.md 里 Codex 审查结论"
+   },
+   {
+    "id": "S6",
+    "difficulty": "中",
+    "verify_condition": "三套视觉方向各有真机截图（音乐页、额度页），主席选定一套并记进账本",
+    "env": "开发本身要真机和 SwiftUI 构建：出实机截图要编译运行；要主席反复看，留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "按表「界面视觉、要主席反复看的」给 Opus/high，Codex 先写的路子走不通（沙箱编不过 SwiftUI、出不了实机图）。执行环境与主席反复看都压过「全派 Codex」。Argo 把三套截图交主席挑。",
+    "verify_method": "请主席亲自验：主席看三套真机截图挑一套，Argo 核对截图来自真机构建",
+    "verifier": {
+     "side": "chair",
+     "model": "chair"
+    },
+    "evidence": "三套方向的真机截图文件；账本里主席的选择原话"
+   },
+   {
+    "id": "S9",
+    "difficulty": "易",
+    "verify_condition": "README 与 CHANGELOG 按定稿方案更新，提到的模块、脚本、命令与仓库实际一致",
+    "env": "命令行能验：纯文档，无环境需求",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-luna",
+     "effort": "high"
+    },
+    "reason": "主席「能派的全派 Codex」；易，按表 Claude 紧 Codex 多的「易」格给 Luna/high。",
+    "verify_method": "易：执行方自测（文中命令和路径逐条在仓库里能找到），Argo 读 diff",
+    "verifier": {
+     "side": "argo",
+     "model": "opus"
+    },
+    "evidence": "git diff 文档改动；执行方列出的命令/路径核对清单"
+   }
+  ],
+  "conflicts": [
+   "主席说「能派的全派 Codex」，额度读数 Claude 周窗 88%（按 90% 当顶只剩约 2 个点）：S0、S1、S6、T9、T5、S7 六件因开发本身要 SwiftUI 构建、真机或主席反复看，只能留 Claude 侧，照规则排在 Claude，代价是 Claude 周窗大概率在这批里到顶。到顶按梯子走：T9、T5 先从 Opus/xhigh 降到 Opus/high → Claude 侧任务全部串行 → 不急的挂到 3 天后周窗重置 → 停下问主席（两张重置卡是 Codex 的，救不了 Claude 侧）；需要主席知道这个代价，或者说一声这批 Claude 侧活往后排。",
+   "T10 和 T5 属于写工作区外、系统权限类，不接受同家验收，即使 Claude 周窗紧也必须 Claude 侧验：T10 由 Argo 亲自跑真部署与回滚，T5 真机行为由 Argo 取证，这部分也会占 Claude 额度。"
+  ],
+  "notes": "额度读数复核：Codex 本周用了 20%、6 天后重置（时间进度约 14%），按阈值表用量比时间快 6 个点，应判「正常」，脚本标的「宽」不成立；重置卡只代表到顶时可以刷，不等于现在宽。不影响方向，主席已定 Codex 优先。Claude 5 小时窗 70%、1 小时后重置，Claude 侧任务等这次重置后再开。同家验收：T6 是 Codex Astra 写、Codex Luna 只读审，属于同家验收，原因是 Claude 周窗紧按表取 Codex 另一型号；最终靠 S7 的全量编译再过一遍。T10 真部署与回滚只由 Argo 做，Codex 沙箱只碰工作区内临时路径。S6 请主席亲自验（挑方向）。T5 授予辅助功能权限一步由主席在系统设置里亲自点。Codex 当验证方审 S1、T9、T5、S7 时编不了 SwiftUI，只审 diff，编译与真机证据来自 Claude 侧日志和 Argo 真机取证。顺序：S0 → S1（大搬运单独落地）→ 并行 T6、T10 脚本（Codex，各开 worktree）与 T9 → T5（Claude 侧串行，省周窗）→ S6 → S7 → T10 真部署 → S9。派活前后各读一次 quota-status.py，读数差记进账本调度记录。"
+ },
+ {
+  "table": "reverie",
+  "scenario": "A_codex_rich",
+  "run": 2,
+  "rows": [
+   {
+    "id": "S0",
+    "difficulty": "易",
+    "verify_condition": "旧版 app 在副屏实机跑起来，音乐页、额度页各有截图，现有行为逐条写成对照清单",
+    "env": "开发本身要真机：要在本机副屏跑旧版 app 并截图，Codex 沙箱没有图形界面，整件留在 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "按执行环境排在 Claude 侧。表里这格写的是 Opus / high，这里没照表派：活是机械的跑和截图，Claude 周窗只剩 2 个点就到 90% 的顶，所以降到 rt-builder-light。主席说的「能派的全派 Codex」不包括这件，它派不了",
+    "verify_method": "难度是易，执行方自测，Argo 看截图和行为清单，核对两页都覆盖到",
+    "verifier": {
+     "side": "argo",
+     "model": "fable"
+    },
+    "evidence": "截图文件（音乐页、额度页）加旧版行为清单，存进 rounds/exec-S0.md"
+   },
+   {
+    "id": "S1",
+    "difficulty": "中",
+    "verify_condition": "按职责拆成多文件、多目录，xcodebuild 全量编译通过，diff 里只有搬移，行为不变（和 S0 的基线对照）",
+    "env": "开发本身要 SwiftUI 构建：搬运时要边编边改，Codex 的 workspace-write 沙箱编不过 SwiftUI 宏插件，整件留在 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境压过主席的「全派 Codex」，按表派 Opus / high（rt-builder）。这件是大搬运，要先单独落地、合进主干，T9、S7 再开并行",
+    "verify_method": "中等难度，换一家验：Codex Astra / medium 只读审 diff，确认只有移动、没改逻辑。编译证据由执行方附 xcodebuild 日志，Argo 合并后再全量编译一次",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "xcodebuild 全量构建的输出摘要，加 Codex 只读审稿的结论，写进 rounds/check-S1.md"
+   },
+   {
+    "id": "S6",
+    "difficulty": "中",
+    "verify_condition": "三套视觉方向都在副屏实机跑出截图，主席选定一套，选定结果入账本",
+    "env": "开发本身要 SwiftUI 构建和真机：每套方向都要编出来在副屏截图，整件留在 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "界面视觉要主席反复看，又要真机，按表只能 Opus / high，省不下来。Codex 编不了 SwiftUI，所以「Codex 先写、Opus 改」这条路也走不通。出方向前先加载 vela 检查单",
+    "verify_method": "主席看三套实机截图，亲自挑一套，Argo 把裁定记进账本",
+    "verifier": {
+     "side": "chair",
+     "model": "chair"
+    },
+    "evidence": "三套方向的实机截图，加主席的选择（记在 ledger.md）"
+   },
+   {
+    "id": "T6",
+    "difficulty": "中",
+    "verify_condition": "解析器符合已写好的接口签名，CodexBar 快照 JSON 的单测全部通过，含字段缺失、格式异常的样例",
+    "env": "纯逻辑，命令行就能验：swift test 或 swiftc 单独编这个不含 SwiftUI 的模块加测试，Codex 沙箱里能跑",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "主席说全派 Codex，额度读数也是 Codex 宽，两边一致。按「Claude 紧、Codex 多」那一列，中等实现给 Astra / high",
+    "verify_method": "按「Claude 紧」那一列的验收格，换 Codex 另一个型号 Luna / high 只读审，并重跑单测。这是同家验收，在纪要里注明。S7 接线时 Claude 侧做全量编译，算作补的跨家证据",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-luna"
+    },
+    "evidence": "单测命令和输出摘要（通过数、失败数），加 Luna 审稿意见，写进 rounds/check-T6.md"
+   },
+   {
+    "id": "T9",
+    "difficulty": "难",
+    "verify_condition": "多个数据源的 Now Playing 状态能正确归并，切换来源不串台，Apple Music 红心状态和来源一致；状态机单测通过，SwiftUI 全量编译通过，实机切源检查一遍",
+    "env": "开发本身要 SwiftUI 构建：异步状态机要边编边调，按规则整件留在 Claude 侧，不把纯逻辑拆给 Codex",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "这件有异步和状态机，判为难，按理该用 rt-builder-hard（xhigh）。但表里这一行写的是 Opus / high，Claude 周窗又只差 2 个点到顶，所以先用 high。执行失败一次，再升 xhigh 或改派",
+    "verify_method": "难活换一家验：Codex Astra 只读审状态机和并发逻辑。表里写 medium，这里升到 high，因为活难、Codex 额度又宽。Argo 实机跑一遍切源，确认不串台",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "状态机单测输出，xcodebuild 日志，Codex 审稿意见，实机切源的记录，写进 rounds/check-T9.md"
+   },
+   {
+    "id": "T5",
+    "difficulty": "难",
+    "verify_condition": "别的 App 的窗口落到副屏后，会被挪回主屏；没有辅助功能权限时能正常降级并给出提示；在实机双屏上验证",
+    "env": "开发本身要真机加系统权限：效果取决于 macOS 窗口行为和辅助功能授权，只能在实机上边改边试，整件留在 Claude 侧。辅助功能权限由主席自己在系统设置里给",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "判为难，因为涉及权限、根因又依赖系统行为。执行环境压过「全派 Codex」。表里这一行是 Opus / high，Claude 额度紧，所以没升 xhigh",
+    "verify_method": "属于权限类，不接受同家验收：Codex Astra / high 只读审代码和权限处理路径。实机双屏验收由主席亲自做（权限也是他给的），Argo 记录结果",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "Codex 审稿意见，加主席实机验收的记录（窗口挪回前后、无权限时的表现），写进 rounds/check-T5.md"
+   },
+   {
+    "id": "T10",
+    "difficulty": "难",
+    "verify_condition": "部署和回滚脚本在沙箱里跑通计划里的 25 例测试，目标路径和 launchctl 都换成工作区内的临时路径或桩；脚本可以重复跑，回滚能还原；之后 Argo 真部署一次，再演练一次回滚",
+    "env": "脚本本身不需要特殊环境，Codex 写，只碰工作区内的临时路径。真写 /Applications、改 LaunchAgent 那一步动的是工作区外，只能 Argo 或主席做，不派 Codex 沙箱",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "high"
+    },
+    "reason": "判为难：涉及幂等、回滚，还要写工作区外。按主席的话和「Claude 紧、Codex 多」那一列，脚本给 Astra / high。真部署那一步留给 Argo",
+    "verify_method": "属于写工作区外、动部署的一类，不接受同家验收。Argo 在 Claude 侧重跑 25 例测试，读 diff，再亲自跑一次真部署和回滚演练",
+    "verifier": {
+     "side": "argo",
+     "model": "fable"
+    },
+    "evidence": "25 例测试的命令和输出摘要，真部署和回滚时的 launchctl 状态、/Applications 前后对比，写进 rounds/check-T10.md"
+   },
+   {
+    "id": "S7",
+    "difficulty": "中",
+    "verify_condition": "各模块（T6、T9、T5 和拆分后的文件）接进 app，xcodebuild 全量编译通过，两页在副屏能正常显示数据，和 S0 的基线对照",
+    "env": "开发本身要 SwiftUI 构建：跨文件接线要边编边改，整件留在 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境压过「全派 Codex」，按表派 Opus / high（rt-builder）。依赖 S1、T6、T9、T5，排在最后合",
+    "verify_method": "中等难度，换一家验：Codex Astra / medium 只读审接线的 diff。Argo 合并后跑全量编译，并在实机打开两页，和基线截图对照",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "xcodebuild 全量构建日志，Codex 审稿意见，实机截图和 S0 基线的对照，写进 rounds/check-S7.md"
+   },
+   {
+    "id": "S9",
+    "difficulty": "易",
+    "verify_condition": "README、CHANGELOG 和定稿方案一致，覆盖本次新增的模块、部署和回滚用法",
+    "env": "纯文本，命令行就能验，Codex 沙箱能做",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-luna",
+     "effort": "high"
+    },
+    "reason": "主席说全派 Codex。按「Claude 紧、Codex 多」那一列，易的活给 Luna / high",
+    "verify_method": "难度是易，执行方自查，Argo 读 diff，对照 plan 核对",
+    "verifier": {
+     "side": "argo",
+     "model": "fable"
+    },
+    "evidence": "文档 diff，加 Argo 对照 plan 的核对记录"
+   }
+  ],
+  "conflicts": [
+   "主席说「能派的全派 Codex」，额度读数是 Codex 宽，这两条一致。但 S0、S1、S6、T9、T5、S7 这六件因为开发本身要 SwiftUI 构建、真机或系统权限，按执行环境只能留在 Claude 侧。Claude 本周已用 88%，按 90% 当顶只剩 2 个点，六件 Opus 和 Sonnet 的活大概率放不下。按梯子我先降强度：T9、T5 用 high 不用 xhigh，S0 降到 Sonnet；Claude 侧改成串行，S0、S1 先做；剩下的可以等 3 天后周窗重置。主席手里的两张重置卡是 Codex 的，帮不了 Claude 这边。要不要越过 90% 的顶，现在就让 Opus 做完，需要主席一句话。",
+   "5 小时窗已用 70%，1 小时后重置，所以 Claude 侧第一批（S0、S1）等重置后再派。"
+  ],
+  "notes": "T6 由 Codex 自己验（Astra 写、Luna 审），属于同家验收。这是按「Claude 紧」那一列的验收格排的，纪要里注明；S7 在 Claude 侧做全量编译，算补上的跨家证据。T5 是权限类，代码由 Codex 跨家审，实机验收请主席亲自做，辅助功能权限也由主席自己给。T10 真写 /Applications 和改 LaunchAgent 由 Argo 亲自执行，Codex 只在工作区临时路径里写脚本、跑 25 例测试。顺序：S1 是大搬运，先单独落地；T6、T10、S9 在 Codex 侧可以和 Claude 侧并行，各开 worktree；S7 最后合。派活前要再跑一次 quota-status.py；gpt-6.1-sol 本机还调不到，这次没用。"
+ },
+ {
+  "table": "reverie",
+  "scenario": "C_both_tight",
+  "run": 1,
+  "rows": [
+   {
+    "id": "S0",
+    "difficulty": "易",
+    "verify_condition": "要真机：在本机副屏上跑旧版 app 截图，人眼对照",
+    "env": "开发本身要真机（跑旧版、截图），整件留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "sonnet",
+     "effort": "medium"
+    },
+    "reason": "执行环境优先：真机截图只能在本机 Claude 侧做；机械记录属易，按表给 rt-builder-light。子代理截不到副屏（缺屏幕录制权限或副屏没接）时由 Argo 用 computer use 补拍。",
+    "verify_method": "执行方自测，Argo 读截图和行为记录",
+    "verifier": {
+     "side": "argo",
+     "model": "argo"
+    },
+    "evidence": "旧版各页截图加行为清单，存 rounds/check-S0.md"
+   },
+   {
+    "id": "S1",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：xcodebuild 全量编译通过，加 diff 核对只搬不改",
+    "env": "开发本身要 SwiftUI 构建（Codex 沙箱编不过宏插件），整件留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境优先：拆文件要边拆边编，整件留 Claude，按表 Opus/high（rt-builder）。属大搬运，先单独落地、合进主线后再开其余任务。验收不照表用 Astra：只搬不改的核对是机械比对，改用 Luna 省 Codex 额度。",
+    "verify_method": "换一家：Codex Luna 只读比对搬运前后代码等价，Argo 读 Claude 侧的 xcodebuild 全量编译输出",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-luna"
+    },
+    "evidence": "xcodebuild 全量编译日志摘要加 Luna 的等价比对报告，写进 §11 和 rounds/check-S1.md"
+   },
+   {
+    "id": "S6",
+    "difficulty": "中",
+    "verify_condition": "要真机截图，主席看图选一套",
+    "env": "开发本身要真机出图，还要主席反复看，整件留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "表里「界面视觉、要主席反复看的」固定给 Opus/high，省不了；任务书带上 vela 检查单。依赖 S1 落地后的工程。",
+    "verify_method": "主席看三套实机截图拍板，选定结果入账本",
+    "verifier": {
+     "side": "chair",
+     "model": "chair"
+    },
+    "evidence": "三套方向的实机截图，主席选择记在 ledger.md"
+   },
+   {
+    "id": "T6",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：单测通过（纯逻辑，不依赖 SwiftUI 宏）",
+    "env": "沙箱能验，开发和验收都不要浏览器、构建或真机",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "medium"
+    },
+    "reason": "接口已写清、纯逻辑，属中实现、沙箱能验。主席说你定，按表给 Astra/medium；这是全表唯一不碰 SwiftUI 构建的实现活，放 Codex 最合适。降一档只降难活，中活已经在表里最低的实现档。",
+    "verify_method": "换一家：rt-checker 拉代码跑单测并读 diff",
+    "verifier": {
+     "side": "claude",
+     "model": "opus"
+    },
+    "evidence": "单测命令与输出摘要（用例数、通过数），写进 rounds/check-T6.md"
+   },
+   {
+    "id": "T9",
+    "difficulty": "难",
+    "verify_condition": "命令行编译加单测（状态机、切源不串台）；真机播放切换做补充对照",
+    "env": "开发本身要 SwiftUI 构建，整件留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "异步加状态机、多源归并属难；执行环境决定留 Claude。表里难活是 Opus/xhigh，两边都紧，按梯子第一步降一档到 Opus/high（派 rt-builder 代替 rt-builder-hard）。",
+    "verify_method": "换一家：Codex Astra/medium 只读审 diff，重点看切源时序和状态迁移；Claude 侧附编译和单测输出",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "Astra 审查报告加 xcodebuild 与单测输出摘要，写进 rounds/check-T9.md"
+   },
+   {
+    "id": "T5",
+    "difficulty": "难",
+    "verify_condition": "要真机：副屏上放别的 App 窗口，确认被挪回主屏；要辅助功能权限",
+    "env": "开发本身要真机反复试，整件留 Claude 侧；辅助功能授权是系统设置，只能主席手动点",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "依赖系统权限和系统行为，属难，也属权限类。执行环境决定留 Claude；梯子第一步降一档，从 xhigh 到 high。授权那一步由主席在系统设置里做。",
+    "verify_method": "权限类不接受同家验收：Codex Astra/medium 只读审代码与权限处理；真机行为请主席亲自验（主席授权后看窗口被挪回）",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "Astra 审查报告加主席真机验收记录（操作步骤和结果），写进 rounds/check-T5.md"
+   },
+   {
+    "id": "T10",
+    "difficulty": "难",
+    "verify_condition": "命令行能验：25 例计划测试只在工作区内临时路径跑；真部署与回滚要动 /Applications 和 LaunchAgent",
+    "env": "写脚本和跑 25 例只碰工作区临时路径，沙箱能做；真动 /Applications、launchctl 那一步只能 Argo 或主席",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-astra",
+     "effort": "medium"
+    },
+    "reason": "幂等、回滚加权限，属难且敏感。主席说你定，表写「看哪边更空」；放 Codex 写，Argo 跑真部署，本身就是跨家验收，Codex 不用再花一次审查。表里给 Astra/high，按梯子降一档到 medium，靠 25 例测试兜底。",
+    "verify_method": "rt-checker 在临时路径重跑 25 例；Argo 主会话亲自跑真部署和一次回滚，确认 /Applications 与 LaunchAgent 状态",
+    "verifier": {
+     "side": "argo",
+     "model": "argo"
+    },
+    "evidence": "25 例测试输出摘要加 Argo 的真部署和回滚日志（launchctl list、/Applications 版本前后对比），写进 rounds/check-T10.md"
+   },
+   {
+    "id": "S7",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：xcodebuild 全量编译通过，app 能启动",
+    "env": "开发本身要 SwiftUI 构建（跨文件接线要边编边改），整件留 Claude 侧",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境优先，按表 Opus/high（rt-builder）。依赖 S1、T6、T9、T5 都合进来后才做。",
+    "verify_method": "换一家：Codex Astra/medium 只读审接线 diff；Argo 读 Claude 侧全量编译和启动输出",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra"
+    },
+    "evidence": "xcodebuild 全量编译日志与启动输出摘要加 Astra 审查报告，写进 rounds/check-S7.md"
+   },
+   {
+    "id": "S9",
+    "difficulty": "易",
+    "verify_condition": "命令行能验：文档内容与定稿方案一致",
+    "env": "沙箱能做，不要任何外部环境",
+    "executor": {
+     "side": "codex",
+     "model": "gpt-6-luna",
+     "effort": "high"
+    },
+    "reason": "照定稿改文档属易。表里给 Luna/high 或 Sonnet/medium；选 Luna，因为它的消耗约是 Astra 的百分之一，Claude 侧的额度留给只能在本机做的构建活。最后做。",
+    "verify_method": "执行方自测，Argo 读 diff",
+    "verifier": {
+     "side": "argo",
+     "model": "argo"
+    },
+    "evidence": "README 与 CHANGELOG 的 diff，Argo 核对记录"
+   }
+  ],
+  "conflicts": [],
+  "notes": "主席只说了「你定」，没有硬话，所以不存在硬话和额度撞上的情况，conflicts 留空。两边读数都是「紧」：Codex 本周 86%，4 天后才重置，没有重置卡，离 90% 的派活上限只剩 4 个点；Claude 本周 80%，2 天后重置，余量多一些，也先重置。两边都紧就按梯子走。第一步降一档强度，只降难活：T9、T5 从 Opus/xhigh 降到 Opus/high，T10 从 Astra/high 降到 Astra/medium。中活没再降，因为 Claude 子代理最低的 Opus 档就是 high，Astra/medium 也已经是表里最低的实现档。第二步并行改串行：S1 先单独落地，然后按 S0 → S6 → T6 → T9 → T5 → T10 → S7 → S9 依次做，减少同时消耗。Codex 那边只派两件 Astra/medium 实现（T6、T10）、三次 Astra/medium 只读审（T9、T5、S7）和两件 Luna 的活。Codex 一到 90% 就按梯子把剩下的审查挂到 4 天后重置；急的先请网页 Pro 审，再允许 Opus 另开会话审，并在纪要里注明「同家验收」。T5 和 T10 属权限类，不接受同家验收：T5 的真机行为请主席亲自验，T10 的真部署和回滚由 Argo 主会话亲自跑。T5 的辅助功能授权要主席在系统设置里手动点。表里有三处没照表派：S1 的验收用 Luna 代替 Astra；T10 交给 Codex 写，这样 Argo 跑真部署就直接算跨家验收；S9 选 Luna 不选 Sonnet。理由都写在对应行里。成本按每批派活前后的读数差记进账本调度记录。没有任务自己会调模型。"
+ },
+ {
+  "table": "mia",
+  "scenario": "B_claude_rich",
+  "run": 1,
+  "rows": [
+   {
+    "id": "T1",
+    "difficulty": "中",
+    "verify_condition": "命令行加人工读：文档覆盖 plan 列出的全部人设要点和每条指令路由，路由表和网关代码里的指令名一一对上（grep 可核）；中文文案要主席看过认可",
+    "env": "无特殊环境，工作区内写 Markdown；属于中文文案、要主席看",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "中文文案查表在三列里都是 Opus / high，主席又说 Opus 额度多、Codex 本周别指望，方向一致。派 rt-builder，任务书要求按 human-writing 起稿。难度判中：内容要按人设做取舍，不能照抄模式，但接口（路由清单）是现成的",
+    "verify_method": "中等难度要换一家审。Codex 处于空档，所以先把文档和路由清单发给网页 Pro 审，Argo 再用 grep 核对指令名，最后由主席读一遍文案拍板。Pro 来不及的话，改由 Opus 另开会话审，纪要注明是同家验收",
+    "verifier": {
+     "side": "pro",
+     "model": "GPT Pro（网页）"
+    },
+    "evidence": "Pro 审稿意见原文；指令名 grep 核对的输出；主席对文案的认可落进账本"
+   },
+   {
+    "id": "T2",
+    "difficulty": "难",
+    "verify_condition": "命令行：现有单测和新增单测全部通过，新增用例要覆盖时区与夏令时切换、跨日停机后恢复、发送上限、重复触发时的幂等",
+    "env": "沙箱能验：开发和验收都只要本地跑单测，不需要浏览器、服务、联网",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "涉及时区和夏令时、定时跨日、幂等与重发，判为难。表里「难实现、沙箱能验」在 Codex 紧、Claude 多那一列是 Opus / xhigh，派 rt-builder-hard，和主席的话、额度读数都一致",
+    "verify_method": "难活要换一家跑证据。Codex 处于空档，按顺序先请网页 Pro：由 rt-checker（Opus / high，另开会话、只读加跑命令）跑全量单测和夏令时、跨日、幂等边界用例，把 diff 和测试输出摘要交 Pro 审逻辑；纪要注明测试证据出自同家另一个会话",
+    "verifier": {
+     "side": "pro",
+     "model": "GPT Pro（网页）"
+    },
+    "evidence": "rounds/check-T2.md：测试命令和通过、失败计数，夏令时、跨日、幂等各用例的输出摘要，Pro 审阅意见原文"
+   },
+   {
+    "id": "T3",
+    "difficulty": "中",
+    "verify_condition": "命令行：模型调用用 mock 替身时脚本单测通过，dry-run 能输出评测清单和预计调用次数；真跑一轮（上次 78 次 Luna 调用）要等 Codex 有额度再做",
+    "env": "开发本身在工作区内、可以 mock；脚本运行时会反复调 Codex Luna，要单列一行模型预算",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "接口清楚的中等实现，Codex 紧、Claude 多那一列是 Opus / high，派 rt-builder。脚本本身消耗 Codex 额度，当前 Codex 读数 96%，超过 90% 的派活上限，重置卡 0 张，所以开发阶段只用 mock 和 dry-run 验，真跑挂到三天后重置，或者等主席改定评测后端",
+    "verify_method": "中等难度要换一家审。Codex 空，先把 diff、mock 测试输出和 dry-run 输出交网页 Pro 审；Pro 来不及就由 Opus 另开会话（rt-checker）审，纪要注明同家。真跑评测的成本按调用前后的读数差另记一行",
+    "verifier": {
+     "side": "pro",
+     "model": "GPT Pro（网页）"
+    },
+    "evidence": "mock 单测计数；dry-run 输出的调用清单和预计次数；Pro 意见原文；真跑一轮的预算行（标明待 Codex 重置）"
+   },
+   {
+    "id": "T4",
+    "difficulty": "易",
+    "verify_condition": "本机实跑：依赖装好，日历授权流程走完，脚本能读到一条日历事件；系统设置里能看到授权状态",
+    "env": "开发本身就要联网装依赖，还要走一次授权流程，只能在真机本地跑",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "活本身是装依赖加跑一遍授权，按难度算易，查表本该派 Sonnet / medium。但执行环境优先于难度：开发过程本身要联网，整件留在 Claude 侧，按表派 Opus / high（rt-builder），不拆给 Codex。授权弹窗要是需要点「允许」，由主席当场点",
+    "verify_method": "这件涉及权限，不接受同家验收；Codex 又是空的，所以由主席亲自验：看系统设置里的日历授权状态，再看脚本读到事件的输出",
+    "verifier": {
+     "side": "chair",
+     "model": "主席本人"
+    },
+    "evidence": "依赖安装日志摘要；授权流程的终端输出；读到日历事件的命令输出；主席在账本里确认授权状态"
+   },
+   {
+    "id": "T5",
+    "difficulty": "易",
+    "verify_condition": "种子文件出现在外置盘 Obsidian 库的约定路径下，内容和工作区里准备好的版本 diff 为空，Obsidian 里能打开",
+    "env": "要写工作区外（/Volumes/RuruData 上的 Obsidian 库）",
+    "executor": {
+     "side": "argo",
+     "model": "fable",
+     "effort": "跟会话设置"
+    },
+    "reason": "写工作区外的那一步只能 Argo 或主席做，执行环境这条压过难度和额度。种子内容可以先由 rt-builder-light（Sonnet / medium）写到工作区里的临时目录（易活、内容机械），再由 Argo 落到 Obsidian 库。主会话型号按当前会话实际记账",
+    "verify_method": "写工作区外属于权限类，不接受同家验收，Codex 也是空的，所以由主席亲自在 Obsidian 里打开核对；Argo 附上落盘前后的 diff 和回读结果",
+    "verifier": {
+     "side": "chair",
+     "model": "主席本人"
+    },
+    "evidence": "工作区临时版本和库内文件的 diff 输出（应为空）；回读的文件列表；主席确认"
+   },
+   {
+    "id": "T6",
+    "difficulty": "中",
+    "verify_condition": "真部署：Host 构建成功，新版本号生效，常驻进程重启后微信链路恢复，发一条测试消息能收到回复，并且留有回滚路径",
+    "env": "动生产：会重启常驻 Host 和微信链路",
+    "executor": {
+     "side": "argo",
+     "model": "fable",
+     "effort": "跟会话设置"
+    },
+    "reason": "动生产的那一步只能 Argo 或主席做，执行环境压过其余几条。构建和发版脚本可以交 rt-builder（Opus / high）在工作区内写好，真正重启生产由 Argo 在主席明确授权后执行。难度判中：步骤清楚，风险在生产，不在逻辑",
+    "verify_method": "动生产不接受同家验收，Codex 又是空的，所以请主席亲自验：看到微信链路恢复，收到测试消息的回复。Argo 亲自跑真部署后的冒烟检查，作为附带证据",
+    "verifier": {
+     "side": "chair",
+     "model": "主席本人"
+    },
+    "evidence": "构建日志摘要；新版本号；重启前后的进程状态；测试消息收发记录；主席确认链路正常；回滚命令写进 §11"
+   }
+  ],
+  "conflicts": [
+   "主席的话（Opus 多、Codex 别指望）和额度读数（Claude 宽、Codex 空 96%）方向一致，选型上没有冲突。",
+   "T3 的评测脚本运行时会调用约 78 次 Codex Luna，Codex 本周已用到 96%，超过 90% 的派活上限，重置卡 0 张。和主席「这周别指望 Codex」直接冲突。我的安排是先用 mock 和 dry-run 交付并验收，真跑挂到三天后 Codex 重置；如果这周就要结果，需要主席一句话把评测后端改到 Claude 侧（这一步越过了原定方向，得先问）。",
+   "Codex 处于空档，T1、T2、T3 三件中等和难的活拿不到另一家审，按规则先请网页 Pro；Pro 跟不上时由 Opus 另开会话审，纪要注明是同家验收。"
+  ],
+  "notes": "按 Codex 紧、Claude 多那一列派活：实现全给 Claude 侧 Opus，难活 T2 用 xhigh，其余用 high。T4 按难度算易，但开发本身要联网，按执行环境优先留在 Claude 侧用 Opus / high，不降成 Sonnet。T5 写 Obsidian、T6 动生产，真动手的那一步都由 Argo 做，脚本和内容可以交子代理在工作区内准备，T6 执行前需要主席明确授权生产发版。验收方面，T4、T5、T6 属于权限、工作区外和生产类，同家验收不收，Codex 又空，所以都请主席亲自验。T1、T2、T3 先交网页 Pro 审，退一步才用 Opus 另开会话审并注明同家验收。主会话型号先按 Fable 记，开场以实际型号为准写进账本；Fable 读数 8%，主会话只做判断、任务书和裁定。"
+ },
+ {
+  "table": "mia",
+  "scenario": "C_both_tight",
+  "run": 1,
+  "rows": [
+   {
+    "id": "T1",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：文档里每条路由能在网关代码的路由表里找到对应入口，人设段落与现有 skill 约定不冲突；中文读感由主席过目",
+    "env": "纯文本写作，开发与验收都不需要浏览器、服务或联网；沙箱内即可",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "中文文案按表固定给 Opus / high（rt-builder），这一格三列相同，额度方向不改它。主席只说「你定」，没有硬话。两边虽都紧，读数都还在 90% 顶线以下，梯子没触发，强度不降",
+    "verify_method": "中难度换一家验：Codex 只读审（dex-review，-s read-only），逐条对照路由表与代码入口；主席在完工报告里过目读感",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra（medium，只读）"
+    },
+    "evidence": "rounds/check-T1.md：路由条目与代码入口逐条对照表，列出不一致处；Codex 审稿原话"
+   },
+   {
+    "id": "T2",
+    "difficulty": "难",
+    "verify_condition": "命令行能验：单测覆盖时区与夏令时切换、跨日停机后恢复、发送上限、重复触发的幂等，全部通过",
+    "env": "沙箱能验，开发与验收都只要本地跑单测，不要浏览器、服务或联网",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "xhigh"
+    },
+    "reason": "时区夏令时、跨日恢复、幂等命中「难」；主席说你定，按表「难实现、沙箱能验 → 看哪边更空」。Claude 周窗 80%、2 天后重置，离 90% 顶线还有 10 个点；Codex 86%、4 天后重置、无重置卡，只剩 4 个点，所以给 Claude 的 rt-builder-hard。优先顺序里难度排在额度方向前面，xhigh 不因两边紧而降",
+    "verify_method": "Claude 做的换 Codex 只读审：读 diff 并在只读沙箱跑单测，重点核夏令时边界与重发幂等的用例是否真覆盖",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra（medium，只读）"
+    },
+    "evidence": "rounds/check-T2.md：单测命令与输出摘要（用例数、通过数，夏令时与跨日用例名单），Codex 审稿结论与原话"
+   },
+   {
+    "id": "T3",
+    "difficulty": "中",
+    "verify_condition": "命令行能验：脚本 dry-run（模型调用打桩或限 3 条用例）跑通、产出评测报告格式正确；全量评测要真调 Codex Luna，单列预算",
+    "env": "沙箱能写能验；脚本运行时会反复调 Codex Luna（上次 78 次），全量跑要 Codex 额度",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "不照表派：表上「中实现、你定」是 Astra / medium。改给 Opus / high（rt-builder），因为 Codex 只剩 4 个点、4 天后才重置，要留给 T1/T2/T3 的跨家只读审和本脚本自己的 Luna 调用；Claude 2 天后先重置，写代码的活放 Claude 侧更稳。按成本规则，脚本自己调模型的消耗在调度记录里单列一行预算",
+    "verify_method": "Claude 做的换 Codex 只读审：读 diff，跑打桩 dry-run；全量评测等 Codex 读数允许再跑，读数到 90% 就挂到 Codex 重置后",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-astra（medium，只读）"
+    },
+    "evidence": "rounds/check-T3.md：dry-run 命令与输出、报告样例；调度记录单列一行：全量评测的 Luna 调用次数与跑前跑后 Codex 读数差"
+   },
+   {
+    "id": "T4",
+    "difficulty": "难",
+    "verify_condition": "要联网、要真走一次授权：依赖装好，授权状态查询为已授权，并能读到一条日历事件",
+    "env": "开发本身就要联网装依赖、走授权流程，整件留 Claude 侧，Codex 沙箱无网做不了",
+    "executor": {
+     "side": "claude",
+     "model": "opus",
+     "effort": "high"
+    },
+    "reason": "执行环境优先：开发本身要联网，按表整件给 Opus / high，不拆给 Codex。授权属于权限，按规则判「难」，环境那一格已定型号强度。授权弹窗的同意那一步要主席点，在 Argo 主会话里走，token 不进任何 prompt 和文件",
+    "verify_method": "权限类不接受同家验收，Codex 沙箱无网跑不了，请主席亲自验：在本机看授权状态并确认读到一条日历事件；diff 另由 Argo 读",
+    "verifier": {
+     "side": "chair",
+     "model": "主席本人"
+    },
+    "evidence": "rounds/check-T4.md：依赖安装日志摘要、授权状态查询输出、读到的那条事件标题与时间；主席确认一句"
+   },
+   {
+    "id": "T5",
+    "difficulty": "易",
+    "verify_condition": "命令行能验：种子文件先在工作区临时目录生成，写入外置盘 Obsidian 后回读，文件清单与 sha256 和暂存版一致",
+    "env": "写工作区外（/Volumes 外置盘 Obsidian 库），这一步只能 Argo 或主席做，不派 Codex 沙箱",
+    "executor": {
+     "side": "argo",
+     "model": "opus",
+     "effort": "会话设置"
+    },
+    "reason": "真动工作区外的那一步只能 Argo 或主席。种子内容是照模式的机械活，可由 Sonnet 子代理先生成到工作区临时路径，Argo 只做写入和回读",
+    "verify_method": "写工作区外属于不接受同家验收的一类：Argo 是 Claude，换 Codex 只读核对暂存版与回读清单、哈希。不照表用 Astra：核对清单和哈希是机械取证，Codex 额度紧，改用 Luna",
+    "verifier": {
+     "side": "codex",
+     "model": "gpt-6-luna（high，只读）"
+    },
+    "evidence": "rounds/check-T5.md：写入文件清单、写入前后 sha256 对照、Codex 核对结论"
+   },
+   {
+    "id": "T6",
+    "difficulty": "中",
+    "verify_condition": "要真部署才能验：构建成功，Host 新版本进程起来，微信链路重启后收发一条测试消息正常，回滚点已记录",
+    "env": "动生产（重启常驻 Host 与微信链路），真部署那一步只能 Argo 或主席；构建脚本谁写都行",
+    "executor": {
+     "side": "argo",
+     "model": "opus",
+     "effort": "会话设置"
+    },
+    "reason": "动生产的那一步只能 Argo 或主席，Argo 亲自跑构建和发版，先记回滚点。步骤和接口清楚，判「中」，生产属性体现在验收上",
+    "verify_method": "动生产不接受同家验收，请主席亲自验：主席在微信上发一条测试消息确认 Mia 正常回话；发版前 Codex 只读审构建与发版脚本的 diff",
+    "verifier": {
+     "side": "chair",
+     "model": "主席本人"
+    },
+    "evidence": "rounds/check-T6.md：构建日志摘要、Host 版本号与进程号前后对照、回滚点、主席测试消息往返的确认；Codex 发版前审稿原话"
+   }
+  ],
+  "conflicts": [],
+  "notes": "主席只说「你定」，没有硬话，所以和额度不冲突，conflicts 留空。两边读数都是紧：Claude 周窗 80%，2 天后重置；Codex 周窗 86%，4 天后重置，重置卡 0 张。两边都还没到 90% 派活顶线，也没进「空」，梯子还没触发，所以没降任何强度。执行先排成串行，Claude 侧按 T2 → T3 → T1 → T4 的顺序做，T5、T6 放在最后由 Argo 做。哪边连着两次读数越过 90%，就按梯子走：降一档强度 → 挂到重置后 → 问主席刷不刷重置卡 → 停。写代码的活都放在 Claude 侧，因为 Claude 先重置；Codex 剩下的 4 个点留给 T1、T2、T3 的跨家只读审、T5 的核对，以及 T3 脚本自己调 Luna 的消耗（单列预算）。Codex 要是先到顶，跨家审先请网页 Pro，再允许 Opus 另开会话审，并在纪要里注明。T4（权限）和 T6（生产）请主席亲自验；T5 写工作区外，用 Codex 只读核对，没有同家验收。T3 是唯一不照表派的，理由写在那一行。"
+ }
+]

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Roadstar · 引路星"
+  short_description: "主席 + Argo（Claude）+ Dex（Codex）把方案谈到能开工；Codex 侧按审稿契约输出、按分工表执行"
+  default_prompt: "按 $roadstar 的分工表执行分给 Codex 的任务，结果写回 rounds/exec-T<n>.md，验收交对方。"
