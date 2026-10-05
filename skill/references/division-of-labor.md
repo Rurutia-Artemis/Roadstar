@@ -8,7 +8,7 @@
 
 | 参与者 | 结构性优势 | 默认派给它的 |
 |---|---|---|
-| Argo（Claude Code 主会话） | 主席就在这个会话里，插话零成本；Plan 模式；本仓库全部 skill（vela / apple-hig / 写作三把刀 / 罗盘）；Obsidian 共享记忆读写；内置浏览器与 Claude in Chrome；iOS 模拟器；Artifact | 规划与取舍、起草与改稿、写任务书、调度、最终整合与裁定、需要主席频繁拍板的活 |
+| Argo（Claude Code 主会话） | 主席就在这个会话里，插话零成本；Plan 模式；本仓库全部 skill（vela / apple-hig / 写作三把刀）；Obsidian 共享记忆读写；内置浏览器与 Claude in Chrome；iOS 模拟器；Artifact | 规划与取舍、起草与改稿、写任务书、调度、最终整合与裁定、需要主席频繁拍板的活 |
 | Dex（Codex CLI） | 另一家模型，盲区与 Argo 不重合；独立沙箱与审批策略；`--output-schema` 结构化输出；能换型号跑不同分量的活；主席的 Codex 侧有生图能力与 C2C 桥（连 Pro） | 审稿和难实现用 `gpt-6-astra`，常规实现、机械批量、只读取证和复核用 `gpt-6.1-sol`（强度按活 low / medium / high）；Luna 不派活；生图类任务 |
 | Pro（网页 GPT Pro） | 主席实测推理水平与 Claude 相当，GPT 侧最强；慢，走网页，不直接读仓库 | 大方案起草、定稿终审；Codex 空时的跨家审稿兜底 |
 | 主席 | 目标、取舍、预算、验收 | 开场定模型用法、争议裁决、开工与定稿的最后一句话 |
