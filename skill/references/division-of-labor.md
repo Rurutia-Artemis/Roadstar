@@ -9,12 +9,13 @@
 | 参与者 | 结构性优势 | 默认派给它的 |
 |---|---|---|
 | Argo（Claude Code 主会话） | 主席就在这个会话里，插话零成本；Plan 模式；本仓库全部 skill（vela / apple-hig / 写作三把刀 / 罗盘）；Obsidian 共享记忆读写；内置浏览器与 Claude in Chrome；iOS 模拟器；Artifact | 规划与取舍、起草与改稿、写任务书、调度、最终整合与裁定、需要主席频繁拍板的活 |
-| Claude 侧子代理 | `roadstar-builder`（Opus 5.5 / high）、`roadstar-builder-hard`（Opus 5.5 / xhigh）、`roadstar-builder-light`（Sonnet 5.5 / medium）、`roadstar-checker`（Opus 5.5 / high，只读加跑命令）；另有内置 Explore 搜文件 | 按任务书实现：难活给 hard，常规给 builder，机械活和取证给 light；跨家验收给 checker |
 | Dex（Codex CLI） | 另一家模型，盲区与 Argo 不重合；独立沙箱与审批策略；`--output-schema` 结构化输出；能换型号跑不同分量的活；主席的 Codex 侧有生图能力与 C2C 桥（连 Pro） | 审稿和难实现用 `gpt-6-astra`，常规实现、机械批量、只读取证和复核用 `gpt-6.1-sol`（强度按活 low / medium / high）；Luna 不派活；生图类任务 |
 | Pro（网页 GPT Pro） | 主席实测推理水平与 Claude 相当，GPT 侧最强；慢，走网页，不直接读仓库 | 大方案起草、定稿终审；Codex 空时的跨家审稿兜底 |
 | 主席 | 目标、取舍、预算、验收 | 开场定模型用法、争议裁决、开工与定稿的最后一句话 |
 
 型号细节见 `models.md`。
+
+主席 2026-10-05 定：实现一律交 Codex，Claude 主会话只做调度、任务书和验收，不再派 Claude 子代理，避免子代理消耗 Claude 额度。需要浏览器或模拟器核验的活，由 Claude 主会话自己做，或交 Codex，不再派 Claude 子代理。
 
 ## 2 额度怎么读
 
@@ -39,13 +40,13 @@
 
 ## 4 主席的话和读数谁算
 
-主席一句话定方向，读数只决定能不能派、什么时候停。重置卡的意思是「到顶时停下等主席刷卡」，不等于现在就宽。主席的硬话和读数撞上（例如主席说实现全给 Opus，Claude 周窗已经紧），照硬话排，纪要里报一句冲突，让主席知道代价。
+主席一句话定方向，读数只决定能不能派、什么时候停。重置卡的意思是「到顶时停下等主席刷卡」，不等于现在就宽。主席的硬话和读数撞上（例如主席指定 Astra，Codex 周窗已经紧），照硬话排，纪要里报一句冲突，让主席知道代价。
 
 ## 5 每件活判四点
 
 - 难度。难：要取舍、跨模块不变量、并发、迁移、权限、钱、时区与夏令时、幂等与重发、定时跨日、根因不明、主席说过「重要、不放心」。中：接口和验收写清楚的实现。易：机械批量、格式、照抄模式。
 - 验收条件。命令行能验，还是要浏览器、模拟器、本地服务、真机。
-- 执行环境。分两种：开发过程本身就要起浏览器、本地服务、模拟器、SwiftUI 构建或联网装依赖的（调样式、改接线、大搬运、要边编边改的），整件留在 Claude 侧；只有验收那一步要这些的，Codex 写、Claude 侧跑验收。要真动 /Applications、LaunchAgent、Obsidian、生产的那一步，只能 Argo 或主席做；脚本本身谁写都行，沙箱里只碰工作区内的临时路径。
+- 执行环境。开发过程本身要起浏览器、本地服务、模拟器、SwiftUI 构建或联网装依赖的，先核对 Codex 的实际环境，写进任务书；缺少环境时由 Claude 主会话或主席跑所需命令、回传证据，代码仍交 Codex 改。只有验收那一步要这些的，Codex 写、Claude 主会话核验，或交具备环境的独立 Codex 会话。要真动 /Applications、LaunchAgent、Obsidian、生产的那一步，只能 Argo 或主席做；脚本交 Codex 写，沙箱里只碰工作区内的临时路径。
 - 上下文。任务书写得全就能派；离不开主会话的，先把上下文写进任务书再派。
 
 ## 6 优先顺序
@@ -57,25 +58,25 @@
 | 活 | 主席说 Claude 紧、Codex 多 | 主席说你定且两边差不多 | 主席说 Codex 紧、Claude 多 |
 |---|---|---|---|
 | 规划、取舍、写任务书、最后裁定 | Argo（主会话） | 同左 | 同左 |
-| 取证（读代码、查现状） | Codex 6.1 Sol / low 只读 | Sonnet 子代理 | Sonnet 子代理 |
-| 审方案 | Astra / high | Astra / high | 6.1 Sol / high；Codex 空时先请网页 Pro，再允许 Opus 另开会话审并注明 |
-| 难实现、沙箱能验 | Astra / high | 看哪边更空 | Opus / xhigh |
-| 中实现、沙箱能验 | Astra / high，Codex 紧才降 6.1 Sol / medium | 6.1 Sol / medium | Opus / high |
-| 易（批量、格式、照抄模式） | 6.1 Sol / low | 6.1 Sol / low 或 Sonnet / medium | Sonnet / medium |
-| 只有验收要浏览器、模拟器、本地服务、真机 | Codex 写，Sonnet 子代理跑验收 | Opus / high | Opus / high |
-| 开发本身就要开浏览器、编 SwiftUI、起服务、联网 | Opus / high（整件，不拆给 Codex） | 同左 | 同左 |
-| 界面视觉、中外文文案、要主席反复看的 | Opus / high（省不了，或 Codex 先写 Opus 改） | 同左 | 同左 |
-| 验收 Codex 做的 | Codex 另一型号只读审（Astra 写的 6.1 Sol 审，6.1 Sol 写的 Astra 审）；钱、权限、迁移类仍要 Claude 这边验 | Opus 子代理跑验收 | Opus 子代理跑验收 |
-| 验收 Claude 做的 | Codex 6.1 Sol / high 只读审 | 同左 | Codex 空时先网页 Pro，再 Opus 另开会话并注明 |
+| 取证（读代码、查现状） | Codex 6.1 Sol / low 或 medium 只读 | 同左 | 同左；空时挂起 |
+| 审方案 | Astra / high | Astra / high | 6.1 Sol / high；Codex 空时先请网页 Pro，或等重置 |
+| 难实现、沙箱能验 | Astra / high 或 xhigh | 同左 | 同左；空时挂起 |
+| 中实现、沙箱能验 | 6.1 Sol / medium 或 high | 同左 | 同左；空时挂起 |
+| 易（批量、格式、照抄模式） | 6.1 Sol / low 或 medium | 同左 | 同左；空时挂起 |
+| 只有验收要浏览器、模拟器、本地服务、真机 | Codex 写，Claude 主会话核验或独立 Codex 会话核验 | 同左 | 同左 |
+| 开发本身就要开浏览器、编 SwiftUI、起服务、联网 | Codex 按难度实现；环境缺口由 Claude 主会话或主席跑命令回传证据 | 同左 | 同左；实现不转 Claude |
+| 界面视觉、中外文文案、要主席反复看的 | Codex 按难度实现，Claude 主会话核对、交主席拍板 | 同左 | 同左 |
+| 验收 Codex 做的 | Claude 主会话跑命令核对，或 Codex 另一型号新会话只读审；钱、权限、迁移类配 Claude 主会话 | 同左 | Claude 主会话跑命令核对 |
+| 验收 Claude 主会话执行的工作区外操作 | Codex 独立只读会话核验实际状态 | 同左 | 先网页 Pro 审证据，或等 Codex 重置、请主席亲自验 |
 
 表是起点，不照表派要在理由栏写一句；max 和 ultra 主席点名才用。表里没有 Luna：主席 2026-10-04 判它太差，不派活。6.1 Sol 要 codex-cli 0.160 以上才调得到（0.158 会 400），派活前看一眼 `codex --version`。
 
 ## 8 验收分级与配对
 
 - 易：执行方自测，Argo 读 diff。
-- 中、难：换一家跑证据（Codex 做的给 `roadstar-checker`，Claude 做的给 Codex 只读）。
-- 钱、权限、迁移类（含写工作区外、动生产）：不接受同家验收。另一家空了就请网页 Pro 审，或等它重置、问主席刷卡，或主席亲自验；纪要里说清选了哪条。
-- Codex 空又需要另一家审：先请网页 Pro，再允许 Opus 另开会话审，纪要里注明。
+- 中、难：Codex 做的由 Claude 主会话自己跑验收命令核对，或另开一个 Codex 只读会话复核。Codex 复核不续接执行会话：Astra 写的配 6.1 Sol / high，6.1 Sol 写的配 Astra / high；主会话记明属于同家独立会话复核并裁定。
+- 钱、权限、迁移类（含写工作区外、动生产）：不接受执行会话自己验收，也不接受仅同家复核。Codex 实现配 Claude 主会话，主会话自己跑钱、权限、迁移与回滚的验收命令，逐条核对实际状态；Claude 主会话执行的工作区外操作配独立 Codex 只读会话。另一家空了就请网页 Pro 审证据，或等它重置、问主席刷卡，或主席亲自验；纪要里说清选了哪条，代码审查不能代替实际状态核验。
+- Codex 空又需要独立复核：Claude 主会话自己跑命令；需要 GPT 侧第二意见时先请网页 Pro，或挂起等 Codex 重置，不再开 Claude 子代理或另一个 Claude 执行会话。
 - 改完再验只在改到同一处逻辑时做。
 
 证据写进 plan §11 和 `rounds/check-T<n>.md`：具体命令与输出摘要，不写「通过」两个字了事。
@@ -94,12 +95,21 @@ scripts/dex-exec.sh <plan-dir> T3 --model gpt-6.1-sol --effort medium --brief <�
 ```
 
 - 默认 `-s read-only`；要改文件加 `--write`（换成 `-s workspace-write`）。`--root` 不给时取 plan-dir 所在的 git 根。
+- 常规实现、机械批量、只读取证用 `gpt-6.1-sol`（low / medium / high 按活选），难活用 `gpt-6-astra`（high / xhigh）。脚本显式传 `-s`、`-m`、`-c model_reasoning_effort=`、`--disable fast_mode`；返工续接按现有 CLI 写法用 `-c` 覆盖型号和沙箱。
 - 长任务加 `--detach`，脚本立即返回；`--status` 查运行中还是已结束、退出码和 meta。
 - 返工加 `--resume <session id>` 接着原会话，session id 在 `rounds/exec-T<n>.meta`。
 - Codex 档位是「空」时脚本拒派，`--force` 放行，用前要有主席的话。
 - 产物都在 `rounds/`：任务书副本 `exec-T<n>-request.md`（再派一次是 `-r2`）、回复 `exec-T<n>.md`、`exec-T<n>-stdout.log`、`exec-T<n>.meta`。
 
-Claude：用 Agent 工具，`subagent_type` 写 `roadstar-builder`、`roadstar-builder-hard`、`roadstar-builder-light`、`roadstar-checker` 之一，prompt 里给任务书路径；并行时加 `isolation: "worktree"`。
+独立 Codex 复核：另写只读验收请求，给任务书、执行回复、diff 和验收标准，不传执行 session id。复核者只读、自己跑命令，报告由主会话保存到 `rounds/check-T<n>.md`：
+
+```bash
+codex exec --skip-git-repo-check -C <项目根> -s read-only -m gpt-6.1-sol \
+  -c model_reasoning_effort=high --disable fast_mode \
+  -o <plan-dir>/rounds/check-T3.md - < <只读验收请求路径>
+```
+
+上例配 Astra 的实现；6.1 Sol 的实现改用 `-m gpt-6-astra`，强度仍显式传 high。`-o` 由 CLI 保存报告，不给复核会话工作区写权限。
 
 主席在 Codex 应用里做的活（生图、要走 Pro、要交互）：主席对 Codex 说「按 <任务书路径> 做 T3」，结果写回 `rounds/exec-T3.md`；主席说「T3 做完了」，Argo 读文件验收。
 
@@ -111,17 +121,17 @@ Claude：用 Agent 工具，`subagent_type` 写 `roadstar-builder`、`roadstar-b
 
 ## 10 改派与失败上限
 
-一件活执行两次、改派一次，第三次 Argo 接手或交主席，每次都记进调度记录的失败次数。改派时任务书末尾带上已有 diff、验收输出和 worktree 路径，下一个执行者不重读仓库。改派不越过主席定的方向；要跨到另一边，先问主席一句。
+一件活执行两次、改派一次，第三次 Argo 接手调查和裁定或交主席，实现仍交 Codex，每次都记进调度记录的失败次数。改派时任务书末尾带上已有 diff、验收输出和 worktree 路径，下一个执行者不重读仓库。改派不越过主席定的型号和强度；要换方向，先问主席一句，不转派 Claude 子代理。
 
 ## 11 两边都紧或都空的梯子
 
 按顺序走，走到能继续为止：降一档强度 → 并行改串行 → 不急的挂到重置后 → 问主席刷不刷重置卡 → 停。每一步记进调度记录，停了就在纪要里写重置时刻。
 
-问主席时的说法：「Codex 用到 90% 了，剩两件实现。按你定的方向我先等它周日 10 点重置；要是想现在做，刷一张重置卡告诉我，或者说一声让 Opus 接。」
+问主席时的说法：「Codex 用到 90% 了，剩两件实现。按你定的方向我先等它周日 10 点重置；要是想现在做，刷一张重置卡告诉我。」
 
 ## 12 常驻指令放哪
 
-本场的记账本「主席指令」区；跨场的（例如「这个项目代码一律 Opus」）记项目 CLAUDE.md。优先级：账本 > 项目 CLAUDE.md > 额度。
+本场的记账本「主席指令」区；跨场的（例如「这个项目难活一律 Astra」）记项目 CLAUDE.md。优先级：账本 > 项目 CLAUDE.md > 额度。
 
 ## 13 成本怎么记
 

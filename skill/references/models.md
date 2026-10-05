@@ -7,8 +7,8 @@
 | 型号 | 用途 | 强度 | 注意点 |
 |---|---|---|---|
 | Fable 5.1 | 主会话：判断、取舍、任务书、裁定 | 跟会话设置走 | 判断最强；Max 套餐里最多占周额度一半，主会话是 Fable 时更要省，不派子任务给它 |
-| Opus 5.5 | 实现主力；跨家验收（`roadstar-checker`） | high / xhigh | Claude Code 里默认强度是 medium，所以子代理定义里钉成 high（`roadstar-builder`、`roadstar-checker`）或 xhigh（`roadstar-builder-hard`） |
-| Sonnet 5.5 | 机械活、取证、轻验收（`roadstar-builder-light`） | medium | 难活不给它 |
+| Opus 5.5 | 主会话：调度、任务书、验收 | 跟会话设置走 | 不派 Claude 子代理，实现交 Codex |
+| Sonnet 5.5 | 当前主会话可用型号 | 跟会话设置走 | 开场建议主席切 Fable 或 Opus，不派实现和验收子代理 |
 | Haiku 4.5 | 只做一句话查询 | 默认 | 不派实现和验收 |
 
 ## Codex 侧
@@ -25,4 +25,4 @@
 
 Fast 档按 2.5 倍扣订阅额度，圆桌脚本一律带 `--disable fast_mode`。
 
-型号会变，缓存里有也不等于当前 CLI 能调。开场核对 `codex --version`（≥ 0.160）和 `~/.codex/models_cache.json` 的 slug 列表，和这张表不一致时在纪要里提一句；第一次用某个型号先拿 `codex exec --skip-git-repo-check -s read-only -m <型号> --ephemeral "只回复两个字：正常"` 探一下，400 先 `codex update` 再试，还不行就换型号并记进账本。Codex 的付费 credits 余额动的是真钱，要用先有主席授权。
+型号会变，缓存里有也不等于当前 CLI 能调。开场核对 `codex --version`（≥ 0.160）和 `~/.codex/models_cache.json` 的 slug 列表，和这张表不一致时在纪要里提一句；第一次用某个型号先拿 `codex exec --skip-git-repo-check -s read-only -m <型号> -c model_reasoning_effort=low --disable fast_mode --ephemeral "只回复两个字：正常"` 探一下，400 先 `codex update` 再试，还不行就换型号并记进账本。Codex 的付费 credits 余额动的是真钱，要用先有主席授权。
