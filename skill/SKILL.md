@@ -142,6 +142,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --brief …`，默认只读，要改文件加 `--write`；脚本显式传 `-s`、`-m`、`-c model_reasoning_effort=`、`--disable fast_mode`，不派 Claude 子代理。长任务、返工、并行 worktree 与合并见 division-of-labor 第 9 节。
 - 验收分级与配对见 division-of-labor 第 8 节：中和难的由 Claude 主会话自己跑命令核对，或另开 Codex 只读会话复核；钱、权限、迁移类由 Claude 主会话核验 Codex 的实现，不接受执行会话自验或仅同家复核。验收标准来自 plan，不临时降标，证据写进 §11。
 - 失败上限和额度到顶的梯子见 division-of-labor 第 10、11 节；每次改派、挂起和成本（派活前后的读数差）都记进调度记录，完工报告写一行。
+- 每条线派出就设止损：时间上限 + 每小时看一次指标走势，不收敛就停，Argo 亲自诊断后再决定收下、交真机判还是缩窄重派；同一问题两轮不收敛，第三轮 Argo 查根因写方案，Codex 只实现（division-of-labor 第 15 节）。
 - 发版或交付前，Argo 在合并后的主干上亲自复跑至少一组完整验收（不只信执行方的数字）；合并后把该线 worktree 挪进废纸篓，自建模拟器删掉，查一眼同机生产服务还活着。
 - 执行期静默；全部通过后在 plan 追加执行记录、写共享记忆、交完工报告（配方见 minutes-template 末尾）。
 
