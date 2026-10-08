@@ -3,7 +3,7 @@ name: roadstar
 description: >-
   Roadstar · 引路星：Claude 主会话当总调度，和 Codex 一起干项目。三种用法：探讨（主席只说构思，两家最强模型几轮谈到能落地）、复盘（两家各读一遍现有项目，交叉审出不足清单和先做的三件事）、协同（方案已有，派活、验收、交报告）。开始前先列出能用的模型让主席选：总调度用什么、探讨和审稿用什么、执行怎么分；派活前每件活先给推荐型号和理由，主席定了才动。触发：「Roadstar」「引路星」「/roadstar」「开圆桌」「探讨一下怎么落地」「复盘这个项目」「看看哪里能改进」「直接调度」「你来安排谁做」「总舵主」。产出在项目 docs/roadstar/<日期>-<slug>/。不处理：小改动、bugfix、一小时内能做完的活（直接干）；只要 Codex 单次二审（→ call-codex）；只要网页 Pro 策划（→ pro-orchestrator）；仅维护本 skill。
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # Roadstar · 引路星：先选模型，再谈、再派、再审
@@ -131,17 +131,18 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 
 派活前再跑一次 `scripts/quota-status.py`。每件活判四点：难度、验收条件、执行环境、上下文，判法见 division-of-labor 第 5 节。多条命中按顺序取第一条：主席的硬话 > 执行环境 > 验收条件 > 难度 > 额度方向。再查 `references/division-of-labor.md` 的表，在主席定的方向里挑型号和强度。
 
-推荐写进 plan §10 分工表（列头见 plan-template）。需要浏览器或模拟器核验的活，由 Claude 主会话自己做，或交 Codex，不再派 Claude 子代理。
+拆线按文件归属：共享中枢（登记表、路由、大 Store）只归一条线，其它线走扩展点或串行；要模拟器的线同时最多两条。推荐写进 plan §10 分工表（列头见 plan-template）。需要浏览器或模拟器核验的活，由 Claude 主会话自己做，或交 Codex，不再派 Claude 子代理。
 
 推荐表给主席看，主席定了才派；主席逐件点的照点，说按推荐的照推荐；不照表推荐要在理由栏写一句。主席的硬话入账本，压过额度；硬话和额度撞上时在纪要里报一句冲突，不默默照做也不默默降级。
 
 ### 9 执行与验收
 
-- 每件活一份任务书（`references/task-brief-template.md`），派给谁都能做。
+- 每件活一份任务书（`references/task-brief-template.md`），派给谁都能做。**一份任务书一个目标、一条能失败的完成线**；独立的事超过三件就拆成多份并行。派之前过一遍 division-of-labor 第 15 节（两天实战踩过的坑与做法）。
 - 任务书写明涉及哪几个模块（用地图里的名字）。改动碰了模块的入口文件、对外接口、测试命令或规矩，执行方在同一提交里更新地图那一节；验收方核对地图和代码一致，不一致算没通过。
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --brief …`，默认只读，要改文件加 `--write`；脚本显式传 `-s`、`-m`、`-c model_reasoning_effort=`、`--disable fast_mode`，不派 Claude 子代理。长任务、返工、并行 worktree 与合并见 division-of-labor 第 9 节。
 - 验收分级与配对见 division-of-labor 第 8 节：中和难的由 Claude 主会话自己跑命令核对，或另开 Codex 只读会话复核；钱、权限、迁移类由 Claude 主会话核验 Codex 的实现，不接受执行会话自验或仅同家复核。验收标准来自 plan，不临时降标，证据写进 §11。
 - 失败上限和额度到顶的梯子见 division-of-labor 第 10、11 节；每次改派、挂起和成本（派活前后的读数差）都记进调度记录，完工报告写一行。
+- 发版或交付前，Argo 在合并后的主干上亲自复跑至少一组完整验收（不只信执行方的数字）；合并后把该线 worktree 挪进废纸篓，自建模拟器删掉，查一眼同机生产服务还活着。
 - 执行期静默；全部通过后在 plan 追加执行记录、写共享记忆、交完工报告（配方见 minutes-template 末尾）。
 
 ## 纪律
@@ -153,7 +154,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 项目要模块化：上手、修改、找 bug 都从地图出发；地图跟着代码改，过期的地图比没有更坏。
 - 范围不悄悄涨：范围外建议一律进停车场。
 - 密钥不进 prompt：喂给 Dex 和 Pro 的内容等于发给外部服务。
-- 不加 `--dangerously-*`；审稿和复核用 `-s read-only`，执行才 `--write`；真动工作区外的那一步（/Applications、LaunchAgent、Obsidian、生产）不派 Codex 沙箱，Argo 或主席做，脚本可以别人写。
+- 默认不加 `--dangerously-*`；审稿和复核用 `-s read-only`，执行用 `--write`。例外只有一种：验收必须起模拟器、开端口、真点界面而沙箱做不到时，用 `-s danger-full-access`，任务书写死边界块（只改本 worktree、临时端口、自建模拟器、不碰生产与用户数据、`HISTFILE=/dev/null`、不提交），见 division-of-labor 第 15 节。真动工作区外的那一步（/Applications、LaunchAgent、Obsidian、生产）仍由 Argo 或主席做。
 - 账本是唯一真相：主席的裁决、双方的让步都要落到 ledger.md，调度记录也在账本，聊天里说过不算。
 
 ## 验证记录
@@ -162,3 +163,4 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 2026-10-02：对账七场实跑（30 轮审稿、5 场执行）：开工的五场里 Codex 只在两场写过代码，分工没有一场按额度定，Claude 侧撞过周限额；细节在共享记忆。
 - 2026-10-04：0.3.0 / 0.3.1 验证（前身 roundtable）。额度探针会话内实测 1.3 秒读到两边、不花额度；dex-review 新旧请求正文逐字节一致；dex-exec 桩测试 29 条全过，真跑 Luna 一句话任务与 resume 跑通（resume 要 `-c model=` 覆盖）；gpt-6.1-sol 在 codex-cli 0.158 上 400、升到 0.160 后能用；四个子代理新会话可见；调度回放 3 场任务表 × 4 种额度情形 310 条检查全过、同情形两遍一致率 9/9。本次升级自己就是按新规矩派的，细节在 CHANGELOG 同日条。
 - 2026-10-04：1.0.0 改名 Roadstar，搬到 `~/Documents/RuruCode/Roadstar`，加第 0 节选模型和第 5 段推荐表两步，三种用法写进 `references/modes.md`。验证：桩测试在新位置 29 条全过（桩的 clientInfo 跟着改名）；`./install.sh` 四处软链、旧 roundtable / rt-* 软链清掉；新会话里 skill 以 roadstar 名字和新 description 可见；选模型那一问和推荐表还没在真实一场里走过，下一场开场就是验证。
+- 2026-10-08：1.3.0 加 division-of-labor 第 15 节。来源是 Mia 移动版两天实战（约 20 条 Codex 线、4 个 TestFlight 版本）：大任务书做一半、无指标导致「解决一半」、并行改同一中枢冲突、沙箱里没真点界面导致首版全屏点不动、多模拟器压垮同机微信接入、测试写脏 bash 历史、worktree 攒到 256 GB。
