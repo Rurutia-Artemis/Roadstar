@@ -199,6 +199,8 @@ for value in "$PLAN_DIR" "$MODEL" "$EFFORT" "$ROOT" "$RESUME"; do
 done
 SANDBOX=read-only
 [[ "$WRITE" -eq 0 ]] || SANDBOX=workspace-write
+CAP_TEXT=无
+[[ -z "$MAX_MINUTES" ]] || CAP_TEXT="$MAX_MINUTES 分钟"
 if [[ -n "$RESUME" ]]; then
   # codex exec resume 不接 -m/-s/-C，而且不沿用原会话的模型（实测 2026-10-04：不传就用 config 默认，当时默认的 gpt-6.1-sol 直接 400）。
   # 所以模型、沙箱用 -c 覆盖，工作目录靠在 ROOT 里启动（见 run_codex）。
@@ -220,7 +222,7 @@ if [[ "$DRY" -eq 1 ]]; then
   choose_request
   printf '命令：'; printf '%q ' "${CMD[@]}"; printf '< %q\n' "$BRIEF"
   printf '请求副本：%s\n结果：%s\n日志：%s\nmeta：%s\n退出码：%s\n' "$REQ" "$OUT" "$LOG" "$META" "$EXIT_FILE"
-  printf '时间上限：%s\n' "${MAX_MINUTES:+$MAX_MINUTES 分钟}${MAX_MINUTES:-无}"
+  printf '时间上限：%s\n' "$CAP_TEXT"
   if [[ "$DETACH" -eq 1 ]]; then printf '后台 PID：%s\n' "$PID_FILE"; fi
   exit 0
 fi
@@ -260,7 +262,7 @@ rm -f "$OUT" "$PID_FILE" "$EXIT_FILE"
 STARTED="$(timestamp)"; FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""
 META_MODEL="$MODEL"; META_SANDBOX="$SANDBOX"; META_ROOT="$ROOT"
 write_meta
-printf '模型 %s / 强度 %s；第 %s 次派活：%s；时间上限：%s\n' "$MODEL" "$EFFORT" "$ATTEMPT" "$TASK" "${MAX_MINUTES:+$MAX_MINUTES 分钟}${MAX_MINUTES:-无}"
+printf '模型 %s / 强度 %s；第 %s 次派活：%s；时间上限：%s\n' "$MODEL" "$EFFORT" "$ATTEMPT" "$TASK" "$CAP_TEXT"
 
 if [[ "$DETACH" -eq 1 ]]; then
   nohup bash "$SCRIPT_PATH" --_worker "$LOCK" "$REQ" "$OUT" "$LOG" "$META" "$EXIT_FILE" \
