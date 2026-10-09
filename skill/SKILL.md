@@ -166,6 +166,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 每件活一份任务书（`references/task-brief-template.md`），派给谁都能做，引用 `docs/roadstar/_common.md` 的常驻边界，只写它没写的。**一份任务书一个目标、一条能失败的完成线**；独立的事超过三件就拆成多份并行。派之前过一遍 division-of-labor 第 15 节。
 - 任务书写明涉及哪几个模块（用地图里的名字）。改动碰了模块的入口文件、对外接口、测试命令或规矩，执行方在同一提交里更新地图那一节；验收方核对地图和代码一致，不一致算没通过。
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --brief … --max-minutes <上限>`，默认只读，要改文件加 `--write`；上限写拆分表里的数（常规 120、难活 240），到点脚本停掉 codex、退出码 124、meta 记 `timed_out=1`。脚本显式传 `-s`、`-m`、`-c model_reasoning_effort=`、`--disable fast_mode`，不派 Claude 子代理。长任务、返工、并行 worktree 与合并见 division-of-labor 第 9 节。
+- 有界面的活（App、网页、终端界面）：任务书的完成线必须包含 vela 的 `references/ui-acceptance.md`（读主席真实配置、真实数据、按任务走、逐项清单、iPad 与深浅色截图）；Argo 验收时亲自逐张看截图、在模拟器里走核心任务，阻塞和应修清零才发版；主席报过的问题进项目 `docs/界面验收清单.md`。
 - 验收按第 8 节表里的审查人做，分级与配对细则见 division-of-labor 第 8 节：钱、权限、迁移类由 Argo 核验实际状态，不接受执行会话自验或仅同家复核。验收标准来自 plan，不临时降标，证据写进 §11。
 - 失败上限和额度到顶的梯子见 division-of-labor 第 10、11 节；每次改派、挂起和成本（派活前后的读数差）都记进调度记录，完工报告写一行。
 - 止损：每条线派出就带 `--max-minutes`，每小时看一次指标走势，不收敛就停，Argo 亲自诊断后再决定收下、交真机判还是缩窄重派；同一问题两轮不收敛，第三轮 Argo 查根因写方案，Codex 只实现。被脚本停掉的线不自动重派。
