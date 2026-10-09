@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # 圆桌 · 把一份任务书交给 Dex（codex exec）执行。
-# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--root DIR] [--write] [--resume SESSION_ID] [--detach] [--status] [--force] [--dry-run]
+# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--root DIR] [--write] [--max-minutes N] [--resume SESSION_ID] [--detach] [--status] [--force] [--dry-run]
 #   T#        如 T3、T3b；产物写到 plan-dir/rounds/exec-T#*。
 #   --root    默认 plan-dir 所在 git 根，找不到用 plan-dir 的上级。
 #   --write   使用 workspace-write；默认 read-only。
+#   --max-minutes N  止损：到 N 分钟还没结束就停掉 codex，退出码 124，meta 记 timed_out=1（常规 120、难活 240）。
 #   --resume  续接会话；resume 不接 -m/-s/-C，脚本改用 -c model= / sandbox_mode= 覆盖并在 root 里启动（不传模型会退回 config 默认）。
 #   --detach  后台执行；--status 查询状态，不需要 model/effort/brief。
 #   --force   Codex 额度为「空」时仍执行；--dry-run 不读额度、不调用 codex。
@@ -33,6 +34,7 @@ write_meta() {
     printf 'model=%s\neffort=%s\nsandbox=%s\nroot=%s\n' "$META_MODEL" "$EFFORT" "$META_SANDBOX" "$META_ROOT"
     printf 'started=%s\nfinished=%s\nexit=%s\n' "$STARTED" "$FINISHED" "$RESULT"
     printf 'session_id=%s\ntokens_used=%s\nresumed_from=%s\nattempt=%s\n' "$SESSION_ID" "$TOKENS_USED" "$RESUME" "$ATTEMPT"
+    printf 'max_minutes=%s\ntimed_out=%s\n' "$MAX_MINUTES" "$TIMED_OUT"
   } > "$tmp"
   mv -f "$tmp" "$META"
 }
@@ -42,9 +44,41 @@ show_failure() {
   if [[ -f "$LOG" ]]; then tail -n 20 "$LOG" >&2; fi
 }
 
+stop_job() {
+  # 先 TERM 让 codex 收尾，十秒不退再 KILL；子进程（沙箱里的 shell）一起清。
+  local pid="$1" i
+  pkill -TERM -P "$pid" 2>/dev/null || true
+  kill -TERM "$pid" 2>/dev/null || true
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    kill -0 "$pid" 2>/dev/null || return 0
+    sleep 1
+  done
+  pkill -KILL -P "$pid" 2>/dev/null || true
+  kill -KILL "$pid" 2>/dev/null || true
+}
+
 run_job() {
-  local rc=0 value
-  (cd "$META_ROOT" 2>/dev/null || cd "$ROOT"; "${CMD[@]}" < "$REQ" > "$LOG" 2>&1) || rc=$?
+  local rc=0 value pid cap waited=0
+  TIMED_OUT=0
+  # 子 shell 里 exec，拿到的 pid 就是 codex 本身，止损时能直接停它。
+  (cd "$META_ROOT" 2>/dev/null || cd "$ROOT"; exec "${CMD[@]}" < "$REQ" > "$LOG" 2>&1) &
+  pid=$!
+  if [[ -n "$MAX_MINUTES" ]]; then
+    # ROADSTAR_MINUTE_SECONDS 只给桩测试把「一分钟」缩短用。
+    cap=$((MAX_MINUTES * ${ROADSTAR_MINUTE_SECONDS:-60}))
+    while kill -0 "$pid" 2>/dev/null; do
+      if (( waited >= cap )); then
+        TIMED_OUT=1
+        printf '\ndex-exec：到时间上限 %s 分钟，已停止 codex（%s）\n' "$MAX_MINUTES" "$(timestamp)" >> "$LOG"
+        stop_job "$pid"
+        break
+      fi
+      sleep 1
+      waited=$((waited + 1))
+    done
+  fi
+  wait "$pid" || rc=$?
+  [[ "$TIMED_OUT" -eq 0 ]] || rc=124
   RESULT="$rc"
   FINISHED="$(timestamp)"
   SESSION_ID="$(log_header 'session id')"
@@ -71,15 +105,15 @@ run_job() {
 # nohup 启动同一脚本的 worker，避免依赖导出的函数或拼接 shell 命令。
 # worker 的 stdin 不连接终端；codex 单独从已保存的任务书副本读取。
 if [[ "${1:-}" == --_worker ]]; then
-  [[ $# -ge 15 ]] || usage_error '后台 worker 参数不完整'
+  [[ $# -ge 16 ]] || usage_error '后台 worker 参数不完整'
   shift
   LOCK="$1"; REQ="$2"; OUT="$3"; LOG="$4"; META="$5"; EXIT_FILE="$6"
   META_MODEL="$7"; EFFORT="$8"; META_SANDBOX="$9"; shift 9
-  META_ROOT="$1"; STARTED="$2"; RESUME="$3"; ATTEMPT="$4"; shift 4
+  META_ROOT="$1"; STARTED="$2"; RESUME="$3"; ATTEMPT="$4"; MAX_MINUTES="$5"; shift 5
   [[ "${1:-}" == -- ]] || usage_error '后台 worker 缺命令分隔符'
   shift
   CMD=("$@")
-  FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""
+  FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""; TIMED_OUT=0
   LOCK_OWNED=1
   trap release_lock EXIT
   printf '%s\n' "$$" > "$LOCK/pid"
@@ -87,12 +121,12 @@ if [[ "${1:-}" == --_worker ]]; then
   exit 0
 fi
 
-PLAN_DIR=""; TASK=""; MODEL=""; EFFORT=""; BRIEF=""; ROOT=""; RESUME=""
+PLAN_DIR=""; TASK=""; MODEL=""; EFFORT=""; BRIEF=""; ROOT=""; RESUME=""; MAX_MINUTES=""; TIMED_OUT=0
 WRITE=0; DETACH=0; STATUS=0; FORCE=0; DRY=0
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --model|--effort|--brief|--root|--resume)
+    --model|--effort|--brief|--root|--resume|--max-minutes)
       [[ $# -ge 2 && -n "$2" && "$2" != --* ]] || usage_error "$1 缺参数"
       case "$1" in
         --model) MODEL="$2" ;;
@@ -100,6 +134,9 @@ while [[ $# -gt 0 ]]; do
         --brief) BRIEF="$2" ;;
         --root) ROOT="$2" ;;
         --resume) RESUME="$2" ;;
+        --max-minutes)
+          [[ "$2" =~ ^[0-9]+$ && "$2" -gt 0 ]] || usage_error "--max-minutes 要正整数分钟数：$2"
+          MAX_MINUTES="$2" ;;
       esac
       shift 2 ;;
     --write) WRITE=1; shift ;;
@@ -107,7 +144,7 @@ while [[ $# -gt 0 ]]; do
     --status) STATUS=1; shift ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
     --) shift; while [[ $# -gt 0 ]]; do POSITIONAL+=("$1"); shift; done ;;
     -*) usage_error "未知选项：$1" ;;
     *) POSITIONAL+=("$1"); shift ;;
@@ -140,7 +177,10 @@ if [[ "$STATUS" -eq 1 ]]; then
     fi
     RESULT=""
   fi
-  if [[ -f "$META" ]]; then cat "$META"; fi
+  if [[ -f "$META" ]]; then
+    cat "$META"
+    if grep -q '^timed_out=1$' "$META"; then printf '%s 到时间上限被停止，结果不完整；先由 Argo 诊断再定收下、换环境判还是缩窄重派。\n' "$TASK"; fi
+  fi
   if [[ -n "$RESULT" && "$RESULT" != 0 ]]; then show_failure "$RESULT"; fi
   exit 0
 fi
@@ -180,6 +220,7 @@ if [[ "$DRY" -eq 1 ]]; then
   choose_request
   printf '命令：'; printf '%q ' "${CMD[@]}"; printf '< %q\n' "$BRIEF"
   printf '请求副本：%s\n结果：%s\n日志：%s\nmeta：%s\n退出码：%s\n' "$REQ" "$OUT" "$LOG" "$META" "$EXIT_FILE"
+  printf '时间上限：%s\n' "${MAX_MINUTES:+$MAX_MINUTES 分钟}${MAX_MINUTES:-无}"
   if [[ "$DETACH" -eq 1 ]]; then printf '后台 PID：%s\n' "$PID_FILE"; fi
   exit 0
 fi
@@ -219,11 +260,11 @@ rm -f "$OUT" "$PID_FILE" "$EXIT_FILE"
 STARTED="$(timestamp)"; FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""
 META_MODEL="$MODEL"; META_SANDBOX="$SANDBOX"; META_ROOT="$ROOT"
 write_meta
-printf '模型 %s / 强度 %s；第 %s 次派活：%s\n' "$MODEL" "$EFFORT" "$ATTEMPT" "$TASK"
+printf '模型 %s / 强度 %s；第 %s 次派活：%s；时间上限：%s\n' "$MODEL" "$EFFORT" "$ATTEMPT" "$TASK" "${MAX_MINUTES:+$MAX_MINUTES 分钟}${MAX_MINUTES:-无}"
 
 if [[ "$DETACH" -eq 1 ]]; then
   nohup bash "$SCRIPT_PATH" --_worker "$LOCK" "$REQ" "$OUT" "$LOG" "$META" "$EXIT_FILE" \
-    "$META_MODEL" "$EFFORT" "$META_SANDBOX" "$META_ROOT" "$STARTED" "$RESUME" "$ATTEMPT" \
+    "$META_MODEL" "$EFFORT" "$META_SANDBOX" "$META_ROOT" "$STARTED" "$RESUME" "$ATTEMPT" "$MAX_MINUTES" \
     -- "${CMD[@]}" < /dev/null > /dev/null 2>&1 &
   PID=$!
   printf '%s\n' "$PID" > "$PID_FILE"

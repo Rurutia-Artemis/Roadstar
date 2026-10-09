@@ -262,6 +262,27 @@ bash "$SCRIPTS/dex-exec.sh" "$PLAN" T14 --status > "$TMP/failed-status.txt" 2>&1
 grep -q '^exit=8$' "$TMP/failed-status.txt"
 grep -q 'stub failure line 24' "$TMP/failed-status.txt"
 pass 'detached failure is visible from status and exit file'
+FAKE_CODEX_DELAY=6 ROADSTAR_MINUTE_SECONDS=1 expect_exit 124 run_task T17 --max-minutes 2
+[[ ! -f "$PLAN/rounds/exec-T17.md" ]]
+grep -q '^exit=124$' "$PLAN/rounds/exec-T17.meta"
+grep -q '^max_minutes=2$' "$PLAN/rounds/exec-T17.meta"
+grep -q '^timed_out=1$' "$PLAN/rounds/exec-T17.meta"
+grep -q '时间上限 2 分钟' "$PLAN/rounds/exec-T17-stdout.log"
+grep -q '^timed_out=0$' "$PLAN/rounds/exec-T9.meta"
+pass 'max-minutes stops codex at the cap: exit 124, timed_out meta, no substitute result'
+FAKE_CODEX_DELAY=6 ROADSTAR_MINUTE_SECONDS=1 run_task T18 --detach --max-minutes 1 > "$TMP/detach-cap.txt"
+wait_done "$PLAN/rounds/exec-T18.exit"
+[[ "$(cat "$PLAN/rounds/exec-T18.exit")" == 124 ]]
+grep -q '^timed_out=1$' "$PLAN/rounds/exec-T18.meta"
+bash "$SCRIPTS/dex-exec.sh" "$PLAN" T18 --status > "$TMP/cap-status.txt" 2>&1
+grep -q '到时间上限被停止' "$TMP/cap-status.txt"
+pass 'detached max-minutes records exit 124 and status reports the cap'
+expect_exit 2 run_task T19 --max-minutes 0
+expect_exit 2 run_task T19 --max-minutes abc
+[[ ! -f "$PLAN/rounds/exec-T19.meta" ]]
+run_task T19 --dry-run --max-minutes 3 > "$TMP/dry-cap.txt"
+grep -q '时间上限：3 分钟' "$TMP/dry-cap.txt"
+pass 'max-minutes rejects bad values and dry-run shows the cap'
 expect_exit 2 bash "$SCRIPTS/dex-exec.sh" "$PLAN" ../T9 --model x --effort high --brief "$BRIEF"
 expect_exit 2 bash "$SCRIPTS/dex-exec.sh" "$PLAN" T15 --model x --effort high --brief "$TMP/missing"
 expect_exit 2 bash "$SCRIPTS/dex-exec.sh" "$TMP/missing" T15 --model x --effort high --brief "$BRIEF"

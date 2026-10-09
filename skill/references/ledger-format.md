@@ -28,7 +28,7 @@
 
 ## 主席指令
 - 开场选模型：总调度 Fable 不换；审稿 Astra / high；执行按推荐。
-- 推荐表：第 3 件换 Codex 的 Astra，其余按推荐。
+- 拆分表：第 3 件换 Codex 的 Astra，其余按表。
 - r1 后：「不要动现有 API 签名。」→ 进 brief 硬约束。
 - r2 后：「D3 按 Dex 的做。」→ C1。
 
