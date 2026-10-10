@@ -187,6 +187,7 @@ Claude 梯子（只在走 Claude 梯子时）：用 Agent 工具派，`model` �
 | 每件活新开一个 worktree、从头编译（每个 5～15 GB），合并后整个挪进废纸篓，两天进了一两百 GB，主席的盘一共才 926 GB | 项目开场建固定 2～3 个 worktree 槽位轮流用（Mia 的做法：`scripts/lane-slot.sh <槽位> <新分支>` 在槽位里切到从 main 新开的分支，`git worktree lock` 锁住让清理脚本跳过），编译目录固定一个名字原地复用，不按任务号另建；合并后不挪槽位，下件活直接换分支 |
 | 复跑结果里 XCTest 写「Executed 128 tests, with 6 failures (0 unexpected)」，Argo 把「0 unexpected」当成全过，带着 6 条断言失败报了「字体单测通过」，直到下一条线的报告才发现 | 判 XCTest 结果只看 `with N failures` 的 N：N>0 就是挂了，「unexpected」只表示其中有几条是异常而非断言。复测脚本自己抓 N 写进日志，别只记退出码 |
 | Mac 版新加一个二进制框架，复核只做了静态检查（「签名步骤覆盖新框架」判通过），真打包时主程序签名报子组件未签名，当晚发版卡住 | 新增框架、插件、辅助程序这类要签名的东西，完成线必须包含「真跑一次正式打包脚本 + codesign --verify --deep --strict」；复核报告写了「本轮未实际签名」就不算通过 |
+| 设计子代理在样张上写「苹果没有折叠机型、尺寸是假设」，其实 iPhone Duo 已于 9 月发布、官方 HIG 和适配文档齐全（任务书里还写过这台机器），Argo 审图也没拦，主席当场发火 | 涉及新硬件、新系统的设计或调研，Argo 派活前先查官方 HIG、开发者文档和规格（wigolo `force_refresh`），把要点和来源写进任务书；子代理要写「不存在 / 假设」必须先给出查证过程，审图时 Argo 专门核对这类断言 |
 
 ## 16 项目常驻边界文件 `docs/roadstar/_common.md`
 
