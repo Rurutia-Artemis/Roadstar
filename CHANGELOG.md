@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-10-10 · 1.5.0：Claude 子代理按 Haiku → Sonnet → Opus 梯子可派，方向看两边额度
+
+主席 10-10 定：Claude 这边 Haiku、Sonnet 现在都够强，便宜活给 Haiku、常规给 Sonnet、难活给 Opus 更合理；Codex 是几个项目并行时的分流，这个月它送的重置卡多。10-05「不派 Claude 子代理」改为按额度方向启用。
+
+- SKILL.md「谁是谁」加 Claude 子代理一行；第 0 节开场一行写明执行走哪条梯子；第 2 节取证派当前方向最低层；第 8 节改成两条梯子（Codex：6.1 Sol → Astra；Claude：Haiku → Sonnet → Opus，Fable 不当子代理），表的执行列两条并列，方向规则：Codex 宽或正常或有重置卡走 Codex，几个项目并行也走 Codex；Codex 紧或空且 Claude 正常或宽走 Claude 梯子；Claude 周窗紧或空梯子关闭；Codex 宽时派 Claude 梯子理由栏必须写一句。第 9 节加 Claude 子代理派法（Agent 工具 `model`、任务书原文、`.meta` 手写、TaskStop 止损）。版本 1.5.0。
+- models.md Claude 侧表改成梯子三层加 Fable，Haiku 版本改到当前 5.5；八二分那段和实测对照表的取证行跟着改。
+- division-of-labor：第 1 节加子代理一行与 10-10 决定；第 7 节第三列（Codex 紧、Claude 多）全部换成 Claude 梯子，加「验收 Claude 梯子做的」一行；第 8 节复核优先跨家；第 9 节加 Claude 梯子派法；第 10 节换梯子算换方向；第 14 节加子代理与主会话共用周窗。modes.md 复盘 Claude 侧取证可派 Haiku。README、模块地图同步。
+- 验证：桩测试 32 条全过（脚本未改）；额度探针当日实读 Claude 周 84% / Fable 45% / Codex 周 40% 带 2 张重置卡，按新规则这周应走 Codex 梯子。未验证：Claude 梯子没在真实一场里派过；TaskStop 止损没实测；便宜型号扣额度的倍数没有权威数字，第一场派前后读差值补。
+
 ## 2026-10-09 · 1.4.0 补丁（下午五笔当天漏记，10-10 补）：第 15 节加三条教训、有界面的活接入 vela 界面验收、dex-exec 上限显示修正
 
 - division-of-labor 第 15 节新增三行，都来自 Mia 手机版 T79/T80 与真机复测：任务书里报告和截图写绝对路径、收尾脚本提交前排除产物目录、Argo 合并前看 `git show --stat`（起因是一次把 846 个测试产物提交进分支）；验收夹具照主席真实用法造，先读实际配置、把真实程序输出录成字节流回放、与参考实现逐行比对（起因是终端滑动和中文排版两次都是主席在真机上发现）；取消排队外壳用标记文件控制并 `pgrep -fl` 复核，补测命令照抄跑通过的那条只改 `--only`。

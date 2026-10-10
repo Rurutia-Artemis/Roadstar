@@ -8,7 +8,7 @@ Claude Code 主会话当总调度，和 Codex 一起干项目的 skill。你说�
 
 拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核。开场那一行报默认（用法、总调度、审稿、执行方向、两边额度），不等你答；你随时改。
 
-Claude 主会话做调度、任务书和验收，不再派 Claude 子代理消耗 Claude 额度。常规实现、机械批量、只读取证用 `gpt-6.1-sol`，难活用 `gpt-6-astra`；钱、权限、迁移类由 Claude 主会话核验 Codex 的实现，不接受执行会话自验。
+Claude 主会话做调度、任务书和验收，实现默认交 Codex（常规 `gpt-6.1-sol`，难活 `gpt-6-astra`）。Codex 紧的时候走 Claude 这边的梯子：Haiku 做机械批量和只读取证，Sonnet 做规格清楚的实现，Opus 做难活，Fable 只留给主会话。钱、权限、迁移类由 Claude 主会话核验实际状态，不接受执行会话自验。
 
 ## 目录
 
