@@ -185,6 +185,7 @@ Claude 梯子（只在走 Claude 梯子时）：用 Agent 工具派，`model` �
 | 每条线的边界块（不碰生产主机、端口段、模拟器上限、不提交）临时手写在 `_common.md`、`_fullaccess.md` 里，差点漏；下一场又得重写 | 项目级常驻边界放 `docs/roadstar/_common.md`（见第 16 节），任务书引用它，只写它没写的；踩了新坑当天追加进去 |
 | 每条线的测试截图、录屏、xcresult 被提交进 git，三天攒了 8835 张、9.6 GB；之后每开一个 worktree 都整份检出，加上编译产物每个 15 GB 以上，废纸篓一次进了 230 GB | 截图、录屏、xcresult、stdout 原始日志一律只留主目录，`.gitignore` 写死 `docs/roadstar/**/rounds/*-shots/` 和图片、视频后缀；样张 `mockups/` 照常提交。任务书引用截图写主目录的绝对路径，验收也到主目录看。新项目开场就把这几行加进 `.gitignore` |
 | 每件活新开一个 worktree、从头编译（每个 5～15 GB），合并后整个挪进废纸篓，两天进了一两百 GB，主席的盘一共才 926 GB | 项目开场建固定 2～3 个 worktree 槽位轮流用（Mia 的做法：`scripts/lane-slot.sh <槽位> <新分支>` 在槽位里切到从 main 新开的分支，`git worktree lock` 锁住让清理脚本跳过），编译目录固定一个名字原地复用，不按任务号另建；合并后不挪槽位，下件活直接换分支 |
+| 复跑结果里 XCTest 写「Executed 128 tests, with 6 failures (0 unexpected)」，Argo 把「0 unexpected」当成全过，带着 6 条断言失败报了「字体单测通过」，直到下一条线的报告才发现 | 判 XCTest 结果只看 `with N failures` 的 N：N>0 就是挂了，「unexpected」只表示其中有几条是异常而非断言。复测脚本自己抓 N 写进日志，别只记退出码 |
 
 ## 16 项目常驻边界文件 `docs/roadstar/_common.md`
 
