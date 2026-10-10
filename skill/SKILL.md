@@ -3,7 +3,7 @@ name: roadstar
 description: >-
   Roadstar · 引路星：Claude 主会话当总调度，和 Codex 一起干项目。主席说「用 skill」「用 Roadstar」时自动判用法，开场一行报出来就跑，不等答复。三种用法：探讨（主席只说构思，两家最强模型默认三轮谈到能落地）、复盘（两家各读一遍现有项目，按产品层或代码层的尺子交叉审出不足清单；「全面 review」「全部排查」也走这里）、协同（方案已有，Argo 拆活、分型号、定审查人，派活、验收、交报告）。拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核。触发：「用 skill」「用 Roadstar」「按 skill 来」「Roadstar」「引路星」「/roadstar」「开圆桌」「探讨一下怎么落地」「复盘这个项目」「全面 review」「看看哪里能改进」「直接调度」「你来安排谁做」「总舵主」。产出在项目 docs/roadstar/<日期>-<slug>/。不处理：一小时内能做完的活（直接干）；只要 Codex 单次二审（→ call-codex）；只要网页 Pro 策划（→ pro-orchestrator）；仅维护本 skill。
 metadata:
-  version: "1.5.0"
+  version: "1.6.0"
 ---
 
 # Roadstar · 引路星：先判用法，再谈、再派、再审
@@ -65,9 +65,9 @@ metadata:
 
 ### 0 定模型（开场一行，不等答复）
 
-1. 跑 `scripts/quota-status.py` 和 `codex --version`，拿两边读数和能用的型号。
+1. 跑 `scripts/quota-status.py` 和 `codex --version`，拿两边读数和能用的型号。`codex --version` 跑不出来，或 `codex login status` 不是已登录，就进单家模式（第 8 节末）；探针的 Codex 一列在本机没有 codex 时会退回本地 rollout 记录，不能当有 Codex 的证据。
 2. 按默认定：总调度就是当前主会话（Fable 或 Opus；Sonnet 时建议主席切）；探讨和审稿 `gpt-6-astra` / high，规模大或难回滚 xhigh；执行按第 8 节的表逐件推荐。主席的常驻指令（账本、项目 CLAUDE.md、记忆里带日期的分配规则）压过默认。
-3. 开场只回一行，格式固定：「这次走 <用法>，因为 <一句>。题目：<一句人话>。总调度 X，审稿 Y，执行走 <Codex 梯子 / Claude 梯子>；额度 Claude <档> / Codex <档>。要改现在说，不改我就跑。」执行方向按第 8 节定：Codex 宽或正常、或有重置卡可刷，走 Codex 梯子；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子。说完直接往下，不等答复；主席任何时候的改动记进账本「主席指令」，管整场。
+3. 开场只回一行，格式固定：「这次走 <用法>，因为 <一句>。题目：<一句人话>。总调度 X，审稿 Y，执行走 <Codex 梯子 / Claude 梯子>；额度 Claude <档> / Codex <档>。要改现在说，不改我就跑。」执行方向按第 8 节定：Codex 宽或正常、或有重置卡可刷，走 Codex 梯子；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子。单家模式的开场一行：「这次走 <用法>，因为 <一句>。题目：<一句人话>。本机没有 Codex，单家模式：总调度 X，审稿 Opus 子代理（同家），执行走 Claude 梯子；额度 Claude <档>。要改现在说，不改我就跑。」说完直接往下，不等答复；主席任何时候的改动记进账本「主席指令」，管整场。
 4. 只有三种情况开口问，用 AskUserQuestion 一次问齐：Codex 或 Claude 读数「紧」或「空」（刷不刷重置卡、降不降档）；主席此前说过要逐件指定型号；主席要换总调度（要他敲 `/model`，我说一句怎么敲）。
 
 ### 1 立项
@@ -75,8 +75,8 @@ metadata:
 主席一句话说目标，Argo 写 `brief.md`。目标和约束够写出验收标准就直接起草，不等点头，brief 里的假设在纪要里列给主席；只有缺口会改变结果时才问，一次问齐，最多三个，问题接在第 0 节那一行后面。brief 必填：目标、非目标、硬约束、规模（小 / 中 / 大）、参与配置。参与配置五项 Argo 填默认值，主席随时改：
 
 - 模型用法。抄第 0 节定的结果。
-- 审稿模型与强度。写死型号，默认 `gpt-6-astra` / high；规模大或难回滚用 xhigh；Codex 紧时 `gpt-6.1-sol` / high。一场不换审稿人。
-- Pro 参不参与。规模「大」默认起草 + 终审；「中」默认只终审；「小」默认不参与。
+- 审稿模型与强度。写死型号，默认 `gpt-6-astra` / high；规模大或难回滚用 xhigh；Codex 紧时 `gpt-6.1-sol` / high；单家模式写「Opus 子代理（同家）」。一场不换审稿人。
+- Pro 参不参与。规模「大」默认起草 + 终审；「中」默认只终审；「小」默认不参与；单家模式不参与（要 ChatGPT 订阅）。
 - 节奏。默认连跑：内环一口气跑到停机条件，中间不向主席开口。主席说「每轮停一下」才逐轮。
 - 熔断轮数。探讨 3，规模大 4，复盘 1；Codex 紧时各减 1（最少 1）。到顶把取舍类未决项交主席，不算失败。
 
@@ -94,7 +94,7 @@ metadata:
 
 ### 3 内环，每轮这样跑
 
-1. 快照并送审：`scripts/dex-review.sh <plan-dir> --model <型号> --effort <强度>`，型号和强度取自 brief。第一轮把审稿契约、brief、plan 全文、账本和主席问 Dex 的话拼成请求；第二轮起默认精简，只发 diff、账本里没解决的和上轮刚解决的议题，plan 全文只给路径让 Dex 按需读，`--full` 可切回全发。跑 `codex exec` 拿结构化 JSON。
+1. 快照并送审：`scripts/dex-review.sh <plan-dir> --model <型号> --effort <强度>`，型号和强度取自 brief。第一轮把审稿契约、brief、plan 全文、账本和主席问 Dex 的话拼成请求；第二轮起默认精简，只发 diff、账本里没解决的和上轮刚解决的议题，plan 全文只给路径让 Dex 按需读，`--full` 可切回全发。跑 `codex exec` 拿结构化 JSON。单家模式不跑这个脚本：Argo 自己把 plan 快照成 `rounds/rN-plan.md`、和上轮 diff 成 `rN-plan.diff`，按同一份审稿契约（`references/dex-review-prompt.md`）接 brief、plan 或 diff、账本拼成 `rN-review-request.md`，用 Agent 工具派 Opus 子代理（新开上下文）审，要求输出符合 `references/dex-review.schema.json` 的 JSON，存 `rN-review.json`，渲染时 `render-review.py … --from Opus`；它提的议题账本前缀 `O`，处置规则和 Dex 的一样。
 2. 渲染：`scripts/render-review.py rounds/rN-dex-review.json` 转成可读文本，抄进账本；主席不在内环里看到它。
 3. Argo 逐条处置 Dex 的议题：接受就改 plan 并在账本记「已解决（rN）+ 改了哪」；拒绝要写理由和证据；拿不准的标「问主席」。Dex 给了可复现的反例（命令、行号、输出），先在本机复现再改；改出来的判定规则用同一批反例跑一遍再记已解决，凭记忆写的规则会被连判两轮无效。同一条议题第二次被拒，或 Dex 第二次判 Argo 的解决无效，自动变「争议」。范围外的建议进停车场，主席定去留。
 4. Argo 也审 Dex：Dex 提出的替代方案和补充，Argo 按同一清单回评，不是照单全收。
@@ -158,7 +158,9 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 | 取证、扫记忆库 | 6.1 Sol / medium 只读 ｜ Haiku 只读 | — | 不审 |
 | Argo 自己改的整合小修超过 30 行 | Argo | — | 6.1 Sol / high 只读复核（Codex 紧时 Sonnet 子代理） |
 
-审查人和执行方型号不同，优先跨家：Claude 梯子写的交 Codex 只读复核，Codex 写的可交 Sonnet 子代理只读复核；审方案一律 Astra / high。Codex 宽时把实现派给 Claude 梯子，理由栏必须写一句，防止回到 10-02 对账里「Claude 自己闷头干、Codex 闲着」的老路。主席带日期的分配指令（例：某月难活一律 Astra / xhigh）记在记忆或项目 CLAUDE.md，压过这张表，用前先看日期。不照表派要在理由栏写一句。
+审查人和执行方型号不同，优先跨家：Claude 梯子写的交 Codex 只读复核，Codex 写的可交 Sonnet 子代理只读复核；审方案一律 Astra / high。Codex 宽时把实现派给 Claude 梯子，理由栏必须写一句，防止回到 10-02 对账里「Claude 自己闷头干、Codex 闲着」的老路。
+
+单家模式（本机没有 Codex，第 0 节判定）：表里每行只剩 Claude 梯子那一格；审方案由 Opus 子代理担任，算另一个实例在挑错，纪要和完工报告写明「本场单家模式，审稿同家」，不替主席假装有跨家视角；审查人仍和执行方型号不同，Sonnet 写的由 Opus 只读复核或 Argo 复跑，Opus 写的由 Sonnet 只读复核；钱、权限、迁移 Argo 亲验不变；Pro 不参与；Claude 周窗紧时梯子关闭，按 division-of-labor 第 11 节降档、串行、挂起、停。主席带日期的分配指令（例：某月难活一律 Astra / xhigh）记在记忆或项目 CLAUDE.md，压过这张表，用前先看日期。不照表派要在理由栏写一句。
 
 拆分表怎么交主席：探讨和复盘里随纪要交，主席说开工就派；协同里报一次就派，主席改哪条停那条重派。主席点名「让 Codex 看看拆法」时才送 Dex 审一轮（只读，只挑漏项和完成线能不能失败，不改分配）。硬话入账本，压过额度；硬话和额度撞上在纪要里报一句冲突，不默默照做也不默默降级。
 
@@ -167,7 +169,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 每件活一份任务书（`references/task-brief-template.md`），派给谁都能做，引用 `docs/roadstar/_common.md` 的常驻边界，只写它没写的。**一份任务书一个目标、一条能失败的完成线**；独立的事超过三件就拆成多份并行。派之前过一遍 division-of-labor 第 15 节。
 - 任务书写明涉及哪几个模块（用地图里的名字）。改动碰了模块的入口文件、对外接口、测试命令或规矩，执行方在同一提交里更新地图那一节；验收方核对地图和代码一致，不一致算没通过。
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --brief … --max-minutes <上限>`，默认只读，要改文件加 `--write`；上限写拆分表里的数（常规 120、难活 240），到点脚本停掉 codex、退出码 124、meta 记 `timed_out=1`。脚本显式传 `-s`、`-m`、`-c model_reasoning_effort=`、`--disable fast_mode`。长任务、返工、并行 worktree 与合并见 division-of-labor 第 9 节。
-- Claude 子代理任务（只在走 Claude 梯子时）：用 Agent 工具派，`model` 按层选 haiku / sonnet / opus，不用 fable；任务书同一份模板原文当提示，回复由主会话存成 `rounds/exec-T<n>.md`，并手写一份 `.meta`（型号、起止时间、上限）。时间上限写进任务书「资源上限与止损」，主会话到点用 TaskStop 停，停掉的同样不自动重派。派前后各读一次 Claude 读数记进调度记录。
+- Claude 子代理任务（走 Claude 梯子或单家模式时）：用 Agent 工具派，`model` 按层选 haiku / sonnet / opus，不用 fable；任务书同一份模板原文当提示，回复由主会话存成 `rounds/exec-T<n>.md`，并手写一份 `.meta`（型号、起止时间、上限）。时间上限写进任务书「资源上限与止损」，主会话到点用 TaskStop 停，停掉的同样不自动重派。派前后各读一次 Claude 读数记进调度记录。
 - 有界面的活（App、网页、终端界面）：任务书的完成线必须包含 vela 的 `references/ui-acceptance.md`（读主席真实配置、真实数据、按任务走、逐项清单、iPad 与深浅色截图）；Argo 验收时亲自逐张看截图、在模拟器里走核心任务，阻塞和应修清零才发版；主席报过的问题进项目 `docs/界面验收清单.md`。
 - 验收按第 8 节表里的审查人做，分级与配对细则见 division-of-labor 第 8 节：钱、权限、迁移类由 Argo 核验实际状态，不接受执行会话自验或仅同家复核。验收标准来自 plan，不临时降标，证据写进 §11。
 - 失败上限和额度到顶的梯子见 division-of-labor 第 10、11 节；每次改派、挂起和成本（派活前后的读数差）都记进调度记录，完工报告写一行。
@@ -195,5 +197,6 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 2026-10-04：0.3.0 / 0.3.1 验证（前身 roundtable）。额度探针会话内实测 1.3 秒读到两边、不花额度；dex-review 新旧请求正文逐字节一致；dex-exec 桩测试 29 条全过，真跑 Luna 一句话任务与 resume 跑通（resume 要 `-c model=` 覆盖）；gpt-6.1-sol 在 codex-cli 0.158 上 400、升到 0.160 后能用；四个子代理新会话可见；调度回放 3 场任务表 × 4 种额度情形 310 条检查全过、同情形两遍一致率 9/9。本次升级自己就是按新规矩派的，细节在 CHANGELOG 同日条。
 - 2026-10-04：1.0.0 改名 Roadstar，搬到 `~/Documents/RuruCode/Roadstar`，加第 0 节选模型和第 5 段推荐表两步，三种用法写进 `references/modes.md`。验证：桩测试在新位置 29 条全过（桩的 clientInfo 跟着改名）；`./install.sh` 四处软链、旧 roundtable / rt-* 软链清掉；新会话里 skill 以 roadstar 名字和新 description 可见。
 - 2026-10-08：1.3.0 加 division-of-labor 第 15 节。来源是 Mia 移动版两天实战（约 20 条 Codex 线、4 个 TestFlight 版本）：大任务书做一半、无指标导致「解决一半」、并行改同一中枢冲突、沙箱里没真点界面导致首版全屏点不动、多模拟器压垮同机微信接入、测试写脏 bash 历史、worktree 攒到 256 GB。
+- 2026-10-10：1.6.0 按主席当天拍板加单家模式：本机没有 Codex（`codex --version` 跑不出来或未登录）时，审稿换 Opus 子代理并标明同家、执行只走 Claude 梯子、两份调 Codex 的脚本不跑、Pro 不参与，流程其余不变。只订阅 GPT 的版本主席定为以后单独做再融合。验证：隐藏 codex 后探针的 Codex 列退回 rollout 记录（`source=rollout`），所以判定只认 `codex --version`；`render-review.py --from Opus` 可换标签。未验证：单家模式整场没实跑。
 - 2026-10-10：1.5.0 按主席当天拍板：Claude 子代理按 Haiku → Sonnet → Opus 梯子可派，方向看两边额度（Codex 宽或有重置卡默认走 Codex，Codex 紧走 Claude 梯子，Claude 紧时梯子关闭），Fable 不当子代理，复核优先跨家；同日补记 10-09 五笔补丁的 CHANGELOG、同步模块地图。验证：桩测试 32 条全过（脚本未改）；额度探针当日实读 Claude 周 84% / Codex 周 40% 带 2 张重置卡。未验证：Claude 梯子还没在真实一场里派过，TaskStop 止损没实测。
 - 2026-10-09：1.4.0 按主席当天拍板改：「用 skill」自动判用法、开场一行不等答复、探讨默认 3 轮（大 4、复盘 1）、「全面 review」并进复盘代码层、拆活与分配只由 Argo 做、执行与审查绑成一张表、`dex-exec.sh --max-minutes` 止损。验证：桩测试 32 条全过（新增 3 条：到点停掉退出码 124 与 meta、后台模式同样生效且 `--status` 报出、坏值拒派与 dry-run 显示上限）；路由和一行开场还没在真实一场里走过，下一场开场就是验证。

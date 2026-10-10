@@ -1,5 +1,13 @@
 # Roadstar · 更新日志
 
+## 2026-10-10 · 1.6.0：单家模式，本机没有 Codex 也能跑
+
+主席 10-10 定：只订阅 Claude 的人也要能用，核心原理不变；只订阅 GPT 的版本以后单独做再融合。
+
+- SKILL.md 第 0 节：`codex --version` 跑不出来或 `codex login status` 未登录即进单家模式，开场一行有单家写法；探针的 Codex 列在没有 codex 时会退回本地 rollout 记录，不作「有 Codex」的依据。第 1 节审稿人写「Opus 子代理（同家）」、Pro 不参与。第 3 节：不跑 `dex-review.sh`，Argo 自己快照、diff、按同一份审稿契约拼请求，派 Opus 子代理按 `dex-review.schema.json` 出 JSON，`render-review.py --from Opus` 渲染，议题前缀 `O`。第 8 节末加单家模式一段：只剩 Claude 梯子、同家审稿写进纪要、复核仍换型号、钱权限迁移 Argo 亲验。版本 1.6.0。
+- modes.md 复盘 Codex 侧改派 Haiku / Sonnet 子代理；division-of-labor 第 1 节 Pro 要 ChatGPT、第 7 节加单家一段；ledger-format 加前缀 `O`；models.md、README、模块地图同步。
+- 验证：隐藏 codex 后跑探针，Codex 列显示 `source=rollout` 的旧读数（所以判定只认 `codex --version`）；`render-review.py` 读到 `--from` 参数；桩测试 32 条全过（脚本未改）。未验证：单家模式整场没实跑，Opus 子代理按 schema 出 JSON 的稳定性没测。
+
 ## 2026-10-10 · 1.5.0：Claude 子代理按 Haiku → Sonnet → Opus 梯子可派，方向看两边额度
 
 主席 10-10 定：Claude 这边 Haiku、Sonnet 现在都够强，便宜活给 Haiku、常规给 Sonnet、难活给 Opus 更合理；Codex 是几个项目并行时的分流，这个月它送的重置卡多。10-05「不派 Claude 子代理」改为按额度方向启用。
