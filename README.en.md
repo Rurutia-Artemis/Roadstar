@@ -34,17 +34,27 @@ Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this 
 
 <p align="center"><img src="./assets/readme/section-2.svg" width="100%" alt="02 What it fixes: two subscriptions, a second model, less babysitting"></p>
 
-**Two subscriptions, one doing the work.** Claude is the better organizer, so it keeps that job: planning, splitting, reviewing. Codex does the implementation. Claude's four models each have a standing job. Haiku 5.5 takes lookups and batch work at about a twentieth of Sonnet's API price. Sonnet reviews what Codex writes. Opus and Astra split the hard tasks by quota, and Fable stays in the main session until a problem survives two rounds.
+### Two subscriptions, one doing the work
+
+Claude is the better organizer, so it keeps that job: planning, splitting, reviewing. Codex does the implementation. Claude's four models each have a standing job. Haiku 5.5 takes lookups and batch work at about a twentieth of Sonnet's API price. Sonnet reviews what Codex writes. Opus and Astra split the hard tasks by quota, and Fable stays in the main session until a problem survives two rounds.
 
 <p align="center"><img src="./assets/readme/lineup.svg" width="100%" alt="Six models, each on the work it does best. Claude, four tiers: Fable 5.1 for main-session judgment and root causes when stuck (API $10/$50); Opus 5.5 for hard tasks, root causes and mockups ($4/$20); Sonnet 5.5 for cross-vendor review and spec'd builds ($2/$10); Haiku 5.5 for lookups and batch work, always on ($0.10/$0.50). Codex, two tiers: Astra for hard tasks and plan review; 6.1 Sol for routine implementation at about a fifth of Astra. Stuck? Stop, keep what passed, hand the rest up."></p>
 
-**A plan is never finished on the first pass.** Claude and Codex have different blind spots. In Discuss mode the strongest model from each vendor reviews the same plan. Every objection must cite a file, a line number or command output. Claude then accepts it, rejects it with a written reason, or leaves the call to you. Three rounds by default; it stops early when neither side finds anything new.
+### A plan is never finished on the first pass
 
-**Dispatching and checking work is exhausting.** Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
+Claude and Codex have different blind spots. In Discuss mode the strongest model from each vendor reviews the same plan. Every objection must cite a file, a line number or command output. Claude then accepts it, rejects it with a written reason, or leaves the call to you. Three rounds by default; it stops early when neither side finds anything new.
 
-**A stuck task stops early, and only the unfinished part moves up.** Every task logs one line per check attempt. Three failures on the same check, a long stretch with no new pass, or 90% of the time limit used will stop the lane. Claude keeps the checks that passed and sends only the failing ones to the next tier: Haiku, Sonnet, Opus, then Fable on the Claude side, Sol then Astra on Codex. Nothing restarts from scratch.
+### Dispatching and checking work is exhausting
 
-**It learns which model fits which job.** Each dispatch records the task class, model, outcome and quota spent. Once a class has five samples, `dispatch-stats.py` suggests a cheaper starting tier when that tier finishes 90% of the time, or a higher one when the current tier finishes under 60%. You approve every change, and the same loop runs when you use Claude alone.
+Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
+
+### A stuck task stops early, and only the unfinished part moves up
+
+Every task logs one line per check attempt. Three failures on the same check, a long stretch with no new pass, or 90% of the time limit used will stop the lane. Claude keeps the checks that passed and sends only the failing ones to the next tier: Haiku, Sonnet, Opus, then Fable on the Claude side, Sol then Astra on Codex. Nothing restarts from scratch.
+
+### It learns which model fits which job
+
+Each dispatch records the task class, model, outcome and quota spent. Once a class has five samples, `dispatch-stats.py` suggests a cheaper starting tier when that tier finishes 90% of the time, or a higher one when the current tier finishes under 60%. You approve every change, and the same loop runs when you use Claude alone.
 
 <p align="center"><img src="./assets/readme/loop.svg" width="100%" alt="Stop at the wall, learn every run: start on the cheapest tier with a record; log one line per check attempt; stop on 3 fails, idle time or 90% of the time limit; keep what passed and send the rest up a tier; record class, model, result and quota. After 5 samples, 90% done or better moves a class down a tier, under 60% moves it up. You approve each change."></p>
 

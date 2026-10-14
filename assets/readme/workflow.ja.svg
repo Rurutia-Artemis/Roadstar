@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 400" role="img" aria-labelledby="t d">
 <title id="t">三つの使い方、入口は一つ</title>
-<desc id="d">計画検討 アイデアだけある Claude 起案・Codex 審査 3 ラウンドで計画と分担表 / レビュー 既存のプロジェクト 両者が読んで相互レビュー 課題一覧と最初の 3 件 / 実行 計画はもうある 分割・割り当て・検証 根拠つきの完了レポート — 「用 skill」と一言。モードを選び、設定を一行で報告して走り出す。</desc>
+<desc id="d">計画検討 アイデアだけある Claude 起案・Codex 審査 3 ラウンドで計画と分担表 / レビュー 既存のプロジェクト 両者が読んで相互レビュー 課題一覧と最初の 3 件 / 実行 計画はもうある 分けて割り当て、検証 根拠つきの完了レポート — 「用 skill」と一言。モードを選び、設定を一行で報告して走り出す。</desc>
 <rect width="1200" height="400" rx="28" fill="#F7F4EE"/>
 <text x="56" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="40" font-weight="800" fill="#2B2A3D">三つの使い方、入口は一つ</text>
 <rect x="56" y="104" width="352" height="210" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
@@ -19,7 +19,7 @@
 <path d="M848,134 Q848,148 862,148 Q848,148 848,162 Q848,148 834,148 Q848,148 848,134 Z" fill="#E07A5F" opacity="1.0"/>
 <text x="874" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="800" fill="#2B2A3D">実行</text>
 <text x="836" y="208" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" fill="#8A8798">計画はもうある</text>
-<text x="836" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#2B2A3D">分割・割り当て・検証</text>
+<text x="836" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#2B2A3D">分けて割り当て、検証</text>
 <text x="836" y="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#E07A5F">根拠つきの完了レポート</text>
 <rect x="56" y="336" width="1088" height="40" rx="20" fill="#2B2A3D"/>
 <text x="600" y="363" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#F7F4EE">「用 skill」と一言。モードを選び、設定を一行で報告して走り出す。</text>
