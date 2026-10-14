@@ -1,36 +1,86 @@
-# Roadstar · 引路星
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="Roadstar: Claude plans, splits and verifies; Codex writes the code. Both subscriptions get used, and the other vendor's model reviews every plan.">
+</p>
 
-Claude Code 主会话当总调度，和 Codex 一起干项目的 skill。你说「用 skill」，它自己判走哪种，开场一行报出来就跑：
+<p align="center"><b>English</b> · <a href="./README.zh-CN.md">中文</a> · <a href="./README.ja.md">日本語</a></p>
 
-- 探讨：你只说构思，两家最强的模型默认三轮谈到能落地，再问你开不开工。
-- 复盘：两家各读一遍现有项目，按产品层（能不能上架收费）或代码层（逐模块找 bug，「全面 review」走这里）交叉审出不足清单和先做的三件事。
-- 协同：方案已有，Claude 拆活、分型号、定审查人，实现交 Codex，验收由 Claude 复跑或另开 Codex 只读会话复核，交完工报告。
+<p align="center">
+  <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
+  <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 or later">
+  <img src="https://img.shields.io/badge/version-1.7.0-F2B544?style=flat-square" alt="version 1.7.0">
+  <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash and Python standard library only">
+  <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT license">
+</p>
 
-拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核。开场那一行报默认（用法、总调度、审稿、执行方向、两边额度），不等你答；你随时改。
+Roadstar is a Claude Code skill that turns your Claude session into a dispatcher for Codex. Claude writes the plan, splits the work into tasks of two hours or less, picks a model for each one, sends the coding to Codex, and verifies the result with a different model before it reaches you. If you pay for both Claude and ChatGPT, both subscriptions finally do real work.
 
-Claude 主会话做调度、任务书和验收，实现默认交 Codex（常规 `gpt-6.1-sol`，难活 `gpt-6-astra`）。Codex 紧的时候走 Claude 这边的梯子：Haiku 做机械批量和只读取证，Sonnet 做规格清楚的实现，Opus 做难活，Fable 只留给主会话。只订阅 Claude、本机没装 Codex 也能跑单家模式：审方案换 Opus 子代理、执行走 Claude 梯子，流程不变，纪要会写明审稿是同家。钱、权限、迁移类由 Claude 主会话核验实际状态，不接受执行会话自验。
+## Used for real
 
-## 目录
+Since 2026-10-04 the author has run it across four of their own projects (two apps, a website and a design tool):
 
+- **17 runs**, from first idea to shipped builds
+- **244 Codex sessions** dispatched: 130 on `gpt-6.1-sol`, 114 on `gpt-6-astra`
+- **31 house rules**, each written the day a real run went wrong (a task that used 30% of the weekly quota in 7.5 hours, a merge that committed 846 screenshots, an app that passed every test and then ignored all taps once installed on a phone)
+
+Every run starts with one line of setup and a live quota reading. The probe reads both accounts in just over a second and spends no quota:
+
+```console
+$ python3 skill/scripts/quota-status.py
+Claude：5 小时 4%（18:49 重置）｜本周 82%（10-18 12:59 重置）｜Fable 2%（上限是周额度一半） → 紧
+Codex：本周 24%（10-20 14:57 重置）｜重置卡 1 张｜credits … → 正常
 ```
-skill/        SKILL.md + references/ + scripts/（额度探针、送审、派活、桩测试）+ agents/openai.yaml（Codex 侧元数据）
-docs/         每次升级自己的记录（brief / plan / ledger / rounds），各项目里的实跑记录在它们自己的 docs/roadstar/
-install.sh    软链到 ~/.claude/skills、~/.agents/skills、~/.codex/skills，不管理 ~/.claude/agents
-CHANGELOG.md  每次改动一条，含验证与未验证项
-```
 
-## 安装
+Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this week the coding goes to Codex.
+
+## What it fixes
+
+**Two subscriptions, one doing the work.** Claude is the better organizer, so it keeps that job: planning, splitting, reviewing. Codex does the implementation. When Codex runs low, tasks go to Claude models by difficulty instead: Haiku for repetitive batch work, Sonnet for well-specified tasks, Opus for hard ones.
+
+**A plan is never finished on the first pass.** Claude and Codex have different blind spots. In Discuss mode the strongest model from each vendor reviews the same plan. Every objection must cite a file, a line number or command output. Claude then accepts it, rejects it with a written reason, or leaves the call to you. Three rounds by default; it stops early when neither side finds anything new.
+
+**Dispatching and checking work is exhausting.** Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
+
+<p align="center">
+  <img src="./assets/readme/workflow.svg" width="100%" alt="Three modes, one entry. Discuss: you have an idea, Claude drafts and Codex probes, three rounds produce a plan and task table. Review: you have a project, both read it and cross-check, producing a gap list and the top three fixes. Dispatch: you have a plan, split, assign and verify, ending in a report with evidence.">
+</p>
+
+Small jobs (under an hour) skip all of this and get done directly. You can override any choice at any time with one sentence, such as "use more GPT this month", and the change holds for the whole run.
+
+## Install
 
 ```bash
-./install.sh      # 然后重开一个 Claude Code 会话
+git clone https://github.com/Rurutia-Artemis/Roadstar.git
+cd Roadstar && ./install.sh
 ```
 
-前置：本机装好 `codex` 命令行（0.160 以上，`npm i -g @openai/codex@latest`）并用 ChatGPT 账号登录；Claude Code 用 Max 套餐。
+`install.sh` symlinks `skill/` into `~/.claude/skills`, `~/.agents/skills` and `~/.codex/skills`. Open a new Claude Code session in any project and type `/roadstar`, or just say 「用 skill」.
 
-## 用
+Requirements:
 
-对 Claude 说「用 skill」「开圆桌」「探讨一下怎么落地」「复盘这个项目」「全面 review」「直接调度」，或 `/roadstar`。它开场报一行（走哪种、为什么、模型和额度）就开始；想改就接着说一句。每条 Codex 线带 `--max-minutes` 止损，到点自动停、Claude 诊断后再定。
+- Claude Code (built and used on the Max plan)
+- [Codex CLI](https://github.com/openai/codex) 0.160 or later, signed in with a ChatGPT account: `npm i -g @openai/codex@latest`
+- macOS, bash and Python 3; the scripts use only the standard library
 
-## 前身
+No Codex? It falls back to a Claude-only mode: an Opus subagent reviews the plan (marked as same-vendor in the notes) and Haiku, Sonnet or Opus does the work. This mode exists but has not been through a complete real run yet.
 
-2026-09-24 到 10-04 叫 roundtable，住在 RuruAgent 仓库，0.1.0 → 0.3.1 的账在 RuruAgent/CHANGELOG.md；10-04 改名搬出，从 1.0.0 起在这里记。
+## Repository
+
+```
+skill/        SKILL.md, references/, scripts/ (quota probe, review, dispatch, stub tests)
+docs/         records of the skill's own upgrades; runs in other projects live in their docs/roadstar/
+install.sh    symlinks the skill into Claude Code and Codex
+CHANGELOG.md  one entry per change, with what was and was not verified
+```
+
+## Disclaimer
+
+- Personal project. Not affiliated with or endorsed by Anthropic or OpenAI; Claude, Claude Code, Codex and ChatGPT are trademarks of their owners.
+- It runs on your own subscriptions and spends your Claude and Codex quota. A Discuss run typically uses both sides for 30 to 60 minutes.
+- Codex is always launched with an explicit sandbox: `read-only` for reviews, workspace-write for implementation. The one exception, UI acceptance that needs a simulator, uses full access, with strict boundaries fixed in the task brief; read those briefs before you approve them.
+- Model names, quota tiers and prices reflect the author's setup in October 2026. Adjust `skill/references/models.md` for yours.
+- The skill itself and its records are written in Chinese.
+- Provided as is, under the [MIT License](LICENSE).
+
+---
+
+<p align="center"><sub>README visuals follow <a href="https://github.com/oil-oil/beautify-github-readme">beautify-github-readme</a>. Formerly <i>roundtable</i> (2026-09-24 to 10-04).</sub></p>

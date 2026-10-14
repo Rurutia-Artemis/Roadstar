@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-10-14 · 上 GitHub：三语 README、配图、MIT 许可与声明，介绍文档压短
+
+主席 10-14 要把项目发给朋友试：介绍文档再简洁、优势写大；仓库上 GitHub，README 按 vela 的 GitHub README 标准（吸收自 beautify-github-readme）配图，中英日三语、默认英语。
+
+- README.md 改成英文默认版，新增 README.zh-CN.md、README.ja.md；顺序是 hero、真跑过的数字与额度探针真实输出、解决的三个问题、三种用法图、安装、目录、声明。shields.io 徽章五枚（Claude Code skill、Codex CLI ≥ 0.160、版本、依赖、许可）。
+- 新增 `assets/readme/` 六张纯 SVG（hero 与三种用法各三语），母题是四角引路星连着各条执行线；新增 LICENSE（MIT，与 Reverie 同署名）。
+- docs/Roadstar介绍.md 从约 5200 字压到约 2000 字，保留大耳朵口气；版本说法改为现状，数字换成实数：10-04 以来 4 个项目 17 场、Codex 会话 244 次（Sol 130、Astra 114）、division-of-labor 第 15 节 31 条规矩，均从各项目 `docs/roadstar/**/exec-*.meta` 和第 15 节表格数出。
+- 验证：`audit_readme.py` 三份 README 均通过；SVG 在 900px 和 360px 用 headless Chrome 渲染核对无溢出；README 经 GitHub markdown 接口渲染后截图核对；英日两版由 Codex（6.1 Sol，只读）对照中文审过。未验证：GitHub 深色模式下的实际观感；单家模式仍未实跑（README 已写明）。
+
 ## 2026-10-12 · 1.7.0：设计类活的默认——Huemo 配套、方向主席挑、两遍 review、默认打磨两遍
 
 主人 10-12 定：做 App 或网页时动效、图标、配色全部先从 Huemo（彩动，原 Rurumo）配一套匹配主题的，没有合适的再去别处；设计 review 两遍（每个按钮的细节、按钮与主题的符合度）；元素偏大、动效给足、不满不空；默认打磨两遍再交，他看后决定是否继续；近期助手自选方案和他选的完全不一样，方向一律他定。细则写在 vela（RuruAgent 同日提交），这里只放派活与验收的接口。
