@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 or later">
-  <img src="https://img.shields.io/badge/version-1.10.0-F2B544?style=flat-square" alt="version 1.10.0">
+  <img src="https://img.shields.io/badge/version-1.11.0-F2B544?style=flat-square" alt="version 1.11.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash and Python standard library only">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT license">
 </p>
@@ -102,6 +102,12 @@ docs/         records of the skill's own upgrades; runs in other projects live i
 install.sh    symlinks the skill into Claude Code and Codex
 CHANGELOG.md  one entry per change, with what was and was not verified
 ```
+
+## Sharing dispatch data (opt-in, off by default)
+
+On first use Roadstar asks once whether to share dispatch data. If you agree, each finished run opens one Issue in the public [roadstar-data](https://github.com/Rurutia-Artemis/roadstar-data) repository through your own `gh`. It holds only fixed options and rounded numbers for each lane, such as task class, model, effort, outcome, minutes and quota used. No code, paths, project names or free text. The Issue shows your GitHub name and is public, and an exact copy is kept in `~/.config/roadstar/uploads/` before sending.
+
+The data is merged weekly. The maintainer reviews it, updates the routing table and ships a new version, so everyone shares one table and improves together. Say 「关掉回传」 (turn off sharing) or set `ROADSTAR_TELEMETRY=0` to stop, say 「回传了什么」 (what is sent) to preview the next batch, and delete your Issue to withdraw it.
 
 ## Disclaimer
 

@@ -1,5 +1,13 @@
 # Roadstar · 更新日志
 
+## 2026-10-14 · 1.11.0：社区自动回传上线，数据仓库 roadstar-data 公开
+
+主席 10-14 定：手动提交没人做，要用户同意一次后全自动回传，安全、透明要讲清楚；作者固定每周迭代一次，直到够准。
+
+- 新建公开仓库 Rurutia-Artemis/roadstar-data：`schema/dispatch-v1.json`（12 个字段，全是固定选项或取整数字）、`validate.yml`（Issue 进来校验，合格打 accepted，不合格打 rejected、评论原因、关闭；正文和标题不进 shell）、`aggregate.yml`（每周日 00:00 JST 汇总，按记录去重、每人每周最多 50 条、5 条且 3 人才给建议，产出不含用户名）、三语 README 与头图、MIT 加数据 CC0。脚本与测试由 Codex（6.1 Sol / high）实现，362 条离线检查通过。
+- Roadstar：Codex（6.1 Sol / high）实现 `skill/scripts/telemetry.py`（status / enable / disable / send，dry-run，本机留底，失败下次补传，`ROADSTAR_TELEMETRY=0` 关闭）和 `tests/bin/gh` 桩，测试 60 → 73 条；schema 副本放 `skill/references/dispatch-v1.schema.json`。SKILL §0 加第一次开场问一次与三句开关话术，§9 完工前发送；`docs/社区数据回传.md` 定稿；README 三语加「数据回传」一节；模块地图加「社区回传」。版本 1.11.0。
+- 验证：Argo 复跑 Roadstar 桩测试 PASS 73、数据仓库 PASS 362；本机 `telemetry.py status` 显示还没问过、待回传 0 条（旧记录没有 class 和 outcome，不会被发）。线上端到端：临时项目真发一条 → Issue #1 自动 accepted，埋在 meta 里的 notes 秘密值没有出现在正文；手动提交夹带 project 路径的 → #2 rejected、评论只写「含 schema 未允许的额外字段」、自动关闭；手动触发汇总 → 社区表出现该条且不含用户名；随后删除两条测试 Issue（第一次删除遇 GitHub 502，重试成功）并重新汇总，社区表清空。未验证：别人的机器、没装 gh 的补传路径只在桩测试里验过；每周定时汇总的 cron 还没自然触发过。
+
 ## 2026-10-14 · 1.10.0：所有人共用一张分工表，项目登记表，开场提醒新版本
 
 主席 10-14 定：所有人用完提建议，作者汇总更新后所有人一起变好，不要出现每个人各自适配、越分越开的分支；别人装的副本要提示更新。

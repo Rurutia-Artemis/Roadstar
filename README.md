@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.10.0-F2B544?style=flat-square" alt="版本 1.10.0">
+  <img src="https://img.shields.io/badge/version-1.11.0-F2B544?style=flat-square" alt="版本 1.11.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="只用 bash 和 Python 标准库">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT 许可">
 </p>
@@ -95,6 +95,12 @@ docs/         这个技能自己每次升级的记录；在别的项目里跑的
 install.sh    把技能软链给 Claude Code 和 Codex
 CHANGELOG.md  每次改动一条，写明验证了什么、没验证什么
 ```
+
+## 数据回传（自愿，默认不开）
+
+第一次开场时它会问一次要不要开启回传。开了以后，每跑完一场，它会用你本机的 `gh` 在公开仓库 [roadstar-data](https://github.com/Rurutia-Artemis/roadstar-data) 开一条 Issue，内容只有这一场每条线的活的类别、型号、强度、做没做完、用时、额度差这类固定选项和取整数字，没有代码、路径、项目名和任何文字。这条 Issue 带你的 GitHub 用户名，所有人都看得到；发送前会在本机 `~/.config/roadstar/uploads/` 原样留一份。
+
+大家的数据每周汇总一次，我看过以后改分工表、发新版本，所有人共用同一张表，一起变好。说一句「关掉回传」或设 `ROADSTAR_TELEMETRY=0` 就关，说「回传了什么」能看到将要发送的原文；想撤回，删掉自己那条 Issue。
 
 ## 声明
 

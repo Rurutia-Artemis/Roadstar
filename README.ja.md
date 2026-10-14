@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.10.0-F2B544?style=flat-square" alt="バージョン 1.10.0">
+  <img src="https://img.shields.io/badge/version-1.11.0-F2B544?style=flat-square" alt="バージョン 1.11.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash と Python 標準ライブラリのみ">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT ライセンス">
 </p>
@@ -102,6 +102,12 @@ docs/         この skill 自身のアップグレード記録。他プロジ�
 install.sh    skill を Claude Code と Codex にリンク
 CHANGELOG.md  変更ごとに一件、検証済みと未検証を明記
 ```
+
+## 割り振りデータの送信（任意、初期設定は無効）
+
+初めて使うとき、送信を有効にするかを一度だけ聞きます。有効にすると、実行が終わるたびに利用者自身の `gh` で公開リポジトリ [roadstar-data](https://github.com/Rurutia-Artemis/roadstar-data) に Issue を 1 件作ります。中身は作業の種類、モデル、推論強度、終わったかどうか、時間、使った枠といった決まった選択肢と丸めた数字だけで、コードやパス、プロジェクト名、文章は入りません。Issue には GitHub 名が付いて公開され、送る前に `~/.config/roadstar/uploads/` に同じ内容を残します。
+
+集まったデータは毎週まとめ、作者が確認して割り振り表を更新し、新しい版を出します。全員が同じ表を使うので、一緒に良くなります。止めたいときは「关掉回传」（送信を止める）と言うか `ROADSTAR_TELEMETRY=0` を設定し、次に送る内容は「回传了什么」（何を送るか）で確認できます。取り下げるときは自分の Issue を削除します。
 
 ## 免責事項
 

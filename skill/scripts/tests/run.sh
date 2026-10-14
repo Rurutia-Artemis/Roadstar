@@ -766,4 +766,288 @@ passed('update-check fetch timeout is exactly eight seconds, silent and leaves c
 PY
 while IFS= read -r check; do pass "$check"; done < "$TMP/update-checks.txt"
 
+# Every telemetry project, config, receipt and gh trace stays in this test's TMP.
+PYTHONDONTWRITEBYTECODE=1 python3 - "$SCRIPTS/telemetry.py" "$TMP" <<'PY' > "$TMP/telemetry-checks.txt"
+from contextlib import redirect_stdout, redirect_stderr
+from datetime import datetime
+import hashlib
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+from unittest.mock import patch
+
+script, base = Path(sys.argv[1]), Path(sys.argv[2]) / "telemetry fixtures"
+base.mkdir()
+schema = json.loads((script.parents[1] / "references/dispatch-v1.schema.json").read_text())
+env = {**os.environ, "ROADSTAR_CONFIG_DIR": str(base / "config"),
+       "ROADSTAR_PROJECTS": "", "FAKE_GH_TRACE_FILE": str(base / "gh.jsonl")}
+for key in ("ROADSTAR_TELEMETRY", "ROADSTAR_TELEMETRY_REPO", "FAKE_GH_EXIT"):
+    env.pop(key, None)
+config = Path(env["ROADSTAR_CONFIG_DIR"])
+trace = Path(env["FAKE_GH_TRACE_FILE"])
+secret_project = base / "PRIVATE-PROJECT-NAME"
+rounds = secret_project / "docs/roadstar/2026-secret/rounds"
+rounds.mkdir(parents=True)
+env["ROADSTAR_PROJECTS"] = str(secret_project)
+assert os.access(script, os.X_OK)
+assert os.access(script.parent / "tests/bin/gh", os.X_OK)
+
+def run(*args, extra=None):
+    result = subprocess.run([sys.executable, str(script), *args],
+                            env={**env, **(extra or {})}, capture_output=True, text=True)
+    assert result.returncode == 0, (args, result.returncode, result.stdout, result.stderr)
+    return result
+
+def calls():
+    return [json.loads(line) for line in trace.read_text().splitlines()] if trace.exists() else []
+
+def snapshot():
+    return {str(path.relative_to(config)): path.read_bytes()
+            for path in config.rglob("*") if path.is_file()} if config.exists() else {}
+
+def write_meta(name, **changes):
+    meta = {"session_id": name, "class": "页面实现", "outcome": "done",
+            "model": "claude-haiku-5-5", "effort": "high",
+            "started": "2026-10-11T23:50:00Z", "finished": "2026-10-12T00:22:30Z",
+            "done_items": "9/10", "notes": "SECRET-TOKEN-123",
+            "brief": "/private/SECRET-BRIEF-PATH/brief.md", "project": str(secret_project)}
+    meta.update(changes)
+    text = "".join(f"{key}={value}\n" for key, value in meta.items() if value is not None)
+    (rounds / ("exec-" + name + ".meta")).write_text(text, encoding="utf-8")
+    return text
+
+def validate(value, rule):
+    # Independent standard-library validator for every keyword in the source schema.
+    if "anyOf" in rule:
+        for option in rule["anyOf"]:
+            try:
+                validate(value, option)
+                return
+            except AssertionError:
+                pass
+        raise AssertionError(value)
+    types = {"object": lambda v: isinstance(v, dict), "array": lambda v: isinstance(v, list),
+             "string": lambda v: isinstance(v, str), "integer": lambda v: type(v) is int,
+             "boolean": lambda v: type(v) is bool, "null": lambda v: v is None}
+    if "type" in rule:
+        assert types[rule["type"]](value), (value, rule)
+    if "const" in rule:
+        assert value == rule["const"]
+    if "enum" in rule:
+        assert value in rule["enum"]
+    if "pattern" in rule:
+        assert re.fullmatch(rule["pattern"], value), value
+    if isinstance(value, dict):
+        assert set(rule.get("required", [])) <= set(value)
+        if rule.get("additionalProperties") is False:
+            assert set(value) <= set(rule["properties"])
+        for key, item in value.items():
+            validate(item, rule["properties"][key])
+    if isinstance(value, list):
+        assert rule.get("minItems", 0) <= len(value) <= rule.get("maxItems", float("inf"))
+        for item in value:
+            validate(item, rule["items"])
+    for keyword, check in (("minimum", lambda v, n: v >= n),
+                           ("maximum", lambda v, n: v <= n),
+                           ("multipleOf", lambda v, n: v % n == 0)):
+        if keyword in rule:
+            assert check(value, rule[keyword]), value
+
+def batch(call):
+    assert call["body"].startswith("<!-- roadstar-dispatch-data -->\n```json\n")
+    assert call["body"].endswith("\n```\n")
+    data = json.loads(call["body"].split("```json\n", 1)[1].rsplit("```", 1)[0])
+    validate(data, schema)
+    expected_keys = set(schema["properties"]["records"]["items"]["required"])
+    assert len(expected_keys) == 12
+    assert all(set(row) == expected_keys for row in data["records"])
+    return data
+
+write_meta("T1", quota_delta="bad claude_week=+2 codex_5h=-3", escalated_to="opus/high")
+result = run("send")
+assert result.stdout == result.stderr == "" and not calls() and not config.exists()
+status = run("status")
+assert status.stdout == "还没问过，待回传 1 条，目标仓库 Rurutia-Artemis/roadstar-data\n"
+assert not config.exists()
+preview = run("send", "--dry-run", "--json")
+validate(json.loads(preview.stdout), schema)
+assert "预览" in preview.stderr and not config.exists() and not calls()
+print('telemetry undecided send is silent, status reports pending records without creating config')
+
+run("enable", "--plan", "max")
+settings = json.loads((config / "telemetry.json").read_text())
+assert set(settings) == {"enabled", "consent_version", "decided_at", "plan"}
+assert settings["enabled"] is True and settings["consent_version"] == 1 and settings["plan"] == "max"
+assert datetime.fromisoformat(settings["decided_at"]).utcoffset().total_seconds() == 0
+assert run("status").stdout.startswith("已开启，待回传 1 条")
+run("disable")
+settings = json.loads((config / "telemetry.json").read_text())
+assert settings["enabled"] is False and settings["plan"] == "unknown"
+before = snapshot()
+assert run("send", "--json").stdout == "" and snapshot() == before and not calls()
+assert run("status").stdout.startswith("已关闭，待回传 1 条")
+run("enable")
+assert json.loads((config / "telemetry.json").read_text())["plan"] == "unknown"
+print('telemetry enable/disable persist consent version, UTC decision and default/explicit plan; disabled send is silent')
+
+before = snapshot()
+result = run("send", extra={"ROADSTAR_TELEMETRY": "0"})
+assert result.stdout == result.stderr == "" and snapshot() == before and not calls()
+assert run("status", extra={"ROADSTAR_TELEMETRY": "0"}).stdout.startswith("已关闭")
+print('telemetry ROADSTAR_TELEMETRY=0 overrides persisted consent')
+
+for extra in ({}, {"ROADSTAR_TELEMETRY": "0"}):
+    before = snapshot()
+    result = run("send", "--dry-run", "--json", extra=extra)
+    data = json.loads(result.stdout)
+    validate(data, schema)
+    assert "预览" in result.stderr and "未调用 gh，未修改状态" in result.stderr
+    assert snapshot() == before and not calls()
+run("disable")
+before = snapshot()
+assert json.loads(run("send", "--dry-run").stdout)["records"]
+assert snapshot() == before and not calls()
+run("enable", "--plan", "pro")
+print('telemetry dry-run prints schema-valid JSON and explanation whether enabled or disabled, with no state changes or gh')
+
+# Registry plus environment, duplicates, missing projects and only rounds paths.
+(config / "projects.txt").write_text(str(secret_project) + "\n" + str(base / "missing") + "\n")
+env_project = base / "environment project"
+env_rounds = env_project / "docs/roadstar/run/rounds"
+env_rounds.mkdir(parents=True)
+(env_rounds / "exec-copy.meta").write_bytes((rounds / "exec-T1.meta").read_bytes())
+second = write_meta("T2", model="gpt-6-astra", finished="2026-10-19T00:00:00Z",
+                    minutes="7.5", done_items="1/4", effort="SECRET-TOKEN-123", quota_delta="notes")
+(env_rounds / "exec-T2.meta").write_text(second)
+(rounds / "exec-T2.meta").unlink()
+env["ROADSTAR_PROJECTS"] = f":{env_project}:{secret_project}:"
+write_meta("missing-class", **{"class": None})
+write_meta("missing-outcome", outcome=None)
+write_meta("invalid-class", **{"class": "SECRET-TOKEN-123"})
+write_meta("invalid-outcome", outcome="unknown")
+(secret_project / "docs/roadstar/exec-not-rounds.meta").write_text(second.replace("T2", "not-rounds"))
+result = run("send", extra={"ROADSTAR_TELEMETRY_REPO": "offline-owner/offline-data"})
+assert result.stderr == "" and result.stdout.startswith("已回传 2 条，内容见 ")
+assert len(calls()) == 1
+call = calls()[0]
+data = batch(call)
+frontmatter = (script.parents[1] / "SKILL.md").read_text().split("---", 2)[1]
+assert data["skill_version"] == re.search(r'version:\s*"([0-9.]+)"', frontmatter).group(1)
+assert "--label" not in call["args"] and call["args"][call["args"].index("-R") + 1] == "offline-owner/offline-data"
+assert call["args"][call["args"].index("--title") + 1] == "dispatch-data · schema 1 · 2026-W43"
+assert len(list((config / "uploads").glob("*.json"))) == 1
+assert json.loads(next((config / "uploads").glob("*.json")).read_text()) == data
+assert len((config / "telemetry-uploaded.txt").read_text().splitlines()) == 2
+for private in ("SECRET-TOKEN-123", "SECRET-BRIEF-PATH", "PRIVATE-PROJECT-NAME", str(secret_project), "brief.md"):
+    assert private not in call["body"], private
+rows = {row["id"]: row for row in data["records"]}
+row = rows[hashlib.sha1(b"T1").hexdigest()[:16]]
+assert (row["model"], row["model_version"], row["week"], row["minutes"], row["done_ratio"],
+        row["quota_delta"], row["plan"], row["escalated"]) == ("haiku", "5.5", "2026-W42", 35, 0.9, "claude_week=+2", "pro", True)
+row = rows[hashlib.sha1(b"T2").hexdigest()[:16]]
+assert (row["model"], row["model_version"], row["minutes"], row["done_ratio"], row["effort"], row["quota_delta"]) == ("gpt-6-astra", "6", 10, 0.3, "default", None)
+print('telemetry sends registry + env records, schema-exact private-free bodies, latest-week title without labels and identical backups')
+print('telemetry normalizes models, versions, effort, ratios, UTC ISO week, five-minute half-up duration, quota and configured plan')
+
+before = snapshot()
+result = run("send")
+assert result.stdout == result.stderr == "" and len(calls()) == 1 and snapshot() == before
+assert run("status").stdout.startswith("已开启，待回传 0 条")
+print('telemetry skips missing/invalid class or outcome and previously uploaded or duplicate sessions')
+
+write_meta("retry", outcome="failed", done_items=None, model="other-model", minutes="5000")
+uploaded = (config / "telemetry-uploaded.txt").read_bytes()
+result = run("send", extra={"FAKE_GH_EXIT": "1"})
+assert result.stdout == "" and "回传没成功（" in result.stderr and "下次完工时补传" in result.stderr
+assert (config / "telemetry-uploaded.txt").read_bytes() == uploaded
+assert run("status").stdout.startswith("已开启，待回传 1 条")
+assert len(list((config / "uploads").glob("*.json"))) == 2
+result = run("send", "--json")
+receipt = json.loads(result.stdout)
+assert receipt["sent"] == 1 and "已回传 1 条，内容见 " in receipt["uploads"][0]["message"]
+assert batch(calls()[-1])["records"][0]["minutes"] == 1440
+assert run("status").stdout.startswith("已开启，待回传 0 条")
+print('telemetry gh failure preserves pending IDs and backup, next send succeeds; --json provides machine-readable receipts')
+
+# Invalid values are dropped with a fixed, private-free diagnostic.
+write_meta("bad-date", finished="not-a-date")
+write_meta("bad-ratio", done_items="4/0")
+write_meta("bad-duration", minutes="NaN")
+result = run("send")
+assert result.stdout == "" and result.stderr.count("已丢弃一条不符合 schema 1 的记录") == 3
+assert "SECRET" not in result.stderr and len(calls()) == 3
+for name in ("bad-date", "bad-ratio", "bad-duration"):
+    (rounds / f"exec-{name}.meta").unlink()
+print('telemetry rejects malformed dates, ratios and nonfinite duration before gh with non-sensitive diagnostics')
+
+content = write_meta("no-session", session_id=None, finished=None, model="Sonnet 5.5", done_items=None,
+                     started="2026-01-05T00:30:00+09:00", minutes="-12")
+result = run("send")
+row = batch(calls()[-1])["records"][0]
+assert row["id"] == hashlib.sha1(content.encode()).hexdigest()[:16]
+assert (row["week"], row["model_version"], row["done_ratio"], row["minutes"]) == ("2026-W01", "5.5", 1, 0)
+print('telemetry hashes full meta when no session, uses started in UTC when unfinished and clamps negative duration')
+
+previous = len(calls())
+for index in range(401):
+    write_meta(f"bulk-{index:03}", model="gpt-6.1-sol", minutes="10")
+before = snapshot()
+preview = json.loads(run("send", "--dry-run", "--json").stdout)
+assert [len(data["records"]) for data in preview] == [200, 200, 1]
+for data in preview:
+    validate(data, schema)
+assert snapshot() == before and len(calls()) == previous
+result = run("send")
+new_calls = calls()[previous:]
+assert len(new_calls) == 3 and len(result.stdout.splitlines()) == 3
+assert [len(batch(call)["records"]) for call in new_calls] == [200, 200, 1]
+assert all(row["model_version"] == "6.1" for call in new_calls for row in batch(call)["records"])
+assert all("--label" not in call["args"] for call in new_calls)
+assert run("send").stdout == "" and len(calls()) == previous + 3
+print('telemetry splits 401 records into 200/200/1 with valid batches and no repeated uploads')
+
+# Inject transport errors without actually sleeping or using a real gh binary.
+spec = importlib.util.spec_from_file_location("telemetry", script)
+telemetry = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(telemetry)
+write_meta("transport", model="Fable 5.1", minutes="0")
+for error, reason in ((FileNotFoundError(), "没装 gh"),
+                      (subprocess.TimeoutExpired("gh", 30), "超时 30 秒")):
+    before = (config / "telemetry-uploaded.txt").read_bytes()
+    out, err = io.StringIO(), io.StringIO()
+    with patch.dict(os.environ, env, clear=True), redirect_stdout(out), redirect_stderr(err), \
+         patch.object(telemetry.subprocess, "run", side_effect=error) as mock:
+        assert telemetry.main(["send"]) == 0
+    assert out.getvalue() == "" and reason in err.getvalue()
+    assert mock.call_args.kwargs["timeout"] == 30
+    assert (config / "telemetry-uploaded.txt").read_bytes() == before
+print('telemetry missing gh and exact 30-second timeout are nonblocking and preserve retry IDs')
+
+# Cross-check built-in validation against actual schema constraints.
+valid = batch(calls()[0])["records"][0]
+assert telemetry.validate_record(valid)
+for key, value in (("notes", "SECRET"), ("id", "zz"), ("week", "2026-W54"),
+                   ("model", "arbitrary"), ("model_version", "5.5.1"), ("effort", "bad"),
+                   ("outcome", "bad"), ("done_ratio", True), ("done_ratio", 0.25),
+                   ("minutes", True), ("minutes", 11), ("minutes", 1445),
+                   ("escalated", 1), ("quota_delta", "codex_week=1000"), ("plan", "free")):
+    assert not telemetry.validate_record({**valid, key: value}), (key, value)
+assert not telemetry.validate_record({key: value for key, value in valid.items() if key != "id"})
+assert not telemetry.validate_batch({"schema": 1, "client": "roadstar", "skill_version": "bad", "records": [valid]})
+assert not telemetry.validate_batch({"schema": 1, "client": "roadstar", "skill_version": "1.0.0", "records": [valid] * 201})
+assert telemetry.model_fields("claude-opus-5-5") == ("opus", "5.5")
+assert telemetry.model_fields("unversioned") == ("other", "unknown")
+duplicate_quota = write_meta("first-quota", quota_delta="claude_week=+1") + "quota_delta=codex_week=+9\n"
+meta = dict(line.split("=", 1) for line in duplicate_quota.splitlines())
+assert telemetry.export_record(meta, duplicate_quota.encode(), "unknown")["quota_delta"] == "claude_week=+1"
+(rounds / "exec-first-quota.meta").unlink()
+print('telemetry built-in validation enforces exact keys, enum values, types, bounds, patterns and batch cap')
+PY
+while IFS= read -r check; do pass "$check"; done < "$TMP/telemetry-checks.txt"
+
 printf 'PASS %d checks\n' "$COUNT"

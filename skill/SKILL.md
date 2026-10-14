@@ -3,7 +3,7 @@ name: roadstar
 description: >-
   Roadstar · 引路星：Claude 主会话当总调度，和 Codex 一起干项目。主席说「用 skill」「用 Roadstar」时自动判用法，开场一行报出来就跑，不等答复。三种用法：探讨（主席只说构思，两家最强模型先把主功能之外的副功能、设置、衍生功能想全、主席分档，再默认三轮谈工程到能落地）、复盘（两家各读一遍现有项目，按产品层或代码层的尺子交叉审出不足清单；「全面 review」「全部排查」也走这里）、协同（方案已有，Argo 拆活、分型号、定审查人，派活、验收、交报告）。拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核。触发：「用 skill」「用 Roadstar」「按 skill 来」「Roadstar」「引路星」「/roadstar」「开圆桌」「探讨一下怎么落地」「我想做个类似 X 的」「帮我规划功能」「还能加什么功能」「复盘这个项目」「全面 review」「看看哪里能改进」「直接调度」「你来安排谁做」「总舵主」。产出在项目 docs/roadstar/<日期>-<slug>/。不处理：一小时内能做完的活（直接干）；只要 Codex 单次二审（→ call-codex）；只要网页 Pro 策划（→ pro-orchestrator）；仅维护本 skill。
 metadata:
-  version: "1.10.0"
+  version: "1.11.0"
 ---
 
 # Roadstar · 引路星：先判用法，再谈、再派、再审
@@ -68,7 +68,8 @@ metadata:
 1. 跑 `scripts/quota-status.py`、`scripts/update-check.py` 和 `codex --version`，拿两边读数、有没有新版本和能用的型号。有新版本就在开场那一行末尾加一句「Roadstar 有新版本，说『更新 Roadstar』就拉到最新」；主席说了就跑 `scripts/update-check.py --apply`，报出更新后的版本和 CHANGELOG 第一条标题。`codex --version` 跑不出来，或 `codex login status` 不是已登录，就进单家模式（第 8 节末）；探针的 Codex 一列在本机没有 codex 时会退回本地 rollout 记录，不能当有 Codex 的证据。
 2. 按默认定：总调度就是当前主会话（Fable 或 Opus；Sonnet 时建议主席切）；探讨和审稿 `gpt-6-astra` / high，规模大或难回滚 xhigh；执行按第 8 节的表逐件推荐。主席的常驻指令（账本、项目 CLAUDE.md、记忆里带日期的分配规则）压过默认。
 3. 开场只回一行，格式固定：「这次走 <用法>，因为 <一句>。题目：<一句人话>。总调度 X，审稿 Y，实现走 <Codex 梯子 / Claude 梯子>，取证和批量 <Haiku / 6.1 Sol>，复核 <Sonnet / Codex 另一型号>；额度 Claude <档> / Codex <档>。要改现在说，不改我就跑。」实现方向按第 8 节定：Codex 宽或正常、或有重置卡可刷，走 Codex 梯子；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子。Claude 不紧时取证和批量写 Haiku、复核写 Sonnet；Claude 紧或空时这两项退回 Codex。单家模式的开场一行：「这次走 <用法>，因为 <一句>。题目：<一句人话>。本机没有 Codex，单家模式：总调度 X，审稿 Fable 子代理（同家，Fable 列紧时 Opus），执行走 Claude 梯子；额度 Claude <档>。要改现在说，不改我就跑。」说完直接往下，不等答复；主席任何时候的改动记进账本「主席指令」，管整场。
-4. 只有三种情况开口问，用 AskUserQuestion 一次问齐：Codex 或 Claude 读数「紧」或「空」（刷不刷重置卡、降不降档）；主席此前说过要逐件指定型号；主席要换总调度（要他敲 `/model`，我说一句怎么敲）。
+4. 只有四种情况开口问，用 AskUserQuestion 一次问齐：Codex 或 Claude 读数「紧」或「空」（刷不刷重置卡、降不降档）；主席此前说过要逐件指定型号；主席要换总调度（要他敲 `/model`，我说一句怎么敲）；`scripts/telemetry.py status` 显示「还没问过」，这时问一次要不要开启派活数据回传，问法照 `docs/社区数据回传.md` 第 1 节、按会话语言，默认不开，答了跑 `telemetry.py enable --plan <档位>` 或 `disable`，以后不再问。
+5. 主席说「关掉回传」「打开回传」「回传了什么」时，分别跑 `telemetry.py disable`、`enable`、`send --dry-run`，照实报结果。
 
 ### 1 立项
 
@@ -188,7 +189,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 失败上限和额度到顶的梯子见 division-of-labor 第 10、11 节；每次改派、挂起和成本（派活前后的读数差）都记进调度记录，完工报告写一行。
 - 止损：每条线派出就带 `--max-minutes`，每小时看一次指标走势，不收敛就停，Argo 亲自诊断后再决定收下、交真机判还是缩窄重派；同一问题两轮不收敛，第三轮 Argo 查根因写方案（主会话不是 Fable 时派 Fable 子代理查），Codex 只实现。每条线都写进度文件，Argo 用 `scripts/stall-watch.py` 盯：同一检查项连续三次失败、空转、用掉九成时间还没完，任一条命中就停，做完的收下，只把没过的项交高一级型号补全（`references/escalation-and-learning.md` 第 3、4 节）。被脚本停掉的线不自动重派。
 - 发版或交付前，Argo 在合并后的主干上亲自复跑至少一组完整验收（不只信执行方的数字）；合并后该线 worktree 留作槽位、下件活直接换分支（不挪废纸篓，见 division-of-labor 第 15、16 节），自建模拟器删掉，查一眼同机生产服务还活着。
-- 执行期静默；全部通过后在 plan 追加执行记录、写共享记忆、交完工报告（配方见 minutes-template 末尾）。
+- 执行期静默；全部通过后在 plan 追加执行记录、给每条线的 `.meta` 补齐 class、outcome、done_items、quota_delta，跑 `scripts/telemetry.py send`（关闭或没问过时什么都不做；失败只留一句，下次补传），把它输出的那一行写进完工报告，再写共享记忆、交完工报告（配方见 minutes-template 末尾）。
 
 ## 纪律
 
@@ -210,6 +211,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 2026-10-04：0.3.0 / 0.3.1 验证（前身 roundtable）。额度探针会话内实测 1.3 秒读到两边、不花额度；dex-review 新旧请求正文逐字节一致；dex-exec 桩测试 29 条全过，真跑 Luna 一句话任务与 resume 跑通（resume 要 `-c model=` 覆盖）；gpt-6.1-sol 在 codex-cli 0.158 上 400、升到 0.160 后能用；四个子代理新会话可见；调度回放 3 场任务表 × 4 种额度情形 310 条检查全过、同情形两遍一致率 9/9。本次升级自己就是按新规矩派的，细节在 CHANGELOG 同日条。
 - 2026-10-04：1.0.0 改名 Roadstar，搬到 `~/Documents/RuruCode/Roadstar`，加第 0 节选模型和第 5 段推荐表两步，三种用法写进 `references/modes.md`。验证：桩测试在新位置 29 条全过（桩的 clientInfo 跟着改名）；`./install.sh` 四处软链、旧 roundtable / rt-* 软链清掉；新会话里 skill 以 roadstar 名字和新 description 可见。
 - 2026-10-08：1.3.0 加 division-of-labor 第 15 节。来源是 Mia 移动版两天实战（约 20 条 Codex 线、4 个 TestFlight 版本）：大任务书做一半、无指标导致「解决一半」、并行改同一中枢冲突、沙箱里没真点界面导致首版全屏点不动、多模拟器压垮同机微信接入、测试写脏 bash 历史、worktree 攒到 256 GB。
+- 2026-10-14：1.11.0 按主席当天拍板：社区自动回传。§0 第一次开场问一次（默认不开），同意后 §9 完工前 `telemetry.py send` 用用户本机 gh 在公开仓库 Rurutia-Artemis/roadstar-data 开 Issue，只含 schema 1 的 12 个固定字段；「关掉回传」「打开回传」「回传了什么」三句话管开关和预览。数据仓库每周汇总成共用分工表。
 - 2026-10-14：1.10.0 按主席当天拍板：所有人共用第 8 节一张分工表，本机记录不单独改本机起步层，只用来回传和出周报；项目登记表（dex-exec 自动、§1 建场次时 `--register`）让别人装上也能统计；开场 `update-check.py` 提醒新版本，「更新 Roadstar」安全快进。
 - 2026-10-14：1.9.0 按主席当天拍板：探讨开头加功能地图（§1.5），两家先按十个角度把副功能、设置、衍生功能想全，主席分档后再谈工程；plan 加 §0、审稿清单加 feature_map、纪要加「这版要做的功能」。细则在 `references/feature-map.md`。
 - 2026-10-14：1.8.0 按主席当天拍板：Claude 四层按活常驻（Haiku 5.5 常驻取证与批量、Sonnet 常驻跨家复核、Opus 和 Astra 按额度分难活、Fable 只在两轮没收敛或审方案要最强时派）；加碰壁止损与升级补全（进度文件、`stall-watch.py` 的 STALL / IDLE / WRAP、只把没过的检查项交高一级）；加派活经验回路（`.meta` 记类别与结果，`dispatch-stats.py` 出经验表，样本够了按门槛提起步层调整交主席拍板）；单家模式审稿改 Fable 子代理。细则在 `references/escalation-and-learning.md`。验证与未验证见 CHANGELOG。
