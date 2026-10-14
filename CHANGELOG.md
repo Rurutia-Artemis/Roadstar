@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-10-14 · README 加分段标题条、数字卡、重点色
+
+主席 10-14 问 README 能不能有分段和重点色。实测 GitHub 删掉 `style` 和 `<font color>`，正文不能上色；能用的是 SVG、五色提示框和 `<mark>`。
+
+- 新增 `assets/readme/` 的分段标题条（中文 4 张、英日各 3 张）和数字卡（三语各 1 张），颜色角色：金色讲为什么、青色讲实证、珊瑚色讲限制、墨色讲安装。三份 README 的故事段 `##` 换成标题条，目录和声明保留 `##`；中文正文两处 `<mark>`，安装段加 TIP 和 IMPORTANT 提示框（英日加 TIP）；英日的「真跑过」列表换成数字卡。
+- 生成脚本放进 `assets/readme/source/`（只用标准库），改字或改色重跑即可。
+- 这一套同步写进 vela（RuruAgent `skills/vela/references/github-readme/layout-and-emphasis.md`，SKILL.md README 标准第 8 条）。
+- 验证：`audit_readme.py` 三份均通过；GitHub markdown 接口渲染 + headless Chrome 在 900px、380px 两个宽度截图核对，标题条加大到 56 单位后 380px 宽约 16px。未验证：GitHub 深色模式下的观感。
+
 ## 2026-10-14 · README 默认改中文，用大耳朵口气重写
 
 主席 10-14：公开仓库的 README 太 AI 味，中文用大耳朵 skill 写，英日按各自常规写法；默认语言改中文，不用英语。

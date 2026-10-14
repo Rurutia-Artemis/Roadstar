@@ -12,9 +12,11 @@
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT 许可">
 </p>
 
-今天跟大家分享一个我自己做的 Claude Code 技能，叫 Roadstar，中文名引路星。我从 9 月 24 号开始做，用到现在差不多三个星期了，光是 10 月 4 号以后就在我自己的四个项目里跑了十七场，有两个 App、一个网站和一个设计工具，派出去的 Codex 会话一共两百四十四次。我个人来讲用下来是非常满意的，因为它解决了我三个非常大的问题。
+今天跟大家分享一个我自己做的 Claude Code 技能，叫 Roadstar，中文名引路星。我从 9 月 24 号开始做，用到现在差不多三个星期了，光是 10 月 4 号以后就在我自己的四个项目里跑了十七场，有两个 App、一个网站和一个设计工具，派出去的 Codex 会话一共两百四十四次。我个人来讲用下来是非常满意的，因为它<mark>解决了我三个非常大的问题</mark>。
 
-## 它解决了我三个问题
+<p align="center"><img src="./assets/readme/stats.zh-CN.svg" width="100%" alt="真跑过的数字：10 月 4 日以来四个项目 17 场，Codex 会话 244 次（Sol 130、Astra 114），规矩 31 条。"></p>
+
+<p align="center"><img src="./assets/readme/section-1.zh-CN.svg" width="100%" alt="01 它解决了我三个问题：两边订阅、方案挑错、派活验收"></p>
 
 首先第一个是两边订阅浪费的问题。我手里 Claude 和 GPT 两边都有订阅，但是以前基本只用 Claude，所以 Claude 的周额度经常用到一半就撞上限，GPT 那边钱照样交，额度却大部分闲着，这个多少有一点浪费。现在 Claude 只当总调度，想方案、拆活、派活、验收，真正写代码的活交给 Codex，那两百四十四次里有一百三十次是便宜的 6.1 Sol 干的，所以两边的订阅都用上了，而且 Claude 的额度全留给了它最擅长的指挥和整理。Codex 那边额度要是紧了，活就往 Claude 这边派，机械的批量活给 Haiku，规格清楚的给 Sonnet，难活才给 Opus。
 
@@ -28,7 +30,7 @@
 
 用起来也非常的简单，在项目里对 Claude 说一句「用 skill」就可以了，它自己看现场判断走上面三种里的哪一种，开场报一行配置就开始跑，不等我答复，我想改哪项接着说一句就行。一个小时之内能干完的小活，它不走这套流程，直接做掉。
 
-## 我最满意的几个地方
+<p align="center"><img src="./assets/readme/section-2.zh-CN.svg" width="100%" alt="02 我最满意的几个地方：额度自己看、换型号验收、止损、规矩"></p>
 
 第一个就是额度它自己看。开场那一行会报两边额度是宽、正常、紧还是空，是一个探针一秒多读出来的，而且不花额度。大家看，这是我今天实际跑出来的结果：
 
@@ -40,19 +42,19 @@ Codex：本周 24%（10-20 14:57 重置）｜重置卡 1 张｜credits … → �
 
 Claude 紧、Codex 正常，所以这一周写代码的活就往 Codex 派，读到紧或者空了它一定停下来问我。模型最后拍板的永远是我，我说一句「这个月多用 GPT」，它这段时间都照着排。
 
-另外一个是干活的和验收的一定不是同一个型号。Astra 写的让 Sol 复核，Sol 写的让 Astra 复核，或者 Claude 自己把验收命令重跑一遍；全部过了以后，Claude 还要在合并后的主干上亲自再跑一遍完整测试，Codex 自己报的「全过」只当参考。
+另外一个是干活的和验收的一定不是同一个型号。Astra 写的让 Sol 复核，Sol 写的让 Astra 复核，或者 Claude 自己把验收命令重跑一遍；全部过了以后，Claude 还要在合并后的主干上亲自再跑一遍完整测试，Codex 自己报的<mark>「全过」只当参考</mark>。
 
 再有一个是每条线都带止损。之前有一条做性能的线跑了七个半小时，烧掉我三成周额度，所以现在派出去就带时间上限，到点脚本直接停；同一个问题两轮没收敛，就换 Claude 这边的主模型亲自查根因。
 
 下一个就是踩过的坑当天写成规矩，现在里面有三十一条，比如完成线必须能失败、「顺滑好看」这种词不许直接进任务书、同时跑的模拟器最多两台，每一条后面都写着是哪个项目哪一次摔出来的。还有一次合并把八百四十六个截图一起提交进了分支，一次测试全过的 App 装到手机上整屏点不动，这些现在也都成了规矩。有界面的活，设计方向它出两三版我来挑，选定以后默认打磨两遍、过两遍 review 才给我看。
 
-## 不是特别方便的地方
+<p align="center"><img src="./assets/readme/section-3.zh-CN.svg" width="100%" alt="03 不是特别方便的地方：要装 Codex 命令行，单家模式还没实跑"></p>
 
 它是按两边订阅都有来设计的，审方案和派活的两份脚本要本机装着 Codex 命令行，版本 0.160 以上。只订阅了 Claude 的朋友也能跑单家模式，审方案换成 Claude 另开一个 Opus 实例来挑错，执行走 Haiku、Sonnet、Opus，但是少了两家互相挑错那一层，而且这个模式还没有在一整场里实跑过；只订阅 GPT 的版本我还没做。另外跑一场探讨要用掉两边的额度和半小时到一小时的时间，但是因为大活返工一次的代价远比这个高，所以对我个人来讲影响不大。
 
 总之我个人来讲，两边订阅都有、经常让 AI 干一个小时干不完的大活的朋友，这个东西非常值得试一下；平时只改改小东西的朋友，其实不用特别的着急。试的时候哪里不顺手，直接告诉我就行。OK 那，这些就是我这段时间做 Roadstar 的一些体会，希望对大家有一定的参考价值。
 
-## 安装
+<p align="center"><img src="./assets/readme/section-4.zh-CN.svg" width="100%" alt="04 安装：把仓库地址丢给 AI 就行"></p>
 
 ```bash
 git clone https://github.com/Rurutia-Artemis/Roadstar.git
@@ -61,13 +63,19 @@ cd Roadstar && ./install.sh
 
 `install.sh` 把 `skill/` 软链到 `~/.claude/skills`、`~/.agents/skills` 和 `~/.codex/skills`。在任意项目里重开一个 Claude Code 会话，说一句「用 skill」或输入 `/roadstar` 就开始。
 
-最省事的装法是把这个仓库地址丢给 Claude Code，说一句「帮我装上」。如果你是负责安装的 AI，请按下面做：
+> [!TIP]
+> 最省事的装法是把这个仓库地址丢给 Claude Code，说一句「帮我装上」。
+
+如果你是负责安装的 AI，请按下面做：
 
 1. 克隆到一个长期保留的目录，比如 `~/Roadstar`。安装脚本链接的就是这个目录，不要克隆到临时目录，装完也不要移动或删除它。
 2. 在仓库根目录跑 `./install.sh`，每个目标会打印一行「已链接」。
 3. 验证：`ls -l ~/.claude/skills/roadstar` 指向仓库里的 `skill/`；`bash skill/scripts/tests/run.sh` 最后一行是 `PASS 32 checks`。
 4. 查 Codex：`codex --version` 要 0.160 以上（没有就 `npm i -g @openai/codex@latest`），`codex login status` 要显示已登录。登录会打开浏览器，请让用户自己跑 `codex login`。没有 Codex 也能用单家模式。
 5. 告诉用户重开一个 Claude Code 会话（技能在会话开始时加载），说一句「用 skill」或输入 `/roadstar`。
+
+> [!IMPORTANT]
+> 安装是软链，仓库文件夹删了或挪了，技能就跟着失效。
 
 需要：Claude Code（我自己用的是 Max 套餐）；[Codex CLI](https://github.com/openai/codex) 0.160 以上，用 ChatGPT 账号登录；macOS、bash 和 Python 3，脚本只用标准库。
 

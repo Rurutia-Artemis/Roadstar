@@ -14,13 +14,13 @@
 
 Roadstar is a Claude Code skill that turns your Claude session into a dispatcher for Codex. Claude writes the plan, splits the work into tasks of two hours or less, picks a model for each one, sends the coding to Codex, and verifies the result with a different model before it reaches you. If you pay for both Claude and ChatGPT, both subscriptions finally do real work.
 
-## Used for real
+<p align="center"><img src="./assets/readme/section-1.svg" width="100%" alt="01 Used for real: 17 runs, 244 Codex sessions, 31 rules"></p>
 
 Since 2026-10-04 the author has run it across four of their own projects (two apps, a website and a design tool):
 
-- **17 runs**, from first idea to shipped builds
-- **244 Codex sessions** dispatched: 130 on `gpt-6.1-sol`, 114 on `gpt-6-astra`
-- **31 house rules**, each written the day a real run went wrong (a task that used 30% of the weekly quota in 7.5 hours, a merge that committed 846 screenshots, an app that passed every test and then ignored all taps once installed on a phone)
+<p align="center"><img src="./assets/readme/stats.svg" width="100%" alt="17 runs across four projects since 2026-10-04, 244 Codex sessions (130 on gpt-6.1-sol, 114 on gpt-6-astra), 31 rules"></p>
+
+Each of the 31 rules was written the day a real run went wrong: a task that used 30% of the weekly quota in 7.5 hours, a merge that committed 846 screenshots, an app that passed every test and then ignored all taps once installed on a phone.
 
 Every run starts with one line of setup and a live quota reading. The probe reads both accounts in just over a second and spends no quota:
 
@@ -32,7 +32,7 @@ Codex：本周 24%（10-20 14:57 重置）｜重置卡 1 张｜credits … → �
 
 Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this week the coding goes to Codex.
 
-## What it fixes
+<p align="center"><img src="./assets/readme/section-2.svg" width="100%" alt="02 What it fixes: two subscriptions, a second model, less babysitting"></p>
 
 **Two subscriptions, one doing the work.** Claude is the better organizer, so it keeps that job: planning, splitting, reviewing. Codex does the implementation. When Codex runs low, tasks go to Claude models by difficulty instead: Haiku for repetitive batch work, Sonnet for well-specified tasks, Opus for hard ones.
 
@@ -46,7 +46,7 @@ Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this 
 
 Small jobs (under an hour) skip all of this and get done directly. You can override any choice at any time with one sentence, such as "use more GPT this month", and the change holds for the whole run.
 
-## Install
+<p align="center"><img src="./assets/readme/section-3.svg" width="100%" alt="03 Install, or hand this URL to your AI"></p>
 
 ```bash
 git clone https://github.com/Rurutia-Artemis/Roadstar.git
@@ -55,7 +55,10 @@ cd Roadstar && ./install.sh
 
 `install.sh` symlinks `skill/` into `~/.claude/skills`, `~/.agents/skills` and `~/.codex/skills`. Open a new Claude Code session in any project and type `/roadstar`, or just say 「用 skill」.
 
-The easiest way is to paste this repository's URL into Claude Code and say "install this". If you are an AI agent doing the install, follow these steps:
+> [!TIP]
+> The easiest way is to paste this repository's URL into Claude Code and say "install this".
+
+If you are an AI agent doing the install, follow these steps:
 
 1. Clone into a permanent folder such as `~/Roadstar`. The installer links to that folder, so do not clone into a temp directory and do not move or delete it afterwards.
 2. Run `./install.sh` from the repo root. It prints one `已链接` (linked) line per target.
