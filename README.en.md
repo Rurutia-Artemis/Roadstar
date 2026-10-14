@@ -34,11 +34,19 @@ Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this 
 
 <p align="center"><img src="./assets/readme/section-2.svg" width="100%" alt="02 What it fixes: two subscriptions, a second model, less babysitting"></p>
 
-**Two subscriptions, one doing the work.** Claude is the better organizer, so it keeps that job: planning, splitting, reviewing. Codex does the implementation. When Codex runs low, tasks go to Claude models by difficulty instead: Haiku for repetitive batch work, Sonnet for well-specified tasks, Opus for hard ones.
+**Two subscriptions, one doing the work.** Claude is the better organizer, so it keeps that job: planning, splitting, reviewing. Codex does the implementation. Claude's four models each have a standing job. Haiku 5.5 takes lookups and batch work at about a twentieth of Sonnet's API price. Sonnet reviews what Codex writes. Opus and Astra split the hard tasks by quota, and Fable stays in the main session until a problem survives two rounds.
+
+<p align="center"><img src="./assets/readme/lineup.svg" width="100%" alt="Six models, each on the work it does best. Claude, four tiers: Fable 5.1 for main-session judgment and root causes when stuck (API $10/$50); Opus 5.5 for hard tasks, root causes and mockups ($4/$20); Sonnet 5.5 for cross-vendor review and spec'd builds ($2/$10); Haiku 5.5 for lookups and batch work, always on ($0.10/$0.50). Codex, two tiers: Astra for hard tasks and plan review; 6.1 Sol for routine implementation at about a fifth of Astra. Stuck? Stop, keep what passed, hand the rest up."></p>
 
 **A plan is never finished on the first pass.** Claude and Codex have different blind spots. In Discuss mode the strongest model from each vendor reviews the same plan. Every objection must cite a file, a line number or command output. Claude then accepts it, rejects it with a written reason, or leaves the call to you. Three rounds by default; it stops early when neither side finds anything new.
 
 **Dispatching and checking work is exhausting.** Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
+
+**A stuck task stops early, and only the unfinished part moves up.** Every task logs one line per check attempt. Three failures on the same check, a long stretch with no new pass, or 90% of the time limit used will stop the lane. Claude keeps the checks that passed and sends only the failing ones to the next tier: Haiku, Sonnet, Opus, then Fable on the Claude side, Sol then Astra on Codex. Nothing restarts from scratch.
+
+**It learns which model fits which job.** Each dispatch records the task class, model, outcome and quota spent. Once a class has five samples, `dispatch-stats.py` suggests a cheaper starting tier when that tier finishes 90% of the time, or a higher one when the current tier finishes under 60%. You approve every change, and the same loop runs when you use Claude alone.
+
+<p align="center"><img src="./assets/readme/loop.svg" width="100%" alt="Stop at the wall, learn every run: start on the cheapest tier with a record; log one line per check attempt; stop on 3 fails, idle time or 90% of the time limit; keep what passed and send the rest up a tier; record class, model, result and quota. After 5 samples, 90% done or better moves a class down a tier, under 60% moves it up. You approve each change."></p>
 
 <p align="center">
   <img src="./assets/readme/workflow.svg" width="100%" alt="Three modes, one entry. Discuss: you have an idea, Claude drafts and Codex probes, three rounds produce a plan and task table. Review: you have a project, both read it and cross-check, producing a gap list and the top three fixes. Dispatch: you have a plan, split, assign and verify, ending in a report with evidence.">
@@ -72,7 +80,7 @@ Requirements:
 - [Codex CLI](https://github.com/openai/codex) 0.160 or later, signed in with a ChatGPT account: `npm i -g @openai/codex@latest`
 - macOS, bash and Python 3; the scripts use only the standard library
 
-No Codex? It falls back to a Claude-only mode: an Opus subagent reviews the plan (marked as same-vendor in the notes) and Haiku, Sonnet or Opus does the work. This mode exists but has not been through a complete real run yet.
+No Codex? It falls back to a Claude-only mode: a Fable subagent reviews the plan (marked as same-vendor in the notes) and Haiku, Sonnet or Opus does the work. This mode exists but has not been through a complete real run yet. The same goes for the four-tier Claude setup, early stops and the learning loop, added on 2026-10-14. Most older dispatch records carry no task class, so the experience table needs a few more runs before it says much.
 
 ## Repository
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # 圆桌 · 把一份任务书交给 Dex（codex exec）执行。
-# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--root DIR] [--write] [--max-minutes N] [--resume SESSION_ID] [--detach] [--status] [--force] [--dry-run]
+# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--class 类别] [--root DIR] [--write] [--max-minutes N] [--resume SESSION_ID] [--detach] [--status] [--force] [--dry-run]
 #   T#        如 T3、T3b；产物写到 plan-dir/rounds/exec-T#*。
+#   --class   取证、批量、页面实现、窄回归、跨模块、根因、性能、视觉照做、复核、审方案、补全；可选，写入 meta。
 #   --root    默认 plan-dir 所在 git 根，找不到用 plan-dir 的上级。
 #   --write   使用 workspace-write；默认 read-only。
 #   --max-minutes N  止损：到 N 分钟还没结束就停掉 codex，退出码 124，meta 记 timed_out=1（常规 120、难活 240）。
@@ -35,6 +36,7 @@ write_meta() {
     printf 'started=%s\nfinished=%s\nexit=%s\n' "$STARTED" "$FINISHED" "$RESULT"
     printf 'session_id=%s\ntokens_used=%s\nresumed_from=%s\nattempt=%s\n' "$SESSION_ID" "$TOKENS_USED" "$RESUME" "$ATTEMPT"
     printf 'max_minutes=%s\ntimed_out=%s\n' "$MAX_MINUTES" "$TIMED_OUT"
+    if [[ -n "$CLASS" ]]; then printf 'class=%s\n' "$CLASS"; fi
   } > "$tmp"
   mv -f "$tmp" "$META"
 }
@@ -105,11 +107,12 @@ run_job() {
 # nohup 启动同一脚本的 worker，避免依赖导出的函数或拼接 shell 命令。
 # worker 的 stdin 不连接终端；codex 单独从已保存的任务书副本读取。
 if [[ "${1:-}" == --_worker ]]; then
-  [[ $# -ge 16 ]] || usage_error '后台 worker 参数不完整'
+  [[ $# -ge 17 ]] || usage_error '后台 worker 参数不完整'
   shift
   LOCK="$1"; REQ="$2"; OUT="$3"; LOG="$4"; META="$5"; EXIT_FILE="$6"
   META_MODEL="$7"; EFFORT="$8"; META_SANDBOX="$9"; shift 9
   META_ROOT="$1"; STARTED="$2"; RESUME="$3"; ATTEMPT="$4"; MAX_MINUTES="$5"; shift 5
+  CLASS="$1"; shift
   [[ "${1:-}" == -- ]] || usage_error '后台 worker 缺命令分隔符'
   shift
   CMD=("$@")
@@ -121,12 +124,12 @@ if [[ "${1:-}" == --_worker ]]; then
   exit 0
 fi
 
-PLAN_DIR=""; TASK=""; MODEL=""; EFFORT=""; BRIEF=""; ROOT=""; RESUME=""; MAX_MINUTES=""; TIMED_OUT=0
+PLAN_DIR=""; TASK=""; MODEL=""; EFFORT=""; BRIEF=""; ROOT=""; RESUME=""; MAX_MINUTES=""; TIMED_OUT=0; CLASS=""
 WRITE=0; DETACH=0; STATUS=0; FORCE=0; DRY=0
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --model|--effort|--brief|--root|--resume|--max-minutes)
+    --model|--effort|--brief|--root|--resume|--max-minutes|--class)
       [[ $# -ge 2 && -n "$2" && "$2" != --* ]] || usage_error "$1 缺参数"
       case "$1" in
         --model) MODEL="$2" ;;
@@ -134,6 +137,11 @@ while [[ $# -gt 0 ]]; do
         --brief) BRIEF="$2" ;;
         --root) ROOT="$2" ;;
         --resume) RESUME="$2" ;;
+        --class)
+          case "$2" in
+            取证|批量|页面实现|窄回归|跨模块|根因|性能|视觉照做|复核|审方案|补全) CLASS="$2" ;;
+            *) usage_error "--class 类别无效：$2" ;;
+          esac ;;
         --max-minutes)
           [[ "$2" =~ ^[0-9]+$ && "$2" -gt 0 ]] || usage_error "--max-minutes 要正整数分钟数：$2"
           MAX_MINUTES="$2" ;;
@@ -144,7 +152,7 @@ while [[ $# -gt 0 ]]; do
     --status) STATUS=1; shift ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
     --) shift; while [[ $# -gt 0 ]]; do POSITIONAL+=("$1"); shift; done ;;
     -*) usage_error "未知选项：$1" ;;
     *) POSITIONAL+=("$1"); shift ;;
@@ -266,7 +274,7 @@ printf '模型 %s / 强度 %s；第 %s 次派活：%s；时间上限：%s\n' "$M
 
 if [[ "$DETACH" -eq 1 ]]; then
   nohup bash "$SCRIPT_PATH" --_worker "$LOCK" "$REQ" "$OUT" "$LOG" "$META" "$EXIT_FILE" \
-    "$META_MODEL" "$EFFORT" "$META_SANDBOX" "$META_ROOT" "$STARTED" "$RESUME" "$ATTEMPT" "$MAX_MINUTES" \
+    "$META_MODEL" "$EFFORT" "$META_SANDBOX" "$META_ROOT" "$STARTED" "$RESUME" "$ATTEMPT" "$MAX_MINUTES" "$CLASS" \
     -- "${CMD[@]}" < /dev/null > /dev/null 2>&1 &
   PID=$!
   printf '%s\n' "$PID" > "$PID_FILE"

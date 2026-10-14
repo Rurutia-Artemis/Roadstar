@@ -3,7 +3,7 @@ name: roadstar
 description: >-
   Roadstar · 引路星：Claude 主会话当总调度，和 Codex 一起干项目。主席说「用 skill」「用 Roadstar」时自动判用法，开场一行报出来就跑，不等答复。三种用法：探讨（主席只说构思，两家最强模型默认三轮谈到能落地）、复盘（两家各读一遍现有项目，按产品层或代码层的尺子交叉审出不足清单；「全面 review」「全部排查」也走这里）、协同（方案已有，Argo 拆活、分型号、定审查人，派活、验收、交报告）。拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核。触发：「用 skill」「用 Roadstar」「按 skill 来」「Roadstar」「引路星」「/roadstar」「开圆桌」「探讨一下怎么落地」「复盘这个项目」「全面 review」「看看哪里能改进」「直接调度」「你来安排谁做」「总舵主」。产出在项目 docs/roadstar/<日期>-<slug>/。不处理：一小时内能做完的活（直接干）；只要 Codex 单次二审（→ call-codex）；只要网页 Pro 策划（→ pro-orchestrator）；仅维护本 skill。
 metadata:
-  version: "1.7.0"
+  version: "1.8.0"
 ---
 
 # Roadstar · 引路星：先判用法，再谈、再派、再审
@@ -17,7 +17,7 @@ metadata:
 | 主席 | 用户 | 定目标与约束，随时插话改模型或分工，对争议拍板 |
 | Argo | Claude Code 主会话（Fable 5.1 或 Opus 5.5，账本记实际模型） | 主持、起草改稿、记账、拆活与分配、验收裁定、汇报 |
 | Dex | Codex CLI（`codex exec`，走 ChatGPT 订阅） | 讨论环节按契约审稿、提意见；执行环节做分给它的活、复核对方的活。不拆活、不分配、不做决定。型号按任务选：Astra 最强、6.1 Sol 常规（6.1 Sol 要 codex-cli 0.160 以上）；Luna 不派活 |
-| Claude 子代理 | Claude Code 的 Agent 工具，型号 Haiku / Sonnet / Opus（主席 2026-10-10 定） | 和主会话共用同一份 Claude 额度，便宜型号扣得慢；能并行，中间上下文不进主会话。只在 Codex 紧或空、Claude 正常或宽时接实现与取证，按 Haiku（机械批量、只读取证）→ Sonnet（规格清楚的实现、只读复核）→ Opus（难活、根因诊断、画样张）选层；Fable 不当子代理。拆活、分配、裁定仍只在主会话 |
+| Claude 子代理 | Claude Code 的 Agent 工具，型号 Haiku / Sonnet / Opus / Fable（主席 2026-10-14 定四层按活常驻） | 和主会话共用同一份 Claude 额度，能并行，中间上下文不进主会话。Haiku 5.5 常驻接取证和机械批量；Sonnet 常驻接 Codex 写的中、难活的跨家只读复核，Codex 紧或并行线多时接规格清楚的实现；Opus 接难活、根因、样张，和 Astra 按额度二选一；Fable 平时只做主会话，同一问题两轮没收敛或审方案要最强一层时才派。拆活、分配、裁定仍只在主会话 |
 | Pro | 网页 GPT Pro（可选） | 大活起草或终审；Codex 空时的跨家审稿兜底；每趟要主席动手 |
 
 型号、用途、强度见 `references/models.md`。名字只是发言标签，没有人设。Argo 转述 Dex 时原文照贴进账本、标明 `Dex：`，自己的回应另起一段；主席的话记进账本，效力最高。改名只改这张表。
@@ -44,7 +44,7 @@ metadata:
 
 一小时内能做完的活直接干；只要一次第二意见走 call-codex；只要 Pro 策划走 pro-orchestrator。
 
-好处有两条。两家模型的盲区不重合，交叉审稿能抓到自审抓不到的漏洞；账本和清单把「想到哪说到哪」变成写下来、逐条清零的过程，方案完整靠制度而非记性。实现默认交 Codex，Claude 额度优先留给主会话调度、任务书和验收；Codex 紧的时候才启用 Claude 子代理的梯子。代价是两边的订阅额度和时间。
+好处有两条。两家模型的盲区不重合，交叉审稿能抓到自审抓不到的漏洞；账本和清单把「想到哪说到哪」变成写下来、逐条清零的过程，方案完整靠制度而非记性。实现默认交 Codex；Claude 这边四个型号按活常驻：Haiku 5.5 接取证和批量，Sonnet 接跨家复核，Opus 和 Astra 按额度分难活，Fable 留给主会话和卡死时的根因。每条线碰壁就停，做完的收下，剩下的交高一级型号补全；每次派活的战绩都记下来，分工表靠这些记录慢慢变准（`references/escalation-and-learning.md`）。代价是两边的订阅额度和时间。
 
 ## 文件
 
@@ -67,7 +67,7 @@ metadata:
 
 1. 跑 `scripts/quota-status.py` 和 `codex --version`，拿两边读数和能用的型号。`codex --version` 跑不出来，或 `codex login status` 不是已登录，就进单家模式（第 8 节末）；探针的 Codex 一列在本机没有 codex 时会退回本地 rollout 记录，不能当有 Codex 的证据。
 2. 按默认定：总调度就是当前主会话（Fable 或 Opus；Sonnet 时建议主席切）；探讨和审稿 `gpt-6-astra` / high，规模大或难回滚 xhigh；执行按第 8 节的表逐件推荐。主席的常驻指令（账本、项目 CLAUDE.md、记忆里带日期的分配规则）压过默认。
-3. 开场只回一行，格式固定：「这次走 <用法>，因为 <一句>。题目：<一句人话>。总调度 X，审稿 Y，执行走 <Codex 梯子 / Claude 梯子>；额度 Claude <档> / Codex <档>。要改现在说，不改我就跑。」执行方向按第 8 节定：Codex 宽或正常、或有重置卡可刷，走 Codex 梯子；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子。单家模式的开场一行：「这次走 <用法>，因为 <一句>。题目：<一句人话>。本机没有 Codex，单家模式：总调度 X，审稿 Opus 子代理（同家），执行走 Claude 梯子；额度 Claude <档>。要改现在说，不改我就跑。」说完直接往下，不等答复；主席任何时候的改动记进账本「主席指令」，管整场。
+3. 开场只回一行，格式固定：「这次走 <用法>，因为 <一句>。题目：<一句人话>。总调度 X，审稿 Y，实现走 <Codex 梯子 / Claude 梯子>，取证和批量 <Haiku / 6.1 Sol>，复核 <Sonnet / Codex 另一型号>；额度 Claude <档> / Codex <档>。要改现在说，不改我就跑。」实现方向按第 8 节定：Codex 宽或正常、或有重置卡可刷，走 Codex 梯子；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子。Claude 不紧时取证和批量写 Haiku、复核写 Sonnet；Claude 紧或空时这两项退回 Codex。单家模式的开场一行：「这次走 <用法>，因为 <一句>。题目：<一句人话>。本机没有 Codex，单家模式：总调度 X，审稿 Fable 子代理（同家，Fable 列紧时 Opus），执行走 Claude 梯子；额度 Claude <档>。要改现在说，不改我就跑。」说完直接往下，不等答复；主席任何时候的改动记进账本「主席指令」，管整场。
 4. 只有三种情况开口问，用 AskUserQuestion 一次问齐：Codex 或 Claude 读数「紧」或「空」（刷不刷重置卡、降不降档）；主席此前说过要逐件指定型号；主席要换总调度（要他敲 `/model`，我说一句怎么敲）。
 
 ### 1 立项
@@ -75,7 +75,7 @@ metadata:
 主席一句话说目标，Argo 写 `brief.md`。目标和约束够写出验收标准就直接起草，不等点头，brief 里的假设在纪要里列给主席；只有缺口会改变结果时才问，一次问齐，最多三个，问题接在第 0 节那一行后面。brief 必填：目标、非目标、硬约束、规模（小 / 中 / 大）、参与配置。参与配置五项 Argo 填默认值，主席随时改：
 
 - 模型用法。抄第 0 节定的结果。
-- 审稿模型与强度。写死型号，默认 `gpt-6-astra` / high；规模大或难回滚用 xhigh；Codex 紧时 `gpt-6.1-sol` / high；单家模式写「Opus 子代理（同家）」。一场不换审稿人。
+- 审稿模型与强度。写死型号，默认 `gpt-6-astra` / high；规模大或难回滚用 xhigh；Codex 紧时 `gpt-6.1-sol` / high；单家模式写「Fable 子代理（同家）」，Fable 列紧时写 Opus。一场不换审稿人。
 - Pro 参不参与。规模「大」默认起草 + 终审；「中」默认只终审；「小」默认不参与；单家模式不参与（要 ChatGPT 订阅）。
 - 节奏。默认连跑：内环一口气跑到停机条件，中间不向主席开口。主席说「每轮停一下」才逐轮。
 - 熔断轮数。探讨 3，规模大 4，复盘 1；Codex 紧时各减 1（最少 1）。到顶把取舍类未决项交主席，不算失败。
@@ -86,7 +86,7 @@ metadata:
 
 取证从项目地图开始：先读 `docs/模块地图.md`（规格见 `references/project-map.md`）。没有地图或地图和代码对不上，先派一件活建或补地图（Codex 6.1 Sol / medium 只读起草，Argo 核对路径和命令能用后提交），算本场第一件活。其余取证只补地图没写的。
 
-取证（读代码、跑只读命令、查文档）在起草前一次做完，派给当前方向的最低层只读（Codex 6.1 Sol / low 或 medium，或 Claude Haiku 子代理），一次发出、一次收齐；结果只进 plan 的「现状」，主会话只收结论、不读大段代码，也不分批向主席回报。
+取证（读代码、跑只读命令、查文档）在起草前一次做完，默认派 Haiku 子代理只读（Claude 紧或空时改 Codex 6.1 Sol / low 或 medium），一次发出、一次收齐；结果只进 plan 的「现状」，主会话只收结论、不读大段代码，也不分批向主席回报。
 
 规模小、中：Argo 起草 `plan.md`，按 plan-template 的必填槽位写满，写不出的槽位标「待定 + 缺什么信息」。
 
@@ -144,23 +144,31 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 
 派活前再跑一次 `scripts/quota-status.py`。Argo 读方案，拆成能独立验收的活，写成拆分表（列头见 plan-template §10）：模块、目标、能失败的完成线、执行环境、执行方（型号·强度）、时间上限、审查人、依赖。拆法：一份一个目标、两小时内做完；按文件归属切线，共享中枢（登记表、路由、大 Store）只归一条线，其它线走扩展点或串行；要模拟器的线同时最多两条；每件判四点（难度、验收条件、执行环境、上下文，判法见 division-of-labor 第 5 节），多条命中按顺序取第一条：主席的硬话 > 执行环境 > 验收条件 > 难度 > 额度方向。
 
-执行方有两条梯子，先按额度定走哪条，再按活在梯子上选层。Codex 梯子：6.1 Sol（规格清楚的活）→ Astra（难活）。Claude 梯子（Agent 工具的子代理）：Haiku（机械批量、只读取证）→ Sonnet（规格清楚的实现、只读复核）→ Opus（难活、根因诊断、画样张）；Fable 不当子代理。方向：Codex 宽或正常，或有重置卡可刷，实现默认走 Codex 梯子，几个项目并行时也走 Codex，省主会话的 Claude 额度；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子；Claude 周窗读到紧或空，Claude 梯子关闭，只剩主会话；两边都紧按 division-of-labor 第 11 节的梯子降档、串行、挂起、问主席。主席的话压过方向。实测依据在 `references/models.md`：
+执行方有两家六个型号。Codex 梯子：6.1 Sol（规格清楚的活）→ Astra（难活）。Claude 四层（Agent 工具的子代理，主席 2026-10-14 定按活常驻）：Haiku 5.5（取证、机械批量、整理日志、照清单初筛）→ Sonnet（跨家只读复核、规格清楚的实现）→ Opus（难活、根因诊断、画样张）→ Fable（只在两种情况派：同一问题两轮没收敛，第三轮查根因写方案；审方案要最强一层，例如单家模式或主席点名）。先分两类活：
+
+- 常驻活不看 Codex 额度：取证和机械批量默认 Haiku，Codex 写的中、难活默认 Sonnet 只读复核。Haiku 5.5 的 API 价约是 Sonnet 的二十分之一，原来派 6.1 Sol 低强度的同类活改交给它，Codex 额度留给实现。Claude 周窗或 5 小时窗读到紧或空，这两类退回 Codex（6.1 Sol / low 或 medium 只读，Codex 另一型号复核）。
+- 实现按额度定方向：Codex 宽或正常，或有重置卡可刷，实现走 Codex 梯子，几个项目并行时也走 Codex；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子（Sonnet、Opus）；同时在跑的 Codex 线已有三条以上时，规格清楚的新活可以分给 Sonnet 并行，理由栏写一句。Claude 读到紧或空，只剩主会话；两边都紧按 division-of-labor 第 11 节降档、串行、挂起、问主席。
+
+起步层从低往高挑：先看 `scripts/dispatch-stats.py` 的经验表，这类活在哪一层有 5 次以上记录且完成率 90% 以上，就从那层起步；没有记录按下表默认。碰壁就停、只把没过的检查项交高一级补全，升级链、停的信号和记账字段见 `references/escalation-and-learning.md`。主席的话压过方向。实测依据在 `references/models.md`：
 
 | 活 | 执行（Codex 梯子 ｜ Claude 梯子） | 上限 | 审查 |
 |---|---|---|---|
-| 规格或样张清楚的页面、功能、测试、合并 | 6.1 Sol / high ｜ Sonnet | 2h | Argo 读 diff + 复跑验收命令 |
+| 规格或样张清楚的页面、功能、测试、合并 | 6.1 Sol / high ｜ Sonnet | 2h | Argo 复跑验收命令；Codex 写的加 Sonnet 只读复核 |
 | 已定位的窄回归、测试误判 | 6.1 Sol / high ｜ Sonnet | 1h | Argo 复跑 |
 | 跨模块底座、整库编译、多线合并加排查 | Astra / high ｜ Opus | 4h | 另一家只读复核（6.1 Sol / high 或 Sonnet） |
 | 根因不明的 bug | Astra / xhigh ｜ Opus，任务书附日志和可复现环境 | 2h | Argo 复现 + 另一家只读复核 |
+| 碰壁后的补全（只含没过的检查项） | 升级链高一级：Sol → Astra → Opus 或 Fable；Haiku → Sonnet → Opus → Fable | 原上限一半，最多 1h | 和补全方型号不同的一家只读复核 |
+| 同一问题两轮没收敛（第三轮） | Fable 子代理查根因写方案（主会话已是 Fable 就自己查），实现回到原梯子 | 2h | Argo 复现 |
 | 对着数字的性能 | Astra / high ｜ Opus，每小时看指标 | 4h | 换型号另开独立线复测 |
 | 视觉设计 | Argo 出样张（可派 Opus 子代理画）→ 主席点头 → 6.1 Sol / high ｜ Sonnet 照做 | — | Argo 逐元素对照样张 |
 | 钱、权限、迁移、工作区外 | Codex 写 ｜ Sonnet 写 | — | Argo 亲自验实际状态 |
-| 取证、扫记忆库 | 6.1 Sol / medium 只读 ｜ Haiku 只读 | — | 不审 |
+| 取证、扫记忆库、整理日志 | Haiku 只读（常驻；Claude 紧时 6.1 Sol / medium 只读） | — | 不审 |
+| 机械批量（改名、格式、照抄模式、造测试数据） | Haiku（常驻；Claude 紧时 6.1 Sol / low 或 medium） | 1h | Argo 读 diff |
 | Argo 自己改的整合小修超过 30 行 | Argo | — | 6.1 Sol / high 只读复核（Codex 紧时 Sonnet 子代理） |
 
-审查人和执行方型号不同，优先跨家：Claude 梯子写的交 Codex 只读复核，Codex 写的可交 Sonnet 子代理只读复核；审方案一律 Astra / high。Codex 宽时把实现派给 Claude 梯子，理由栏必须写一句，防止回到 10-02 对账里「Claude 自己闷头干、Codex 闲着」的老路。
+审查人和执行方型号不同，优先跨家：Claude 梯子写的交 Codex 只读复核，Codex 写的中、难活默认交 Sonnet 子代理只读复核；审方案一律 Astra / high（单家模式或主席点名最强时 Fable 子代理）。Codex 宽时把实现派给 Claude 梯子，理由栏必须写一句（Haiku 的常驻活和 Sonnet 复核不算），防止回到 10-02 对账里「Claude 自己闷头干、Codex 闲着」的老路。
 
-单家模式（本机没有 Codex，第 0 节判定）：表里每行只剩 Claude 梯子那一格；审方案由 Opus 子代理担任，算另一个实例在挑错，纪要和完工报告写明「本场单家模式，审稿同家」，不替主席假装有跨家视角；审查人仍和执行方型号不同，Sonnet 写的由 Opus 只读复核或 Argo 复跑，Opus 写的由 Sonnet 只读复核；钱、权限、迁移 Argo 亲验不变；Pro 不参与；Claude 周窗紧时梯子关闭，按 division-of-labor 第 11 节降档、串行、挂起、停。主席带日期的分配指令（例：某月难活一律 Astra / xhigh）记在记忆或项目 CLAUDE.md，压过这张表，用前先看日期。不照表派要在理由栏写一句。
+单家模式（本机没有 Codex，第 0 节判定）：表里每行只剩 Claude 梯子那一格；审方案由 Fable 子代理担任（Fable 列紧时换 Opus），算另一个实例在挑错，纪要和完工报告写明「本场单家模式，审稿同家」，不替主席假装有跨家视角；审查人仍和执行方型号不同，Sonnet 写的由 Opus 只读复核或 Argo 复跑，Opus 写的由 Sonnet 只读复核；钱、权限、迁移 Argo 亲验不变；Pro 不参与；Claude 周窗紧时梯子关闭，按 division-of-labor 第 11 节降档、串行、挂起、停。主席带日期的分配指令（例：某月难活一律 Astra / xhigh）记在记忆或项目 CLAUDE.md，压过这张表，用前先看日期。不照表派要在理由栏写一句。
 
 拆分表怎么交主席：探讨和复盘里随纪要交，主席说开工就派；协同里报一次就派，主席改哪条停那条重派。主席点名「让 Codex 看看拆法」时才送 Dex 审一轮（只读，只挑漏项和完成线能不能失败，不改分配）。硬话入账本，压过额度；硬话和额度撞上在纪要里报一句冲突，不默默照做也不默默降级。
 
@@ -169,12 +177,12 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 每件活一份任务书（`references/task-brief-template.md`），派给谁都能做，引用 `docs/roadstar/_common.md` 的常驻边界，只写它没写的。**一份任务书一个目标、一条能失败的完成线**；独立的事超过三件就拆成多份并行。派之前过一遍 division-of-labor 第 15 节。
 - 任务书写明涉及哪几个模块（用地图里的名字）。改动碰了模块的入口文件、对外接口、测试命令或规矩，执行方在同一提交里更新地图那一节；验收方核对地图和代码一致，不一致算没通过。
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --brief … --max-minutes <上限>`，默认只读，要改文件加 `--write`；上限写拆分表里的数（常规 120、难活 240），到点脚本停掉 codex、退出码 124、meta 记 `timed_out=1`。脚本显式传 `-s`、`-m`、`-c model_reasoning_effort=`、`--disable fast_mode`。长任务、返工、并行 worktree 与合并见 division-of-labor 第 9 节。
-- Claude 子代理任务（走 Claude 梯子或单家模式时）：用 Agent 工具派，`model` 按层选 haiku / sonnet / opus，不用 fable；任务书同一份模板原文当提示，回复由主会话存成 `rounds/exec-T<n>.md`，并手写一份 `.meta`（型号、起止时间、上限）。时间上限写进任务书「资源上限与止损」，主会话到点用 TaskStop 停，停掉的同样不自动重派。派前后各读一次 Claude 读数记进调度记录。
+- Claude 子代理任务（Haiku 常驻活、Sonnet 复核、走 Claude 梯子或单家模式时）：用 Agent 工具派，`model` 按第 8 节选 haiku / sonnet / opus，fable 只用于第 8 节那两种情况并在调度记录写明；任务书同一份模板原文当提示，回复由主会话存成 `rounds/exec-T<n>.md`，并手写一份 `.meta`（型号、起止时间、上限）。时间上限写进任务书「资源上限与止损」，主会话到点用 TaskStop 停，停掉的同样不自动重派。派前后各读一次 Claude 读数记进调度记录。
 - 有界面的活（App、网页、终端界面）：任务书的完成线必须包含 vela 的 `references/ui-acceptance.md`（读主席真实配置、真实数据、按任务走、逐项清单、iPad 与深浅色截图）；Argo 验收时亲自逐张看截图、在模拟器里走核心任务，阻塞和应修清零才发版；主席报过的问题进项目 `docs/界面验收清单.md`。
 - 设计类的活（新界面、改版、视觉元素），主席 2026-10-12 定的默认，不用他每次再说：开工前 Argo 先按 vela 出稿顺序第 4 步从 Huemo（`motion-catalog`）配一套动效、图标、配色，编号写进任务书和项目 `design.md`，目录里没有合适的才去别处并写明看过哪几条；方向稿 Argo 出 2–3 版给主席挑，Argo 不替主席选；任务书完成线写明 vela 第 5 步的两遍 review（元素细节、主题符合）和默认两遍打磨，交付物含两张问题清单与打磨记录；Argo 验收时核对动效、图标、配色编号确实出自 Huemo 目录（`design/motion-selection.json` 或 `design.md`），打磨记录在不在，少一样不算完成。
 - 验收按第 8 节表里的审查人做，分级与配对细则见 division-of-labor 第 8 节：钱、权限、迁移类由 Argo 核验实际状态，不接受执行会话自验或仅同家复核。验收标准来自 plan，不临时降标，证据写进 §11。
 - 失败上限和额度到顶的梯子见 division-of-labor 第 10、11 节；每次改派、挂起和成本（派活前后的读数差）都记进调度记录，完工报告写一行。
-- 止损：每条线派出就带 `--max-minutes`，每小时看一次指标走势，不收敛就停，Argo 亲自诊断后再决定收下、交真机判还是缩窄重派；同一问题两轮不收敛，第三轮 Argo 查根因写方案，Codex 只实现。被脚本停掉的线不自动重派。
+- 止损：每条线派出就带 `--max-minutes`，每小时看一次指标走势，不收敛就停，Argo 亲自诊断后再决定收下、交真机判还是缩窄重派；同一问题两轮不收敛，第三轮 Argo 查根因写方案（主会话不是 Fable 时派 Fable 子代理查），Codex 只实现。每条线都写进度文件，Argo 用 `scripts/stall-watch.py` 盯：同一检查项连续三次失败、空转、用掉九成时间还没完，任一条命中就停，做完的收下，只把没过的项交高一级型号补全（`references/escalation-and-learning.md` 第 3、4 节）。被脚本停掉的线不自动重派。
 - 发版或交付前，Argo 在合并后的主干上亲自复跑至少一组完整验收（不只信执行方的数字）；合并后该线 worktree 留作槽位、下件活直接换分支（不挪废纸篓，见 division-of-labor 第 15、16 节），自建模拟器删掉，查一眼同机生产服务还活着。
 - 执行期静默；全部通过后在 plan 追加执行记录、写共享记忆、交完工报告（配方见 minutes-template 末尾）。
 
@@ -198,6 +206,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 2026-10-04：0.3.0 / 0.3.1 验证（前身 roundtable）。额度探针会话内实测 1.3 秒读到两边、不花额度；dex-review 新旧请求正文逐字节一致；dex-exec 桩测试 29 条全过，真跑 Luna 一句话任务与 resume 跑通（resume 要 `-c model=` 覆盖）；gpt-6.1-sol 在 codex-cli 0.158 上 400、升到 0.160 后能用；四个子代理新会话可见；调度回放 3 场任务表 × 4 种额度情形 310 条检查全过、同情形两遍一致率 9/9。本次升级自己就是按新规矩派的，细节在 CHANGELOG 同日条。
 - 2026-10-04：1.0.0 改名 Roadstar，搬到 `~/Documents/RuruCode/Roadstar`，加第 0 节选模型和第 5 段推荐表两步，三种用法写进 `references/modes.md`。验证：桩测试在新位置 29 条全过（桩的 clientInfo 跟着改名）；`./install.sh` 四处软链、旧 roundtable / rt-* 软链清掉；新会话里 skill 以 roadstar 名字和新 description 可见。
 - 2026-10-08：1.3.0 加 division-of-labor 第 15 节。来源是 Mia 移动版两天实战（约 20 条 Codex 线、4 个 TestFlight 版本）：大任务书做一半、无指标导致「解决一半」、并行改同一中枢冲突、沙箱里没真点界面导致首版全屏点不动、多模拟器压垮同机微信接入、测试写脏 bash 历史、worktree 攒到 256 GB。
+- 2026-10-14：1.8.0 按主席当天拍板：Claude 四层按活常驻（Haiku 5.5 常驻取证与批量、Sonnet 常驻跨家复核、Opus 和 Astra 按额度分难活、Fable 只在两轮没收敛或审方案要最强时派）；加碰壁止损与升级补全（进度文件、`stall-watch.py` 的 STALL / IDLE / WRAP、只把没过的检查项交高一级）；加派活经验回路（`.meta` 记类别与结果，`dispatch-stats.py` 出经验表，样本够了按门槛提起步层调整交主席拍板）；单家模式审稿改 Fable 子代理。细则在 `references/escalation-and-learning.md`。验证与未验证见 CHANGELOG。
 - 2026-10-12：1.7.0 按主席当天拍板加设计默认：设计类活开工前先从 Huemo 配套动效、图标、配色并写进任务书，方向稿出 2–3 版由主席挑，完成线含 vela 两遍 review 与默认两遍打磨记录，Argo 验收核对编号与记录。细则写在 vela（同日改），本处只放派活与验收的接口。未验证：还没有一件设计类活按这条派过。
 - 2026-10-10：1.6.0 按主席当天拍板加单家模式：本机没有 Codex（`codex --version` 跑不出来或未登录）时，审稿换 Opus 子代理并标明同家、执行只走 Claude 梯子、两份调 Codex 的脚本不跑、Pro 不参与，流程其余不变。只订阅 GPT 的版本主席定为以后单独做再融合。验证：隐藏 codex 后探针的 Codex 列退回 rollout 记录（`source=rollout`），所以判定只认 `codex --version`；`render-review.py --from Opus` 可换标签。未验证：单家模式整场没实跑。
 - 2026-10-10：1.5.0 按主席当天拍板：Claude 子代理按 Haiku → Sonnet → Opus 梯子可派，方向看两边额度（Codex 宽或有重置卡默认走 Codex，Codex 紧走 Claude 梯子，Claude 紧时梯子关闭），Fable 不当子代理，复核优先跨家；同日补记 10-09 五笔补丁的 CHANGELOG、同步模块地图。验证：桩测试 32 条全过（脚本未改）；额度探针当日实读 Claude 周 84% / Codex 周 40% 带 2 张重置卡。未验证：Claude 梯子还没在真实一场里派过，TaskStop 止损没实测。

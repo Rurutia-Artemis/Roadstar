@@ -1,5 +1,16 @@
 # Roadstar · 更新日志
 
+## 2026-10-14 · 1.8.0：Claude 四层按活常驻，碰壁就停、升级补全，派活经验回路
+
+主席 10-14 定：Claude 这边 Haiku、Sonnet、Opus、Fable 四个型号都要编排进来，Haiku 5.5 便宜又能干，做廉价活；Codex 只有两层不够用。最重要的是迭代：靠真干活的结果让 skill 知道什么活派给什么型号最合适；不浪费额度，一条线做到九成、剩下一成碰壁几次就马上停，用更高级的型号补全；以后只用 Claude 时四个型号也这样混用、这样迭代。Fable 的用法主席选「主会话 + 卡死时出手」。
+
+- SKILL.md：谁是谁、第 0 节开场一行（实现方向之外写取证批量和复核由谁做）、第 2 节取证默认 Haiku、第 8 节改成两家六个型号（常驻活不看 Codex 额度：取证和批量 Haiku、Codex 写的中难活 Sonnet 复核；实现按额度方向；起步层先看经验表；表里加「碰壁后的补全」和「两轮没收敛的第三轮」两行）、第 9 节子代理派法与止损、单家模式审稿改 Fable 子代理（Fable 列紧时 Opus）。版本 1.8.0。
+- 新增 `references/escalation-and-learning.md`：升级链（Haiku → Sonnet → Opus → Fable；Sol → Astra → Opus 或 Fable；强度也算一级）、进度文件格式、停的信号（同一检查项连续三次失败、空转、用掉九成时间）、只把没过的检查项交高一级补全、`.meta` 战绩字段、经验回路门槛（样本满 5 次，完成率 ≥ 90% 降起步层，< 60% 或碰壁率 > 30% 升一层，主席点头才改表）、只用 Claude 时的做法。
+- models.md 加 Claude 侧 API 价格（Haiku 5.5 $0.10/$0.50、Sonnet 5.5 $2/$10、Opus 5.5 $4/$20、Fable 5.1 $10/$50，claude-api 资料缓存 2026-10-06）；division-of-labor 第 1、7、8、9、10、14、15 节同步；task-brief-template 完成线拆编号检查项、写进度文件。模块地图加「碰壁止损与派活经验」一节。
+- Codex（6.1 Sol / high，任务书在会话 scratchpad）实现：`scripts/stall-watch.py`（OK / STALL / WRAP / IDLE / NOPROGRESS，退出码 0/10/12/11/13）、`scripts/dispatch-stats.py`（扫各项目 `docs/roadstar/**/exec-*.meta`，按 session_id 或内容去重，按类别 × 型号 × 强度出完成率、碰壁率、升级率、用时和建议）、`dex-exec.sh --class`；测试加 14 条。
+- README 三语：加「两家六个型号」分工图和「碰壁就停、越用越准」循环图，正文加碰壁止损与经验回路两段，单家模式审稿改 Fable，限制段写明这套还没实跑。生成脚本 `assets/readme/source/gen_lineup_loop.py`。
+- 验证：Argo 复跑桩测试 PASS 46 checks（原 32 条不变）；`bash -n dex-exec.sh` 通过；`dispatch-stats.py` 实扫 233 条去重后的真实记录（原始 244 条，11 条是 worktree 副本），全部「未分类」、没有 outcome，所以经验表从下一场起才有数；`stall-watch.py` 样例同一项连败三次输出 `STALL C2 fail×3`、退出码 10；Agent 工具 `haiku` 实测是 `claude-haiku-5-5`；三份 README 过 `audit_readme.py`，新图 900px 渲染核对。未验证：四层常驻、碰壁升级、经验回路都没在一整场真实派活里跑过；Max 订阅里各型号扣额度的倍数没有官方数字，要靠 `quota_delta` 攒；Monitor 每 5 分钟跑 stall-watch 的盯线方式没实测。另一会话未提交的 division-of-labor 第 15 节三行没有放进本次提交。
+
 ## 2026-10-14 · README 加分段标题条、数字卡、重点色
 
 主席 10-14 问 README 能不能有分段和重点色。实测 GitHub 删掉 `style` 和 `<font color>`，正文不能上色；能用的是 SVG、五色提示框和 `<mark>`。

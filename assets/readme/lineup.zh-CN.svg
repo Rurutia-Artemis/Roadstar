@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 640" role="img" aria-labelledby="t d">
+<title id="t">两家六个型号，按活分工</title>
+<desc id="d">Fable 5.1 主会话做判断；卡死时查根因 / Opus 5.5 难活、根因诊断、画样张 / Sonnet 5.5 跨家复核，规格清楚的实现 / Haiku 5.5 取证、批量，常驻 / Astra 难活、审方案 / 6.1 Sol 常规实现</desc>
+<rect width="1200" height="640" rx="28" fill="#F7F4EE"/>
+<text x="48" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="40" font-weight="800" fill="#2B2A3D">两家六个型号，按活分工</text>
+<path d="M62,110 Q62,122 74,122 Q62,122 62,134 Q62,122 50,122 Q62,122 62,110 Z" fill="#E07A5F"/>
+<text x="84" y="130" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#B9583F">Claude · 四层</text>
+<rect x="48" y="152" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="72" y="190" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Fable 5.1</text>
+<text x="664" y="189" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$10 / $50</text>
+<text x="72" y="222" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">主会话做判断；卡死时查根因</text>
+<rect x="48" y="252" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="72" y="290" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Opus 5.5</text>
+<text x="664" y="289" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$4 / $20</text>
+<text x="72" y="322" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">难活、根因诊断、画样张</text>
+<rect x="48" y="352" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="72" y="390" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Sonnet 5.5</text>
+<text x="664" y="389" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$2 / $10</text>
+<text x="72" y="422" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">跨家复核，规格清楚的实现</text>
+<rect x="48" y="452" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="72" y="490" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Haiku 5.5</text>
+<text x="664" y="489" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$0.10 / $0.50</text>
+<text x="72" y="522" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">取证、批量，常驻</text>
+<path d="M734,110 Q734,122 746,122 Q734,122 734,134 Q734,122 722,122 Q734,122 734,110 Z" fill="#3E9C9E"/>
+<text x="756" y="130" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#2E7C7E">Codex · 两层</text>
+<rect x="720" y="152" width="432" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="744" y="190" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Astra</text>
+<text x="1128" y="189" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#2E7C7E">基准</text>
+<text x="744" y="222" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">难活、审方案</text>
+<rect x="720" y="252" width="432" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="744" y="290" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">6.1 Sol</text>
+<text x="1128" y="289" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#2E7C7E">约 1/5</text>
+<text x="744" y="322" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">常规实现</text>
+<rect x="48" y="560" width="640" height="48" rx="24" fill="#2B2A3D"/>
+<text x="368" y="591" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#F7F4EE">↑ 碰壁就停，做完的收下，剩下的交上一层补全</text>
+<text x="720" y="396" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#2B2A3D">Codex 只有两层，</text>
+<text x="720" y="426" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#2B2A3D">最便宜和最难的活</text>
+<text x="720" y="456" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#2B2A3D">由 Claude 这边补齐。</text>
+<text x="720" y="510" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">价格：API 每百万 token</text>
+<text x="720" y="536" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">输入 / 输出，美元，只比贵贱</text>
+</svg>

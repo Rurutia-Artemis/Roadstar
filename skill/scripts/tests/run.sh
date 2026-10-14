@@ -346,4 +346,176 @@ bash "$SCRIPTS/dex-review.sh" "$REVIEW" --full > "$TMP/review-r3.txt"
 grep -q 'plan（当前全文）' "$REVIEW/rounds/r3-dex-request.md"
 pass 'review full mode preserved'
 
+# Fixed clocks keep progress monitoring tests independent of wall time.
+PROGRESS="$TMP/progress fixtures"
+mkdir -p "$PROGRESS"
+python3 - "$PROGRESS" <<'PY'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+fixtures = {
+    "ok": [(0, "C1", "fail"), (10, "C1", "pass"), (15, "C1", "pass")],
+    "stall": [(0, "C1", "fail"), (1, "C1", "fail"), (2, "C2", "fail"), (3, "C1", "fail")],
+    "wrap": [(0, "C1", "fail"), (109, "C1", "pass")],
+    "idle": [(0, "C1", "fail"), (5, "C1", "pass"), (39, "C1", "pass")],
+}
+for name, rows in fixtures.items():
+    text = "\ninvalid line\n2026-10-14T00:00:00Z\tC9\tmaybe\tbad status\n"
+    text += "bad-time\tC9\tpass\tbad timestamp\n"
+    for minute, item, outcome in rows:
+        text += f"2026-10-14T{minute // 60:02d}:{minute % 60:02d}:00Z\t{item}\t{outcome}\tevidence\n"
+    (root / name).write_text(text, encoding="utf-8")
+PY
+expect_exit 0 "$SCRIPTS/stall-watch.py" "$PROGRESS/ok" --cap 120 --items 2 --now 2026-10-14T00:32:00Z
+[[ "$(cat "$TMP/last-output")" == 'OK 1/2 32m/120m' ]]
+pass 'stall-watch OK ignores invalid rows and repeated pass does not add done items'
+expect_exit 10 "$SCRIPTS/stall-watch.py" "$PROGRESS/stall" --cap 120 --now 2026-10-14T01:50:00Z
+[[ "$(cat "$TMP/last-output")" == 'STALL C1 fail×3 0/2 110m/120m' ]]
+pass 'stall-watch STALL tracks per-item failures and takes priority over WRAP and IDLE'
+expect_exit 12 "$SCRIPTS/stall-watch.py" "$PROGRESS/wrap" --cap 120 --items 2 --now 2026-10-14T01:50:00Z
+[[ "$(cat "$TMP/last-output")" == 'WRAP 1/2 110m/120m' ]]
+pass 'stall-watch WRAP with incomplete explicit item total'
+expect_exit 11 "$SCRIPTS/stall-watch.py" "$PROGRESS/idle" --cap 120 --now 2026-10-14T00:40:00Z
+[[ "$(cat "$TMP/last-output")" == 'IDLE 35m 1/1' ]]
+pass 'stall-watch IDLE is measured from a transition to pass, not repeated pass'
+expect_exit 13 "$SCRIPTS/stall-watch.py" "$PROGRESS/missing" --cap 60 --started 2026-10-14T00:00:00Z --now 2026-10-14T00:25:00Z
+[[ "$(cat "$TMP/last-output")" == 'NOPROGRESS 25m' ]]
+pass 'stall-watch NOPROGRESS for missing log after explicit start'
+expect_exit 10 "$SCRIPTS/stall-watch.py" "$PROGRESS/stall" --cap 120 --now 2026-10-14T00:54:00Z --json
+json_check "$TMP/last-output" 'd == {"status": "STALL", "item": "C1", "done": 0, "total": 2, "elapsed_min": 54, "cap_min": 120}'
+pass 'stall-watch JSON preserves status, item, counts and minute values'
+
+python3 - "$SCRIPTS/stall-watch.py" "$PROGRESS" <<'PY'
+from pathlib import Path
+import json
+import subprocess
+import sys
+script, root = sys.argv[1], Path(sys.argv[2])
+def check(rows, expected, code=0, **options):
+    path = root / "boundary"
+    path.write_text("".join(f"2026-10-14T00:{minute:02d}:00Z\t{item}\t{outcome}\tevidence\n"
+                            for minute, item, outcome in rows), encoding="utf-8")
+    args = [script, str(path), "--cap", "120", "--now", "2026-10-14T00:20:00Z", "--json"]
+    for key, value in options.items():
+        args += ["--" + key, str(value)]
+    run = subprocess.run(args, capture_output=True, text=True)
+    assert run.returncode == code, (run.returncode, run.stderr)
+    data = json.loads(run.stdout)
+    assert all(data[key] == value for key, value in expected.items()), data
+
+# A pass for any item, even one already passed, clears ALL failure streaks.
+check([(0, "C2", "pass"), (1, "C1", "fail"), (2, "C1", "fail"),
+       (3, "C2", "pass"), (4, "C1", "fail")], {"status": "OK", "done": 1, "total": 2})
+# Regressions remove an item from done; a later recovery starts a fresh idle clock.
+check([(0, "C1", "pass"), (1, "C1", "fail")], {"done": 0})
+check([(0, "C1", "pass"), (1, "C1", "fail"), (19, "C1", "pass")], {"status": "OK"}, idle=2)
+# Empty/invalid files without a start use now, including missing-file handling above.
+check([], {"status": "OK", "elapsed_min": 0, "total": 0})
+check([], {"status": "OK"}, started="2026-10-14T00:00:00Z", idle=20)
+check([], {"status": "NOPROGRESS"}, 13, started="2026-10-14T00:00:00Z", idle=19)
+check([], {"status": "WRAP"}, 12, started="2026-10-13T22:20:00Z", items=1)
+check([(0, "C1", "fail")], {"status": "OK"}, idle=20)
+check([(0, "C1", "fail")], {"status": "WRAP"}, 12, now="2026-10-14T01:48:00Z")
+# Started comes from the earliest timestamp, even when the file is not time-sorted.
+check([(10, "C1", "fail"), (0, "C2", "pass")], {"elapsed_min": 20})
+check([(0, "C1", "pass")], {"elapsed_min": 20}, now="2026-10-14T09:20:00+09:00")
+PY
+pass 'stall-watch global reset, regressions, empty log defaults, thresholds and ISO offsets'
+expect_exit 2 "$SCRIPTS/stall-watch.py" "$PROGRESS/ok" --cap nan
+expect_exit 2 "$SCRIPTS/stall-watch.py" "$PROGRESS/ok" --cap 0
+expect_exit 2 "$SCRIPTS/stall-watch.py" "$PROGRESS/ok" --cap 120 --idle -1
+expect_exit 2 "$SCRIPTS/stall-watch.py" "$PROGRESS/ok" --cap 120 --items -1
+expect_exit 2 "$SCRIPTS/stall-watch.py" "$PROGRESS/ok" --cap 120 --started bad-time
+pass 'stall-watch bad arguments exit 2'
+
+STATS="$TMP/stats fixtures"
+python3 - "$STATS" <<'PY'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+records = {
+    "a/rounds/exec-T1.meta": "session_id=one\nclass=取证\nmodel=gpt-6.1-sol\neffort=high\noutcome=done\nminutes=10\nstarted=2026-10-14T00:00:00Z\nfinished=2026-10-14T01:00:00Z\n",
+    "a/rounds/exec-T2.meta": "session_id=two\nclass=取证\nmodel=gpt-6.1-sol\neffort=high\noutcome=stalled\nstarted=2026-10-14T09:00:00+09:00\nfinished=2026-10-14T00:30:00Z\nescalated_to=gpt-6-astra\n",
+    "a/rounds/exec-T3.meta": "session_id=three\nmodel=claude-sonnet-5-5\neffort=medium\nminutes=bad\n",
+    "b/rounds/exec-T1.meta": "session_id=one\nclass=取证\nmodel=gpt-6.1-sol\neffort=high\noutcome=done\nminutes=10\n",
+    "b/rounds/exec-T4.meta": "class=取证\nmodel=claude-haiku-5-5\neffort=medium\noutcome=done\nminutes=8\n",
+}
+records["c/rounds/exec-T4.meta"] = records["b/rounds/exec-T4.meta"]
+for name, text in records.items():
+    path = root / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+PY
+python3 "$SCRIPTS/dispatch-stats.py" "$STATS/a" "$STATS/b" "$STATS/c" --json > "$TMP/stats.json"
+json_check "$TMP/stats.json" 'd["total_records"] == 4 and len(d["groups"]) == 3 and sum(g["count"] for g in d["groups"]) == 4 and all(g["recommendation"] == "样本不足" for g in d["groups"])'
+python3 - "$TMP/stats.json" <<'PY'
+import json, sys
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+groups = {(g["class"], g["model"], g["effort"]): g for g in data["groups"]}
+g = groups[("取证", "gpt-6.1-sol", "high")]
+assert (g["count"], g["outcome_count"], g["completion_rate"], g["stall_rate"], g["escalation_rate"], g["average_minutes"]) == (2, 2, .5, .5, .5, 20), g
+g = groups[("未分类", "sonnet", "medium")]
+assert g["count"] == 1 and g["outcome_count"] == 0 and g["completion_rate"] is None and g["stall_rate"] is None and g["average_minutes"] is None, g
+assert ("取证", "haiku", "medium") in groups
+PY
+pass 'dispatch-stats six metas deduplicate by session and SHA1; groups, denominators and durations'
+python3 "$SCRIPTS/dispatch-stats.py" "$STATS" --min-samples 1 --json > "$TMP/stats-advice.json"
+json_check "$TMP/stats-advice.json" 'next(g for g in d["groups"] if g["model"] == "haiku")["recommendation"] == "可作起步层" and next(g for g in d["groups"] if g["model"] == "gpt-6.1-sol")["recommendation"] == "起步层该升"'
+python3 "$SCRIPTS/dispatch-stats.py" "$STATS" > "$TMP/stats.txt"
+grep -q '未分类' "$TMP/stats.txt"
+grep -q '完成率' "$TMP/stats.txt"
+grep -q '样本不足' "$TMP/stats.txt"
+expect_exit 2 python3 "$SCRIPTS/dispatch-stats.py" "$STATS" --min-samples 0
+pass 'dispatch-stats starting-level advice, Chinese table and invalid sample threshold'
+PYTHONDONTWRITEBYTECODE=1 python3 - "$SCRIPTS/dispatch-stats.py" "$TMP" <<'PY'
+import importlib.util
+from pathlib import Path
+from unittest.mock import patch
+from contextlib import redirect_stdout
+import io, json, sys
+spec = importlib.util.spec_from_file_location("dispatch_stats", sys.argv[1])
+stats = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(stats)
+assert [stats.normalize_model(m) for m in ("claude-OPUS-5-5", "claude-fable-5-1", "gpt-6-astra")] == ["opus", "fable", "gpt-6-astra"]
+records = [{"class": "批量", "model": model, "effort": "high", "outcome": "done"}
+           for model in ("fable", "gpt-6-astra", "sonnet", "opus", "haiku", "gpt-6.1-sol") for _ in range(5)]
+groups = stats.summarize(records, 5)
+assert [g["model"] for g in groups] == ["haiku", "sonnet", "opus", "fable", "gpt-6.1-sol", "gpt-6-astra"], groups
+assert all(g["recommendation"] == "可作起步层" for g in groups), groups
+records = [{"model": "haiku", **({"outcome": "done"} if n < 4 else {})} for n in range(5)]
+g = stats.summarize(records, 5)[0]
+assert g["outcome_count"] == 4 and g["completion_rate"] == 1, g
+for n in (3, 4):
+    g = stats.summarize([{"outcome": "done" if i < n else "partial"} for i in range(5)], 5)[0]
+    assert g["recommendation"] == "继续观察", g
+assert stats.duration({"minutes": "nan", "started": "2026-10-14T00:00:00Z", "finished": "2026-10-14T00:02:00Z"}) == 2
+# Check the default discovery glob without reading the real user's archives.
+home = Path(sys.argv[2]) / "fake home"
+(home / "Documents/RuruCode/project/docs/roadstar").mkdir(parents=True)
+with patch.object(stats.Path, "home", return_value=home):
+    output = io.StringIO()
+    with redirect_stdout(output):
+        assert stats.main(["--json"]) == 0
+    assert json.loads(output.getvalue()) == {"total_records": 0, "groups": []}
+PY
+pass 'dispatch-stats family cost order, five-sample threshold, missing outcomes and default discovery'
+
+run_task T20 --class 取证 > "$TMP/class.txt"
+grep -q '^class=取证$' "$PLAN/rounds/exec-T20.meta"
+! grep -q '^class=' "$PLAN/rounds/exec-T9.meta"
+pass 'exec --class writes metadata only when supplied'
+expect_exit 2 run_task T21 --class 其他
+expect_exit 2 run_task T21 --class
+[[ ! -f "$PLAN/rounds/exec-T21.meta" ]]
+pass 'exec --class rejects invalid and missing values before dispatch'
+run_task T22 --detach --class 补全 > "$TMP/class-detach.txt"
+wait_done "$PLAN/rounds/exec-T22.exit"
+grep -q '^class=补全$' "$PLAN/rounds/exec-T22.meta"
+bash "$SCRIPTS/dex-exec.sh" --help > "$TMP/exec-help.txt"
+grep -q -- '--class' "$TMP/exec-help.txt"
+for category in 取证 批量 页面实现 窄回归 跨模块 根因 性能 视觉照做 复核 审方案 补全; do
+  run_task T23 --dry-run --class "$category" > "$TMP/class-dry.txt"
+done
+pass 'exec detached worker retains class, help documents it and all allowed values parse'
+
 printf 'PASS %d checks\n' "$COUNT"

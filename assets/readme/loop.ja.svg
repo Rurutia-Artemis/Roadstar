@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 380" role="img" aria-labelledby="t d">
+<title id="t">壁で止め、使うほど賢く</title>
+<desc id="d">起点 実績のある 一番安い層 → 進捗を記録 試すたびに 1 行ずつ → 壁で止める 3 連敗、空転、 時間の 9 割 → 上位で補完 済んだ分は残し 残りを一つ上へ → 実績を記録 種類とモデル 結果と消費枠 · 5 件たまったら、完了率 90% 以上なら安い層へ、60% 未満なら一つ上へ。表の変更は本人が承認</desc>
+<rect width="1200" height="380" rx="28" fill="#F7F4EE"/>
+<text x="40" y="66" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="38" font-weight="800" fill="#2B2A3D">壁で止め、使うほど賢く</text>
+<rect x="40" y="96" width="204" height="176" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="62" y="136" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#9A6B0C">01</text>
+<path d="M212,119 Q212,130 223,130 Q212,130 212,141 Q212,130 201,130 Q212,130 212,119 Z" fill="#F2B544"/>
+<text x="62" y="178" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="25" font-weight="800" fill="#2B2A3D">起点</text>
+<text x="62" y="218" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">実績のある</text>
+<text x="62" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">一番安い層</text>
+<path d="M250,184.0 l18,0 m-7,-7 l7,7 l-7,7" stroke="#F2B544" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="274" y="96" width="204" height="176" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="296" y="136" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#2E7C7E">02</text>
+<path d="M446,119 Q446,130 457,130 Q446,130 446,141 Q446,130 435,130 Q446,130 446,119 Z" fill="#3E9C9E"/>
+<text x="296" y="178" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="25" font-weight="800" fill="#2B2A3D">進捗を記録</text>
+<text x="296" y="218" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">試すたびに</text>
+<text x="296" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">1 行ずつ</text>
+<path d="M484,184.0 l18,0 m-7,-7 l7,7 l-7,7" stroke="#F2B544" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="508" y="96" width="204" height="176" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="530" y="136" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#B9583F">03</text>
+<path d="M680,119 Q680,130 691,130 Q680,130 680,141 Q680,130 669,130 Q680,130 680,119 Z" fill="#E07A5F"/>
+<text x="530" y="178" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="25" font-weight="800" fill="#2B2A3D">壁で止める</text>
+<text x="530" y="218" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">3 連敗、空転、</text>
+<text x="530" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">時間の 9 割</text>
+<path d="M718,184.0 l18,0 m-7,-7 l7,7 l-7,7" stroke="#F2B544" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="742" y="96" width="204" height="176" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="764" y="136" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#B9583F">04</text>
+<path d="M914,119 Q914,130 925,130 Q914,130 914,141 Q914,130 903,130 Q914,130 914,119 Z" fill="#E07A5F"/>
+<text x="764" y="178" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="25" font-weight="800" fill="#2B2A3D">上位で補完</text>
+<text x="764" y="218" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">済んだ分は残し</text>
+<text x="764" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">残りを一つ上へ</text>
+<path d="M952,184.0 l18,0 m-7,-7 l7,7 l-7,7" stroke="#F2B544" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="976" y="96" width="204" height="176" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="998" y="136" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#2E7C7E">05</text>
+<path d="M1148,119 Q1148,130 1159,130 Q1148,130 1148,141 Q1148,130 1137,130 Q1148,130 1148,119 Z" fill="#3E9C9E"/>
+<text x="998" y="178" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="25" font-weight="800" fill="#2B2A3D">実績を記録</text>
+<text x="998" y="218" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">種類とモデル</text>
+<text x="998" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">結果と消費枠</text>
+<path d="M1078.0,276 v20 H142.0 v-20" stroke="#F2B544" stroke-width="3" fill="none" stroke-dasharray="4 7" stroke-linecap="round"/>
+<rect x="80" y="302" width="1040" height="48" rx="24" fill="#2B2A3D"/>
+<text x="600.0" y="333" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#F7F4EE">5 件たまったら、完了率 90% 以上なら安い層へ、60% 未満なら一つ上へ。表の変更は本人が承認</text>
+</svg>
