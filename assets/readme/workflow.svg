@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 400" role="img" aria-labelledby="t d">
 <title id="t">Three modes, one entry</title>
-<desc id="d">Discuss You have an idea Claude drafts, Codex probes 3 rounds → plan + task table / Review You have a project Both read it, then cross-check → gap list + top 3 fixes / Dispatch You have a plan Split, assign, verify → a done report with evidence — Type /roadstar (or 用 skill): it picks the mode, prints one setup line, and starts.</desc>
+<desc id="d">Discuss You have an idea Features first, build second → feature map + plan / Review You have a project Both read it, then cross-check → gap list + top 3 fixes / Dispatch You have a plan Split, assign, verify → a done report with evidence — Type /roadstar (or 用 skill): it picks the mode, prints one setup line, and starts.</desc>
 <rect width="1200" height="400" rx="28" fill="#F7F4EE"/>
 <text x="56" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="40" font-weight="800" fill="#2B2A3D">Three modes, one entry</text>
 <rect x="56" y="104" width="352" height="210" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
 <path d="M96,134 Q96,148 110,148 Q96,148 96,162 Q96,148 82,148 Q96,148 96,134 Z" fill="#F2B544" opacity="1.0"/>
 <text x="122" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="800" fill="#2B2A3D">Discuss</text>
 <text x="84" y="208" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" fill="#8A8798">You have an idea</text>
-<text x="84" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#2B2A3D">Claude drafts, Codex probes</text>
-<text x="84" y="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#B07D10">3 rounds → plan + task table</text>
+<text x="84" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#2B2A3D">Features first, build second</text>
+<text x="84" y="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#B07D10">→ feature map + plan</text>
 <rect x="432" y="104" width="352" height="210" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
 <path d="M472,134 Q472,148 486,148 Q472,148 472,162 Q472,148 458,148 Q472,148 472,134 Z" fill="#3E9C9E" opacity="1.0"/>
 <text x="498" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="800" fill="#2B2A3D">Review</text>

@@ -20,6 +20,7 @@
 
 清单（逐项给 `ok` / `weak` / `missing`，`weak` 和 `missing` 要在 `note` 里说缺什么）：
 
+- feature_map：功能地图（主功能和使用路径写清；副功能覆盖十个角度；每条写了达成什么效果；必做清单经主席分档；纯工程改动写了跳过理由）
 - goals_nongoals：目标与非目标
 - acceptance：验收标准（每条可判定）
 - context_constraints：现状与约束（引用了具体文件或数据）

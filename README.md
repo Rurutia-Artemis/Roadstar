@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.8.0-F2B544?style=flat-square" alt="版本 1.8.0">
+  <img src="https://img.shields.io/badge/version-1.9.0-F2B544?style=flat-square" alt="版本 1.9.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="只用 bash 和 Python 标准库">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT 许可">
 </p>
@@ -24,10 +24,12 @@
 
 再有一个是方案一次想不完的问题。同一件事让 AI 想完了，再说一句「再想想」，它总能再想出几个新的点来，而且 Claude 看不出来的问题 Codex 一看就能看出来，反过来也一样。所以 Roadstar 让两家最强的模型围着同一份方案互相挑错，每条意见都要带证据，比如哪个文件哪一行，或者一段命令的输出，Claude 一条一条处置，接受的就改，不接受的写理由，拿不准的留给我定。默认谈三轮，两边都没新问题了就提前停，所以方案交到我手里的时候，大部分坑已经被另一个模型提前踩过了。
 
+而且探讨不是一上来就谈代码怎么写。很多时候我只知道主功能，比如想做个类似某某的软件，但是主功能周围该有哪些设置、哪些选项，还能衍生出什么功能，我自己是想不全的。所以探讨的第一步是两家模型各自按十个角度去想：第一次用、天天用、设置、出错的时候、提醒、分享、数据、衍生功能、收费、多语言，每一条都要写清楚给谁用、能让用户得到什么，合并起来以后我只需要分一下这版做、下版做还是不做，然后才开始谈工程怎么安排最稳。我个人感觉这一步是整个技能里最值钱的地方之一，因为用户用得爽不爽，很多时候就差在这些副功能上。
+
 另外一个是派活和验收太累的问题。以前一个大项目我得自己想哪块给谁，做完了还得自己一条条去验，非常的累。现在 Claude 会把项目拆成一件件两个小时之内能做完、能单独验收的小活，每件写清楚给哪个型号、做完长什么样、时间上限多少、谁来审，我只在几个关键的地方拍板，而且每一步都记在文件里，回头都能翻。
 
 <p align="center">
-  <img src="./assets/readme/workflow.zh-CN.svg" width="100%" alt="三种用法，一个入口。探讨：只有一个想法，Claude 写方案、Codex 审，谈三轮出方案和拆分表。复盘：项目已经有了，两家各读一遍交叉审，出不足清单和先做三件事。协同：方案已经有了，拆活、派活、验收，交带证据的完工报告。">
+  <img src="./assets/readme/workflow.zh-CN.svg" width="100%" alt="三种用法，一个入口。探讨：只有一个想法，两家先把功能想全再谈工程，出功能地图、方案和拆分表。复盘：项目已经有了，两家各读一遍交叉审，出不足清单和先做三件事。协同：方案已经有了，拆活、派活、验收，交带证据的完工报告。">
 </p>
 
 用起来也非常的简单，在项目里对 Claude 说一句「用 skill」就可以了，它自己看现场判断走上面三种里的哪一种，开场报一行配置就开始跑，不等我答复，我想改哪项接着说一句就行。一个小时之内能干完的小活，它不走这套流程，直接做掉。

@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 or later">
-  <img src="https://img.shields.io/badge/version-1.8.0-F2B544?style=flat-square" alt="version 1.8.0">
+  <img src="https://img.shields.io/badge/version-1.9.0-F2B544?style=flat-square" alt="version 1.9.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash and Python standard library only">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT license">
 </p>
@@ -44,6 +44,8 @@ Claude is the better organizer, so it keeps that job: planning, splitting, revie
 
 Claude and Codex have different blind spots. In Discuss mode the strongest model from each vendor reviews the same plan. Every objection must cite a file, a line number or command output. Claude then accepts it, rejects it with a written reason, or leaves the call to you. Three rounds by default; it stops early when neither side finds anything new.
 
+Discuss mode does not open with engineering. Most people know the main feature and little else, yet the settings, options and spin-off features around it are what make an app pleasant to use. So both models first brainstorm on their own across ten angles: first use, daily use, settings, errors and edge cases, reminders, sharing, data, spin-off features, pricing, accessibility and languages. Each idea says who it is for and what the user gets. Claude merges the two lists, Codex checks the merge for gaps and overreach, and you only sort the ideas into this version, next version or never. The engineering discussion starts after that.
+
 ### Dispatching and checking work is exhausting
 
 Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
@@ -59,7 +61,7 @@ Each dispatch records the task class, model, outcome and quota spent. Once a cla
 <p align="center"><img src="./assets/readme/loop.svg" width="100%" alt="Stop at the wall, learn every run: start on the cheapest tier with a record; log one line per check attempt; stop on 3 fails, idle time or 90% of the time limit; keep what passed and send the rest up a tier; record class, model, result and quota. After 5 samples, 90% done or better moves a class down a tier, under 60% moves it up. You approve each change."></p>
 
 <p align="center">
-  <img src="./assets/readme/workflow.svg" width="100%" alt="Three modes, one entry. Discuss: you have an idea, Claude drafts and Codex probes, three rounds produce a plan and task table. Review: you have a project, both read it and cross-check, producing a gap list and the top three fixes. Dispatch: you have a plan, split, assign and verify, ending in a report with evidence.">
+  <img src="./assets/readme/workflow.svg" width="100%" alt="Three modes, one entry. Discuss: you have an idea; both models map the features first, then the build, producing a feature map, plan and task table. Review: you have a project, both read it and cross-check, producing a gap list and the top three fixes. Dispatch: you have a plan, split, assign and verify, ending in a report with evidence.">
 </p>
 
 Small jobs (under an hour) skip all of this and get done directly. You can override any choice at any time with one sentence, such as "use more GPT this month", and the change holds for the whole run.
