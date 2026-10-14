@@ -2,7 +2,7 @@
   <img src="./assets/readme/hero.ja.svg" width="100%" alt="Roadstar 引路星：Claude が計画・分担・検証、Codex がコードを書く。両方のサブスクを無駄なく使い、計画は必ずもう一社のモデルがレビューする。">
 </p>
 
-<p align="center"><a href="./README.md">English</a> · <a href="./README.zh-CN.md">中文</a> · <b>日本語</b></p>
+<p align="center"><a href="./README.en.md">English</a> · <a href="./README.md">中文</a> · <b>日本語</b></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
