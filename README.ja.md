@@ -55,6 +55,14 @@ cd Roadstar && ./install.sh
 
 `install.sh` は `skill/` を `~/.claude/skills`、`~/.agents/skills`、`~/.codex/skills` にシンボリックリンクします。任意のプロジェクトで Claude Code のセッションを開き直し、`/roadstar` と入力するか「用 skill」と言えば始まります。
 
+いちばん手軽なのは、このリポジトリの URL を Claude Code に渡して「インストールして」と頼む方法です。インストールを担当する AI は次の手順に従ってください。
+
+1. `~/Roadstar` のような長く残すフォルダにクローンします。インストーラーはこのフォルダへリンクを張るので、一時ディレクトリには置かず、インストール後も移動・削除しないでください。
+2. リポジトリのルートで `./install.sh` を実行します。リンク先ごとに「已链接」（リンク済み）が 1 行ずつ表示されます。
+3. 確認：`ls -l ~/.claude/skills/roadstar` がリポジトリの `skill/` を指していること、`bash skill/scripts/tests/run.sh` の最後が `PASS 32 checks` であること。
+4. Codex の確認：`codex --version` が 0.160 以上（なければ `npm i -g @openai/codex@latest`）、`codex login status` がログイン済みであること。ログインにはブラウザが開くので、`codex login` はユーザー本人に実行してもらってください。Codex がなくても Claude だけのモードで動きます。
+5. Claude Code のセッションを開き直すようユーザーに伝えます（skill はセッション開始時に読み込まれます）。そのあと「用 skill」と言うか `/roadstar` と入力すれば始まります。
+
 必要なもの：
 
 - Claude Code（作者は Max プランで開発・運用）

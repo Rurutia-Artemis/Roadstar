@@ -55,6 +55,14 @@ cd Roadstar && ./install.sh
 
 `install.sh` 把 `skill/` 软链到 `~/.claude/skills`、`~/.agents/skills` 和 `~/.codex/skills`。在任意项目里重开一个 Claude Code 会话，说一句「用 skill」或输入 `/roadstar` 就开始。
 
+最省事的装法是把这个仓库地址丢给 Claude Code，说一句「帮我装上」。如果你是负责安装的 AI，请按下面做：
+
+1. 克隆到一个长期保留的目录，比如 `~/Roadstar`。安装脚本链接的就是这个目录，不要克隆到临时目录，装完也不要移动或删除它。
+2. 在仓库根目录跑 `./install.sh`，每个目标会打印一行「已链接」。
+3. 验证：`ls -l ~/.claude/skills/roadstar` 指向仓库里的 `skill/`；`bash skill/scripts/tests/run.sh` 最后一行是 `PASS 32 checks`。
+4. 查 Codex：`codex --version` 要 0.160 以上（没有就 `npm i -g @openai/codex@latest`），`codex login status` 要显示已登录。登录会打开浏览器，请让用户自己跑 `codex login`。没有 Codex 也能用单家模式。
+5. 告诉用户重开一个 Claude Code 会话（技能在会话开始时加载），说一句「用 skill」或输入 `/roadstar`。
+
 需要：
 
 - Claude Code（作者用 Max 套餐开发和使用）

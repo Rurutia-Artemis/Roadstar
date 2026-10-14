@@ -1,5 +1,11 @@
 # Roadstar · 更新日志
 
+## 2026-10-14 · README 加给 AI 的安装步骤
+
+主席 10-14：现在朋友都是把仓库地址直接丢给 AI 让它装，README 要让 AI 一次装对。三份 README 的安装段各加五步：克隆到长期目录（安装是软链，删了就失效）、跑 install.sh、验证软链和桩测试、查 Codex 版本与登录（登录要开浏览器，让人自己跑 `codex login`）、提醒重开会话。
+
+- 验证：在临时 HOME 里从 GitHub 克隆、跑 install.sh，三处软链都建好，桩测试 PASS 32 checks；`codex login status` 在本机输出「Logged in using ChatGPT」。未验证：没有真找一个别人的 AI 只拿链接装一遍。
+
 ## 2026-10-14 · 上 GitHub：三语 README、配图、MIT 许可与声明，介绍文档压短
 
 主席 10-14 要把项目发给朋友试：介绍文档再简洁、优势写大；仓库上 GitHub，README 按 vela 的 GitHub README 标准（吸收自 beautify-github-readme）配图，中英日三语、默认英语。
