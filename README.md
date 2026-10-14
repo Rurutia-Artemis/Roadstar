@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.9.0-F2B544?style=flat-square" alt="版本 1.9.0">
+  <img src="https://img.shields.io/badge/version-1.10.0-F2B544?style=flat-square" alt="版本 1.10.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="只用 bash 和 Python 标准库">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT 许可">
 </p>
@@ -69,7 +69,7 @@ git clone https://github.com/Rurutia-Artemis/Roadstar.git
 cd Roadstar && ./install.sh
 ```
 
-`install.sh` 把 `skill/` 软链到 `~/.claude/skills`、`~/.agents/skills` 和 `~/.codex/skills`。在任意项目里重开一个 Claude Code 会话，说一句「用 skill」或输入 `/roadstar` 就开始。
+`install.sh` 把 `skill/` 软链到 `~/.claude/skills`、`~/.agents/skills` 和 `~/.codex/skills`。在任意项目里重开一个 Claude Code 会话，说一句「用 skill」或输入 `/roadstar` 就开始。以后我发了新版本，它开场时会提醒一句，说「更新 Roadstar」就拉到最新。
 
 > [!TIP]
 > 最省事的装法是把这个仓库地址丢给 Claude Code，说一句「帮我装上」。

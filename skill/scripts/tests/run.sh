@@ -10,6 +10,8 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/roadstar-tests.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 trap 'echo "FAIL: line $LINENO" >&2' ERR
 export FAKE_TRACE_FILE="$TMP/trace.jsonl"
+export ROADSTAR_CONFIG_DIR="$TMP/config"
+unset ROADSTAR_PROJECTS
 PLAN="$TMP/plan dir"
 mkdir -p "$PLAN"
 BRIEF="$PLAN/brief.md"
@@ -200,6 +202,9 @@ for text in ("codex exec", "--skip-git-repo-check", "-C ", "-s read-only", "-m g
     assert text in s, (text, s)
 PY
 [[ ! -d "$PLAN/rounds" ]] || [[ -z "$(ls -A "$PLAN/rounds")" ]]
+[[ ! -e "$ROADSTAR_CONFIG_DIR/projects.txt" ]]
+bash "$SCRIPTS/dex-exec.sh" "$PLAN" T9 --status > "$TMP/unstarted.txt"
+[[ ! -e "$ROADSTAR_CONFIG_DIR/projects.txt" ]]
 pass 'exec dry-run command and artifact paths, no CLI or artifacts'
 run_task T9 > "$TMP/exec.txt"
 cmp "$BRIEF" "$PLAN/rounds/exec-T9.md"
@@ -214,10 +219,19 @@ assert d["tokens_used"] == "1234" and d["exit"] == "0" and d["attempt"] == "1", 
 assert d["started"] and d["finished"] and d["resumed_from"] == "", d
 PY
 pass 'exec result, request, metadata, session and token count'
+python3 - "$ROADSTAR_CONFIG_DIR/projects.txt" "$PLAN/rounds/exec-T9.meta" <<'PY'
+from pathlib import Path
+import sys
+meta = dict(line.split("=", 1) for line in Path(sys.argv[2]).read_text().splitlines())
+assert Path(sys.argv[1]).read_text() == meta["root"] + "\n"
+PY
+pass 'exec real dispatch registers exactly one absolute ROOT; dry-run and status do not register'
 run_task T9 > "$TMP/exec-r2.txt"
 cmp "$BRIEF" "$PLAN/rounds/exec-T9-request-r2.md"
 grep -q '^attempt=2$' "$PLAN/rounds/exec-T9.meta"
 pass 'second dispatch keeps r2 request snapshot'
+[[ "$(wc -l < "$ROADSTAR_CONFIG_DIR/projects.txt" | tr -d ' ')" == 1 ]]
+pass 'exec repeat dispatch does not duplicate the registered project'
 run_task T9b --write --root "$PLAN" > "$TMP/write.txt"
 grep -q '^sandbox=workspace-write$' "$PLAN/rounds/exec-T9b.meta"
 python3 - "$PLAN/rounds/exec-T9b.meta" "$PLAN" <<'PY'
@@ -489,16 +503,19 @@ for n in (3, 4):
     g = stats.summarize([{"outcome": "done" if i < n else "partial"} for i in range(5)], 5)[0]
     assert g["recommendation"] == "继续观察", g
 assert stats.duration({"minutes": "nan", "started": "2026-10-14T00:00:00Z", "finished": "2026-10-14T00:02:00Z"}) == 2
-# Check the default discovery glob without reading the real user's archives.
-home = Path(sys.argv[2]) / "fake home"
-(home / "Documents/RuruCode/project/docs/roadstar").mkdir(parents=True)
-with patch.object(stats.Path, "home", return_value=home):
+# Check registered discovery without reading the real user's archives.
+config = Path(sys.argv[2]) / "discovery config"
+project = Path(sys.argv[2]) / "registered project"
+config.mkdir()
+(project / "docs/roadstar").mkdir(parents=True)
+(config / "projects.txt").write_text(str(project) + "\n", encoding="utf-8")
+with patch.dict(stats.os.environ, {"ROADSTAR_CONFIG_DIR": str(config), "ROADSTAR_PROJECTS": ""}):
     output = io.StringIO()
     with redirect_stdout(output):
         assert stats.main(["--json"]) == 0
     assert json.loads(output.getvalue()) == {"total_records": 0, "groups": []}
 PY
-pass 'dispatch-stats family cost order, five-sample threshold, missing outcomes and default discovery'
+pass 'dispatch-stats family cost order, five-sample threshold, missing outcomes and registered discovery'
 
 run_task T20 --class 取证 > "$TMP/class.txt"
 grep -q '^class=取证$' "$PLAN/rounds/exec-T20.meta"
@@ -517,5 +534,236 @@ for category in 取证 批量 页面实现 窄回归 跨模块 根因 性能 视
   run_task T23 --dry-run --class "$category" > "$TMP/class-dry.txt"
 done
 pass 'exec detached worker retains class, help documents it and all allowed values parse'
+
+# Registry tests use isolated configs, including failure paths and relative input.
+REGISTRY_CONFIG="$TMP/registry config"
+ROADSTAR_CONFIG_DIR="$REGISTRY_CONFIG" python3 "$SCRIPTS/dispatch-stats.py" --register "$PLAN" > "$TMP/register.txt"
+[[ "$(cat "$TMP/register.txt")" == "已登记 $PLAN" ]]
+ROADSTAR_CONFIG_DIR="$REGISTRY_CONFIG" python3 "$SCRIPTS/dispatch-stats.py" --register "$PLAN/." > "$TMP/register-again.txt"
+[[ "$(cat "$TMP/register-again.txt")" == "已在登记表里 $PLAN" ]]
+[[ "$(cat "$REGISTRY_CONFIG/projects.txt")" == "$PLAN" ]]
+pass 'dispatch-stats --register creates config, prints receipts and deduplicates absolute paths'
+
+python3 - "$SCRIPTS/dispatch-stats.py" "$TMP" "$STATS" <<'PY'
+from pathlib import Path
+import json, os, subprocess, sys
+script, root, stats = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3])
+config = root / "default scan config"
+env = {**os.environ, "ROADSTAR_CONFIG_DIR": str(config), "ROADSTAR_PROJECTS": ""}
+def run(*args):
+    result = subprocess.run([sys.executable, script, *args], env=env, cwd=root,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    return result.stdout
+assert run() == "还没有登记过项目，派过一次活或用 --register 登记后再看\n"
+assert config.is_dir()
+assert run("--register", "plan dir") == f"已登记 {root.resolve() / 'plan dir'}\n"
+ordered = [root.resolve() / "plan dir", root / "trailing space "]
+ordered[1].mkdir()
+for project in (ordered[1], ordered[0], ordered[1]):
+    run("--register", str(project))
+assert (config / "projects.txt").read_text().splitlines() == list(map(str, ordered))
+projects = [root / name for name in ("registered stats", "env stats", "missing stats")]
+for index, source in enumerate((stats / "a", stats / "b")):
+    import shutil
+    shutil.copytree(source, projects[index] / "docs/roadstar/run")
+(config / "projects.txt").write_text("\n".join(map(str, (projects[0], projects[2], projects[0]))) + "\n")
+env["ROADSTAR_PROJECTS"] = f":{projects[1]}:{projects[0]}:"
+assert json.loads(run("--json"))["total_records"] == 4
+# Explicit roots must not include either the registry or environment projects.
+assert json.loads(run(str(stats / "c"), "--json"))["total_records"] == 1
+(config / "projects.txt").write_text("")
+assert json.loads(run("--json"))["total_records"] == 4
+PY
+pass 'dispatch-stats default scans registry plus ROADSTAR_PROJECTS, explicit roots override, empty registry hints'
+
+: > "$TMP/config-is-file"
+ROADSTAR_CONFIG_DIR="$TMP/config-is-file" run_task T24 > "$TMP/register-warning.txt" 2>&1
+cmp "$BRIEF" "$PLAN/rounds/exec-T24.md"
+grep -q '警告：项目登记失败' "$TMP/register-warning.txt"
+# A blocked dispatch must not register even when using a new config directory.
+ROADSTAR_CONFIG_DIR="$TMP/blocked config" FAKE_CODEX_USED=97 expect_exit 3 run_task T25
+[[ ! -e "$TMP/blocked config/projects.txt" ]]
+pass 'registry write failure warns without blocking dispatch; quota-blocked tasks do not register'
+
+# Every remote below is a local bare repository; forbid other Git transports.
+PYTHONDONTWRITEBYTECODE=1 python3 - "$SCRIPTS/update-check.py" "$TMP" > "$TMP/update-checks.txt" <<'PY'
+from contextlib import redirect_stdout
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import time
+from unittest.mock import patch
+
+source, base = Path(sys.argv[1]), Path(sys.argv[2]) / "update fixtures"
+base.mkdir()
+env = {**os.environ, "ROADSTAR_CONFIG_DIR": str(base / "config"),
+       "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+       "GIT_TERMINAL_PROMPT": "0", "GIT_ALLOW_PROTOCOL": "file",
+       "GIT_AUTHOR_NAME": "Offline Test", "GIT_AUTHOR_EMAIL": "offline@example.invalid",
+       "GIT_COMMITTER_NAME": "Offline Test", "GIT_COMMITTER_EMAIL": "offline@example.invalid"}
+def git(repo, *args):
+    result = subprocess.run(["git", "-C", str(repo), *args], env=env,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, (args, result.stderr)
+    return result.stdout.strip()
+
+def install_script(repo):
+    script = repo / "skill/scripts/update-check.py"
+    script.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, script)
+    return script
+
+def run(script, *args, code=0):
+    result = subprocess.run([str(script), *args], env=env, cwd=base,
+                            capture_output=True, text=True)
+    assert result.returncode == code, (args, result.returncode, result.stdout, result.stderr)
+    assert not result.stderr, result.stderr
+    return result.stdout
+
+def commit_version(repo, number):
+    (repo / "skill").mkdir(exist_ok=True)
+    (repo / "skill/SKILL.md").write_text(
+        f'---\nname: roadstar\nmetadata:\n  version: "{number}"\n---\n# Roadstar\n', encoding="utf-8")
+    (repo / "CHANGELOG.md").write_text(f"# Changelog\n\n## {number} offline release\n\nDetails\n", encoding="utf-8")
+    git(repo, "add", ".")
+    git(repo, "commit", "-m", "Version " + number)
+
+def passed(label):
+    print(label)
+
+origin, seed, local = (base / name for name in ("origin.git", "seed", "local clone"))
+git(base, "init", "--bare", "--initial-branch=main", str(origin))
+git(base, "init", "--initial-branch=main", str(seed))
+install_script(seed)
+commit_version(seed, "1.0.0")
+git(seed, "remote", "add", "origin", str(origin))
+git(seed, "push", "-u", "origin", "main")
+git(base, "clone", str(origin), str(local))
+script = local / "skill/scripts/update-check.py"
+cache = base / "config/update-check.json"
+assert run(script) == ""
+assert run(script, "--verbose") == "Roadstar 已是最新 1.0.0\n"
+data = json.loads(run(script, "--json"))
+assert data["behind"] == 0 and data["local_version"] == data["remote_version"] == "1.0.0"
+assert set(json.loads(cache.read_text())) == {"checked_at", "behind", "local_version", "remote_version"}
+passed('update-check current checkout is silent; verbose and JSON report version and cache fields')
+
+commit_version(seed, "1.0.1")
+commit_version(seed, "1.1.0")
+git(seed, "push")
+assert run(script) == ""  # The fresh cache still says current, with no fetch.
+expected = 'Roadstar 有新版本：本机 1.0.0，最新 1.1.0（落后 2 个提交）。说「更新 Roadstar」就拉到最新。\n'
+assert run(script, "--force") == expected
+passed('update-check force fetch discovers two remote commits and prints exact version reminder')
+
+cached = cache.read_bytes()
+git(local, "remote", "set-url", "origin", str(base / "nonexistent-origin"))
+assert run(script) == expected
+assert run(script, "--force") == ""
+assert cache.read_bytes() == cached
+cache.unlink()
+assert run(script, "--force", "--json") == "" and not cache.exists()
+cache.write_bytes(cached)
+git(local, "remote", "set-url", "origin", str(origin))
+passed('update-check 24-hour cache avoids fetch; failed forced fetch is silent and never writes cache')
+
+commit_version(seed, "1.2.0")
+git(seed, "push")
+assert run(script) == expected
+forced = json.loads(run(script, "--force", "--json"))
+assert (forced["behind"], forced["remote_version"]) == (3, "1.2.0")
+data = json.loads(cache.read_text())
+data["checked_at"] = time.time() - 25 * 3600
+cache.write_text(json.dumps(data))
+assert "1.2.0" in run(script)
+assert json.loads(cache.read_text())["checked_at"] > data["checked_at"]
+passed('update-check force and expired cache recheck the remote and refresh cached results')
+
+head = git(local, "rev-parse", "HEAD")
+(local / "skill/SKILL.md").write_text("local edit\n")
+assert "已跟踪文件的未提交改动" in run(script, "--apply", code=1)
+git(local, "add", "skill/SKILL.md")
+assert "error" in json.loads(run(script, "--apply", "--json", code=1))
+assert git(local, "rev-parse", "HEAD") == head
+assert "local edit" in (local / "skill/SKILL.md").read_text()
+git(local, "reset", "--hard", "HEAD")
+(local / "untracked.txt").write_text("Keep me\n")
+assert run(script, "--apply") == "已更新到 1.2.0\n## 1.2.0 offline release\n"
+assert git(local, "rev-parse", "HEAD") == git(seed, "rev-parse", "HEAD")
+assert (local / "untracked.txt").read_text() == "Keep me\n"
+assert json.loads(cache.read_text())["behind"] == 0
+applied = json.loads(run(script, "--apply", "--json"))
+assert applied["local_version"] == "1.2.0" and applied["changelog"] == "## 1.2.0 offline release"
+passed('update-check apply rejects staged/unstaged tracked edits, fast-forwards clean worktree and prints changelog')
+
+(local / "local-only.txt").write_text("local commit\n")
+git(local, "add", "local-only.txt")
+git(local, "commit", "-m", "Local commit")
+head = git(local, "rev-parse", "HEAD")
+commit_version(seed, "1.3.0")
+git(seed, "push")
+cached = cache.read_bytes()
+assert "无法快进" in run(script, "--apply", code=1)
+assert git(local, "rev-parse", "HEAD") == head and cache.read_bytes() == cached
+passed('update-check apply refuses divergent history without rewriting commits or refreshing cache')
+
+# Test upstream branches containing slashes, then origin/HEAD and main fallbacks.
+git(seed, "checkout", "-b", "release/stable")
+commit_version(seed, "2.0.0")
+git(seed, "push", "-u", "origin", "release/stable")
+branch_local = base / "branch clone"
+git(base, "clone", "--branch", "release/stable", str(origin), str(branch_local))
+branch_script = branch_local / "skill/scripts/update-check.py"
+commit_version(seed, "2.1.0")
+git(seed, "push")
+assert json.loads(run(branch_script, "--force", "--json"))["remote_version"] == "2.1.0"
+git(branch_local, "branch", "--unset-upstream")
+assert json.loads(run(branch_script, "--force", "--json"))["remote_version"] == "1.3.0"
+git(branch_local, "symbolic-ref", "--delete", "refs/remotes/origin/HEAD")
+assert json.loads(run(branch_script, "--force", "--json"))["remote_version"] == "1.3.0"
+assert run(branch_script, "--apply") == "已更新到 2.0.0\n## 2.0.0 offline release\n"
+passed('update-check uses upstream slash branch, falls back to origin/HEAD then main, applies without upstream')
+
+plain = base / "not a repo"
+plain_script = install_script(plain)
+assert run(plain_script) == run(plain_script, "--json") == ""
+git(plain, "init", "--initial-branch=main")
+assert run(plain_script) == ""
+# A nested directory in a larger Git repository is not the script's own repo.
+nested_script = install_script(local / "nested")
+assert run(nested_script) == ""
+link = base / "update-check-link"
+link.symlink_to(script)
+assert json.loads(run(link, "--force", "--json"))["local_version"] == "1.2.0"
+bad = subprocess.run([str(script), "--unknown"], env=env, capture_output=True, text=True)
+assert bad.returncode == 2
+passed('update-check non-repo and missing origin are silent, symlinks locate real repo, bad arguments exit 2')
+
+# Timeout behavior is injected at subprocess.run, never a real sleeping/network child.
+spec = importlib.util.spec_from_file_location("update_check", source)
+update = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(update)
+real_run = subprocess.run
+seen_fetch = []
+def timeout_fetch(command, **kwargs):
+    if "fetch" in command:
+        seen_fetch.append(kwargs["timeout"])
+        raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+    return real_run(command, **kwargs)
+with patch.object(update, "ROOT", local.resolve()), patch.dict(os.environ, env), patch.object(update.subprocess, "run", side_effect=timeout_fetch):
+    cached = cache.read_bytes()
+    output = io.StringIO()
+    with redirect_stdout(output):
+        assert update.main(["--force"]) == 0
+    assert output.getvalue() == "" and cache.read_bytes() == cached and seen_fetch == [8]
+passed('update-check fetch timeout is exactly eight seconds, silent and leaves cache unchanged')
+PY
+while IFS= read -r check; do pass "$check"; done < "$TMP/update-checks.txt"
 
 printf 'PASS %d checks\n' "$COUNT"

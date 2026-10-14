@@ -270,6 +270,33 @@ rm -f "$OUT" "$PID_FILE" "$EXIT_FILE"
 STARTED="$(timestamp)"; FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""
 META_MODEL="$MODEL"; META_SANDBOX="$SANDBOX"; META_ROOT="$ROOT"
 write_meta
+if ! python3 - "$ROOT" <<'PY'
+import fcntl
+import os
+from pathlib import Path
+import sys
+
+try:
+    config = Path(os.environ.get("ROADSTAR_CONFIG_DIR") or "~/.config/roadstar").expanduser()
+    config.mkdir(parents=True, exist_ok=True)
+    project = os.path.abspath(sys.argv[1])
+    with (config / "projects.txt").open("a+", encoding="utf-8") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        handle.seek(0)
+        projects = list(dict.fromkeys(os.path.abspath(Path(line.rstrip("\r\n")).expanduser())
+                                     for line in handle if line.strip()))
+        if project not in projects:
+            projects.append(project)
+        handle.seek(0)
+        handle.truncate()
+        handle.write("".join(value + "\n" for value in projects))
+except (OSError, UnicodeError, ValueError) as exc:
+    print(f"警告：项目登记失败，继续派活：{exc}", file=sys.stderr)
+    sys.exit(1)
+PY
+then
+  : # Registration must never block an otherwise valid dispatch.
+fi
 printf '模型 %s / 强度 %s；第 %s 次派活：%s；时间上限：%s\n' "$MODEL" "$EFFORT" "$ATTEMPT" "$TASK" "$CAP_TEXT"
 
 if [[ "$DETACH" -eq 1 ]]; then

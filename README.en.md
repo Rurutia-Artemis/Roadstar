@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 or later">
-  <img src="https://img.shields.io/badge/version-1.9.0-F2B544?style=flat-square" alt="version 1.9.0">
+  <img src="https://img.shields.io/badge/version-1.10.0-F2B544?style=flat-square" alt="version 1.10.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash and Python standard library only">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT license">
 </p>
@@ -73,7 +73,7 @@ git clone https://github.com/Rurutia-Artemis/Roadstar.git
 cd Roadstar && ./install.sh
 ```
 
-`install.sh` symlinks `skill/` into `~/.claude/skills`, `~/.agents/skills` and `~/.codex/skills`. Open a new Claude Code session in any project and type `/roadstar`, or just say 「用 skill」.
+`install.sh` symlinks `skill/` into `~/.claude/skills`, `~/.agents/skills` and `~/.codex/skills`. Open a new Claude Code session in any project and type `/roadstar`, or just say 「用 skill」. When a new version is out, the opening line says so; reply 「更新 Roadstar」 (update Roadstar) to pull it.
 
 > [!TIP]
 > The easiest way is to paste this repository's URL into Claude Code and say "install this".

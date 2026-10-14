@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.9.0-F2B544?style=flat-square" alt="バージョン 1.9.0">
+  <img src="https://img.shields.io/badge/version-1.10.0-F2B544?style=flat-square" alt="バージョン 1.10.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash と Python 標準ライブラリのみ">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT ライセンス">
 </p>
@@ -73,7 +73,7 @@ git clone https://github.com/Rurutia-Artemis/Roadstar.git
 cd Roadstar && ./install.sh
 ```
 
-`install.sh` は `skill/` を `~/.claude/skills`、`~/.agents/skills`、`~/.codex/skills` にシンボリックリンクします。任意のプロジェクトで Claude Code のセッションを開き直し、`/roadstar` と入力するか「用 skill」と言えば始まります。
+`install.sh` は `skill/` を `~/.claude/skills`、`~/.agents/skills`、`~/.codex/skills` にシンボリックリンクします。任意のプロジェクトで Claude Code のセッションを開き直し、`/roadstar` と入力するか「用 skill」と言えば始まります。新しい版が出ると最初の 1 行で知らせるので、「更新 Roadstar」と言えば最新版に更新されます。
 
 > [!TIP]
 > いちばん手軽なのは、このリポジトリの URL を Claude Code に渡して「インストールして」と頼む方法です。

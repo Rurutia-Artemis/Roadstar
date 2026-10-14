@@ -5,13 +5,51 @@ import argparse
 from collections import defaultdict
 from datetime import datetime, timezone
 import hashlib
+import fcntl
 import json
 import math
+import os
 from pathlib import Path
+import sys
 import unicodedata
 
 
 FAMILIES = (("haiku", "sonnet", "opus", "fable"), ("gpt-6.1-sol", "gpt-6-astra"))
+
+
+def config_dir():
+    path = Path(os.environ.get("ROADSTAR_CONFIG_DIR") or "~/.config/roadstar").expanduser()
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def register_project(project):
+    project = os.path.abspath(project.expanduser())
+    if "\n" in project or "\r" in project:
+        raise ValueError("项目路径不能包含换行")
+    # Lock the file itself so concurrent dispatches keep every project, in order.
+    with (config_dir() / "projects.txt").open("a+", encoding="utf-8") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        handle.seek(0)
+        projects = list(dict.fromkeys(os.path.abspath(Path(line.rstrip("\r\n")).expanduser())
+                                     for line in handle if line.strip()))
+        existed = project in projects
+        if not existed:
+            projects.append(project)
+        handle.seek(0)
+        handle.truncate()
+        handle.write("".join(value + "\n" for value in projects))
+    return project, existed
+
+
+def default_roots():
+    registry = config_dir() / "projects.txt"
+    projects = registry.read_text(encoding="utf-8").splitlines() if registry.exists() else []
+    projects += os.environ.get("ROADSTAR_PROJECTS", "").split(":")
+    projects = list(dict.fromkeys(Path(os.path.abspath(Path(value).expanduser()))
+                                 for value in projects if value.strip()))
+    return projects, [project / "docs/roadstar" for project in projects
+                      if (project / "docs/roadstar").is_dir()]
 
 
 def normalize_model(value):
@@ -138,8 +176,27 @@ def main(argv=None):
     parser.add_argument("roots", nargs="*", type=lambda value: Path(value).expanduser())
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--min-samples", type=positive_int, default=5)
+    parser.add_argument("--register", type=Path, metavar="目录")
     args = parser.parse_args(argv)
-    roots = args.roots or sorted((Path.home() / "Documents/RuruCode").glob("*/docs/roadstar"))
+    if args.register is not None:
+        if not args.register.expanduser().is_dir():
+            parser.error(f"项目目录不存在或不是目录：{args.register}")
+        try:
+            project, existed = register_project(args.register)
+        except (OSError, UnicodeError, ValueError) as exc:
+            print(f"登记失败：{exc}", file=sys.stderr)
+            return 1
+        print(f"{'已在登记表里' if existed else '已登记'} {project}")
+        return 0
+    roots = args.roots
+    if not roots:
+        try:
+            projects, roots = default_roots()
+        except (OSError, UnicodeError) as exc:
+            parser.error(str(exc))
+        if not projects:
+            print("还没有登记过项目，派过一次活或用 --register 登记后再看")
+            return 0
     for root in roots:
         if not root.is_dir():
             parser.error(f"根目录不存在或不是目录：{root}")
