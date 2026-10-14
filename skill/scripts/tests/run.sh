@@ -186,7 +186,8 @@ try:
 finally:
     try:
         os.killpg(session.process.pid, signal.SIGKILL)
-    except ProcessLookupError:
+    except (ProcessLookupError, PermissionError):
+        # macOS returns EPERM when the group only has zombies left; cleanup only.
         pass
     os.close(pipe)
 PY
