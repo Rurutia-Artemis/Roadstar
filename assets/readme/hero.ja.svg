@@ -5,7 +5,7 @@
 <path d="M560,63 Q560,70 567,70 Q560,70 560,77 Q560,70 553,70 Q560,70 560,63 Z" fill="#F2B544" opacity="0.45"/>
 <path d="M1150,54 Q1150,60 1156,60 Q1150,60 1150,66 Q1150,60 1144,60 Q1150,60 1150,54 Z" fill="#F2B544" opacity="0.45"/>
 <path d="M590,415 Q590,420 595,420 Q590,420 590,425 Q590,420 585,420 Q590,420 590,415 Z" fill="#F2B544" opacity="0.45"/>
-<text x="72" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" letter-spacing="3" fill="#8A8798">CLAUDE CODE SKILL · v1.7.0</text>
+<text x="72" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" letter-spacing="3" fill="#8A8798">CLAUDE CODE SKILL · v1.8.0</text>
 <text x="68" y="206" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="86" font-weight="800" fill="#2B2A3D" letter-spacing="-1.5">Roadstar<tspan dx="20" font-size="40" font-weight="600" fill="#8A8798" letter-spacing="2">引路星</tspan></text>
 <text x="72" y="276" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="600" fill="#2B2A3D">Claude が計画・分担・検証、</text>
 <text x="72" y="320" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="600" fill="#2B2A3D">Codex がコードを書く。</text>
