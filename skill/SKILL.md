@@ -16,7 +16,7 @@ metadata:
 |---|---|---|
 | 主席 | 用户 | 定目标与约束，随时插话改模型或分工，对争议拍板 |
 | Argo | Claude Code 主会话（Fable 5.1 或 Opus 5.5，账本记实际模型） | 主持、起草改稿、记账、拆活与分配、验收裁定、汇报 |
-| Dex | Codex CLI（`codex exec`，走 ChatGPT 订阅） | 讨论环节按契约审稿、提意见；执行环节做分给它的活、复核对方的活。不拆活、不分配、不做决定。型号按任务选：Astra 最强、6.1 Sol 常规（6.1 Sol 要 codex-cli 0.160 以上）；Luna 不派活 |
+| Dex | Codex CLI（`codex exec`，走 ChatGPT 订阅） | 讨论环节按契约审稿、提意见；执行环节做分给它的活、复核对方的活。不拆活、不分配、不做决定。型号按任务选：Astra 最强、6.1 Sol 常规（6.1 Sol 要 codex-cli 0.160 以上）；Luna 还没实测，可在简单活里试用（见 models.md） |
 | Claude 子代理 | Claude Code 的 Agent 工具，型号 Haiku / Sonnet / Opus / Fable（主席 2026-10-14 定四层按活常驻） | 和主会话共用同一份 Claude 额度，能并行，中间上下文不进主会话。Haiku 5.5 常驻接取证和机械批量；Sonnet 常驻接 Codex 写的中、难活的跨家只读复核，Codex 紧或并行线多时接规格清楚的实现；Opus 接难活、根因、样张，和 Astra 按额度二选一；Fable 平时只做主会话，同一问题两轮没收敛或审方案要最强一层时才派。拆活、分配、裁定仍只在主会话 |
 | Pro | 网页 GPT Pro（可选） | 大活起草或终审；Codex 空时的跨家审稿兜底；每趟要主席动手 |
 

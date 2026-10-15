@@ -21,7 +21,7 @@ Claude 四层（主席 2026-10-10 定梯子，2026-10-14 改为按活常驻）�
 |---|---|---|---|---|
 | `gpt-6-astra` | 最强：难活和审稿 | low / medium / high / xhigh / max / ultra | 基准 | ultra 会自动拆子任务，慢；max 和 ultra 主席点名才用 |
 | `gpt-6.1-sol` | 常规实现、机械批量、只读取证、复核 Astra 写的活 | low / medium / high / xhigh / max / ultra | 约 Astra 的五分之一 | 要 codex-cli 0.160 以上：0.158 调它会 400「not supported when using Codex with a ChatGPT account」，升到 0.160 就通（2026-10-04 实测）。调用一律显式传 `--effort`（缓存里默认 low） |
-| `gpt-6-luna` | 不派活 | low – max，没有 ultra | 约 6.1 Sol 的二十分之一 | 主席 2026-10-04 判它太差；只在冒烟测试里跑一句话 |
+| `gpt-6-luna` | 还没实测：可在机械批量、只读取证这类简单活里试用 | low – max，没有 ultra | 约 6.1 Sol 的二十分之一 | 主席 2026-10-16 更正：10-04 写的「太差」是听来的说法，主席和 Argo 都没在真实任务里用过它，只在冒烟测试里跑过一句话（low 档 8.6 秒回「正常」）。先别下结论：试用时强度可以拉到 high 或 max，按 escalation-and-learning 记战绩，结果随社区回传汇总，攒够数据再决定进不进第 8 节起步表 |
 | `gpt-6-sol` / `gpt-5.6-*` | 旧款 | — | — | 不用 |
 | `gpt-5.5` | 旧款 | — | — | 2026-10-14 退役 |
 
