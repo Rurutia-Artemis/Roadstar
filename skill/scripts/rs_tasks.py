@@ -78,7 +78,7 @@ def executor_label(model, effort=None):
     family = family_of(model)
     if family == "codex":
         label = f"Codex 的 {label}"
-    if effort and family in ("codex", "claude"):
+    if effort and family == "codex":
         label += f" · {EFFORT_LABEL.get(effort, effort)}"
     return label
 

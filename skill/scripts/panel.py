@@ -36,11 +36,12 @@ def row(cells, widths):
 
 
 def direction(estimate):
-    """Which ladder implementation goes to, and whether Claude's standing work retreats."""
+    """Which ladder implementation goes to, whether Claude's standing work retreats, single mode, and whether hard work prefers Opus."""
     codex, claude = estimate["providers"]["codex"], estimate["providers"]["claude"]
     codex_tier = codex.get("tier") if codex.get("connected") else None
     claude_tier = claude.get("tier") if claude.get("connected") else None
-    codex_ok = codex_tier in ("宽", "正常") or bool(codex.get("reset_cards"))
+    # 重置卡只说明「到顶时能刷」，不等于现在就宽（division-of-labor §4）：空就是空。
+    codex_ok = codex_tier in ("宽", "正常") or (codex_tier == "紧" and bool(codex.get("reset_cards")))
     claude_ok = claude_tier in ("宽", "正常")
     if codex.get("connected") and (codex_ok or not claude_ok):
         ladder = "codex"
@@ -48,9 +49,12 @@ def direction(estimate):
         ladder = "claude"
     else:
         ladder = "codex" if codex.get("connected") else "claude"
-    claude_tight = claude_tier in TIGHT
     single = not codex.get("connected")
-    return ladder, claude_tight, single
+    claude_tight = claude_tier in TIGHT and not single
+    codex_empty = codex.get("connected") and codex_tier == "空"
+    # 主席 10-12 定、10-14 细化：两边都宽时难活优先 Claude 的 Opus（自动分配下）。
+    both_wide = codex_tier == "宽" and claude_tier == "宽"
+    return ladder, claude_tight, single, both_wide, codex_empty
 
 
 def panel(estimate, strategy):
@@ -118,24 +122,30 @@ def label_of(text, fallback_effort="high"):
 
 
 def preview(estimate, strategy, strategies, title, usage, instructions, rounds):
-    ladder, claude_tight, single = direction(estimate)
+    ladder, claude_tight, single, both_wide, codex_empty = direction(estimate)
     spec = strategies["strategies"][strategy]
+    nothing = not estimate["providers"]["codex"]["connected"] and not estimate["providers"]["claude"]["connected"]
     classes = strategies["classes"]
     rounds = rounds or spec["review_rounds"]
     lines = [f"本项目分配 · {title} · {usage} · {STRATEGY_LABEL[strategy]}"]
     claude = estimate["providers"]["claude"]
-    if single:
+    if nothing:
+        lines.append("（两边都读不到：先修登录再派活，下面是默认分法，派前会再读一次）")
+    elif single:
         lines.append("（本机没有 Codex，单家模式：审稿 Fable 子代理（同家），实现走 Claude 梯子）")
+    elif codex_empty and ladder == "claude":
+        codex = estimate["providers"]["codex"]
+        lines.append(f"（Codex 空，到 {codex.get('reset_jst') or '重置'} 回满前实现走 Claude 梯子、复核同家；刷一张重置卡我就换回 Codex）")
     elif claude_tight:
         why = "读不到" if not claude["connected"] else claude["tier_text"]
         when = f"到 {claude['reset_jst']} 回满前" if claude.get("reset_jst") else "读到正常前"
         lines.append(f"（Claude {why}，{when}取证、复核都在 Codex 侧；实现走 Codex 梯子）")
     else:
         lines.append(f"（实现走 {'Codex' if ladder == 'codex' else 'Claude'} 梯子；取证、批量 Haiku，Codex 写的复核 Sonnet 只读）")
-    reviewer = label_of(classes["审方案"][strategy]["exec"]) if not single else "Fable 子代理（同家）"
+    reviewer = label_of(classes["审方案"][strategy]["exec"]) if not (single or codex_empty) else "Fable 子代理（同家）"
     lines.append(f" 讨论与审稿   我主持；审稿 {reviewer}，默认 {rounds} 轮，收敛了提前停")
     if usage == "探讨":
-        mapper = label_of(classes["功能地图"][strategy]["exec"]) if not single else "Opus 子代理"
+        mapper = label_of(classes["功能地图"][strategy]["exec"]) if not (single or codex_empty) else "Opus 子代理"
         tail = "，再审合并稿" if spec.get("feature_map_review", True) else "，审合并稿那步跳过"
         lines.append(f" 功能地图     我和 {mapper} 各想一遍{tail}")
     evidence = label_of(pick(classes["取证"][strategy]["exec"], ladder, claude_tight), "medium")
@@ -143,7 +153,7 @@ def preview(estimate, strategy, strategies, title, usage, instructions, rounds):
     note = "（Haiku 停用：Claude 紧）" if claude_tight and not single else ""
     lines.append(f" 取证、批量   {evidence}{'' if evidence == batch else ' / ' + batch}{note}")
     def reviewer_for(exec_label):
-        if single:
+        if single or (codex_empty and ladder == "claude"):
             return "Opus 只读（同家）" if "Sonnet" in exec_label else "Sonnet 只读（同家）"
         if ladder == "codex" and claude_tight:
             return "Codex 的 6.1 Sol · 高 只读" if "Astra" in exec_label else "Codex 的 Astra · 高 只读"
@@ -153,7 +163,11 @@ def preview(estimate, strategy, strategies, title, usage, instructions, rounds):
     page = label_of(pick(classes["页面实现"][strategy]["exec"], ladder, claude_tight))
     lines.append(f" 页面、窄回归 {rs.pad(page, 22)} 复核 {reviewer_for(page)}")
     hard = label_of(pick(classes["跨模块"][strategy]["exec"], ladder, claude_tight))
-    lines.append(f" 难活、根因   {rs.pad(hard, 22)} 复核 {reviewer_for(hard)}")
+    if strategy == "auto" and both_wide and ladder == "codex":
+        hard = "Opus"
+        lines.append(f" 难活、根因   {rs.pad(hard, 22)} 复核 Codex 的 6.1 Sol · 高 只读（两边都宽，难活优先 Opus）")
+    else:
+        lines.append(f" 难活、根因   {rs.pad(hard, 22)} 复核 {reviewer_for(hard)}")
     visual = classes["视觉照做"][strategy]["exec"]
     doer = label_of(pick(visual.split("→")[-1], ladder, claude_tight)) if "→" in visual else label_of(visual)
     sketch = "Opus 出 2 到 3 版样张" if strategy == "quality" else "我出样张"

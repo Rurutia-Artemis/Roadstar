@@ -117,7 +117,11 @@ def side_estimate(key, side, providers, local, defaults, now, probe_notes=None):
             result["lines"].append("Fable 单列上限是周额度一半，只影响主会话")
     else:
         weekly, five = side.get("weekly"), side.get("five_hour")
-        parts = [window_text(weekly, "周", True), window_text(five, "5h", False) or ("5h 读不到" if side.get("source") == "live" else None)]
+        # ChatGPT Pro has no five-hour window (R3), so a missing reading there is normal and not shown as a fault.
+        five_text = window_text(five, "5h", False)
+        if five_text is None and side.get("source") == "live" and side.get("plan") not in ("pro", None):
+            five_text = "5h 读不到"
+        parts = [window_text(weekly, "周", True), five_text]
     parts = [part for part in parts if part]
     if not connected:
         result["note"] = probe_reason(probe_notes, label) or side.get("note") or ("本机没有 Codex" if key == "codex" else "未登录")
@@ -302,7 +306,7 @@ def main(argv=None):
                   "points_only": points_only,
                   "unlockable_units": unlock_units, "unlockable_text": (f"可解锁 +{unlock_units} 件（刷重置卡）" if unlock_units else None),
                   "resets": [estimates[key]["reset_text"] for key in ("claude", "codex") if estimates[key].get("reset_text")],
-                  "resets_text": ("回满：" + "、".join(estimates[key]["reset_text"] for key in ("claude", "codex") if estimates[key].get("reset_text"))) or None},
+                  "resets_text": ("回满：" + "、".join(resets)) if (resets := [estimates[key]["reset_text"] for key in ("claude", "codex") if estimates[key].get("reset_text")]) else None},
         "probe": probe,
     }
     if args.session:

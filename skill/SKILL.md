@@ -147,7 +147,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 执行方有两家六个型号。Codex 梯子：6.1 Sol（规格清楚的活）→ Astra（难活）。Claude 四层：Haiku 5.5（取证、机械批量）→ Sonnet（跨家只读复核、规格清楚的实现）→ Opus（难活、根因、样张）→ Fable（只在两种情况派：同一问题两轮没收敛，第三轮查根因写方案；审方案要最强一层）。先分两类活：
 
 - 常驻活不看 Codex 额度：取证和机械批量默认 Haiku，Codex 写的中、难活默认 Sonnet 只读复核。Claude 周窗或 5 小时窗读到紧、空或读不到，这两类退回 Codex（6.1 Sol / low 或 medium 只读，Codex 另一型号复核）。
-- 实现按额度定方向：Codex 宽或正常，或有重置卡可刷，实现走 Codex 梯子；Codex 紧或空且 Claude 正常或宽，走 Claude 梯子；同时在跑的 Codex 线已有三条以上时，规格清楚的新活可以分给 Sonnet 并行，理由栏写一句。两边都紧按 `references/strategies.md` 的降级顺序走。
+- 实现按额度定方向：Codex 宽或正常，或紧但有重置卡可刷，实现走 Codex 梯子；Codex 空（重置卡只说明到顶时能刷，不等于现在就宽）或紧且没卡，而 Claude 正常或宽，走 Claude 梯子、复核同家，主席刷卡后换回；两边都宽时难活优先 Opus（主席 10-12 定、10-14 细化，自动分配下生效），常规实现仍交 6.1 Sol；同时在跑的 Codex 线已有三条以上时，规格清楚的新活可以分给 Sonnet 并行，理由栏写一句。两边都紧按 `references/strategies.md` 的降级顺序走。
 
 起步层只按下表，这张表是所有人共用的一份，只随新版本更新（依据是社区回传数据的汇总，Claude 按门槛自动改表发版，主席每周说一句「可以迭代了」，10-16 定；本机记录不单独改本机起步层）。策略只在表上做运行时偏移，不写回表：自动分配就是这张表；质量优先、省着用、赶时间每类怎么挪见 `references/strategies.md`。碰壁就停、只把没过的检查项交高一级补全，升级链、停的信号和记账字段见 `references/escalation-and-learning.md`。主席的话压过方向。实测依据在 `references/models.md`：
 
@@ -178,7 +178,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 任务书写明涉及哪几个模块（用地图里的名字）。改动碰了模块的入口文件、对外接口、测试命令或规矩，执行方在同一提交里更新地图那一节；验收方核对地图和代码一致。
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --class <类别> --est-minutes <预估> --strategy <策略> --brief … --max-minutes <上限>`，默认只读，要改文件加 `--write`。任何会话派 Codex 一律走这个脚本，哪怕只有一件活、不在 Roadstar 场次里；裸 `codex exec` 只留给一句话提问。到点脚本停掉 codex、退出码 124、meta 记 `timed_out=1`。
 - Claude 子代理任务：用 Agent 工具派，`model` 按 §8 选 haiku / sonnet / opus，fable 只用于那两种情况并在调度记录写明；任务书同一份模板原文当提示，回复存成 `rounds/exec-T<n>.md`，`.meta` 由主会话手写（型号、起止时间、上限、est_minutes、strategy、派前后读数）。到点用 TaskStop 停。
-- 调研类活：任务书放进 Google Drive「Grace × Cloud 交接 / 05-Roadstar 引路星」，按 00-约定 命名、记日志；排活表里这类活写「Grace，交回后并入」，不计入完工时刻；交回后 Argo 并进 plan 并记账。
+- 调研类活（官方规范、竞品、价格与评测、外部资料）交 Grace：任务书建成 Google Doc 放进 Google Drive「Grace × Cloud 交接 / 05-Roadstar 引路星」，文件名「日期-来源-题目」，在同目录 01-记忆账本 记一行（JST 时间、做了什么、产出在哪、需要对方做什么），对主席只回一句「OK 了」；网盘里不放密码、token、cookie。排活表里这类活写「Grace，交回后并入」，不计入完工时刻。交回后先抽查一到两成关键事实（命令或官方页面核一遍），核过的才进 plan 或 `providers.json`，没核成的标「未独立核实」，再记账。
 - 有界面的活：完成线包含 vela 的 `references/ui-acceptance.md`；Argo 亲自逐张看截图、在模拟器里走核心任务。设计类的活按主席 2026-10-12 定的默认：先从 Huemo 配套编号写进任务书，方向稿 2 到 3 版由主席挑，完成线含两遍 review 与默认两遍打磨记录。
 - 验收按 §8 表里的审查人做，分级与配对见 division-of-labor 第 8 节：钱、权限、迁移类由 Argo 核验实际状态。证据写进 plan §11。
 - 止损：每条线派出就带 `--max-minutes`，写进度文件，Argo 用 `scripts/stall-watch.py` 盯：同一检查项连续三次失败、空转、用掉九成时间还没完，任一条命中就停，做完的收下，只把没过的项交高一级型号补全。被停掉的线不自动重派。到预计用时的一半还没有一个检查项 pass，Argo 看一眼进度文件；到预计用时还没完就停线收口，不等上限。

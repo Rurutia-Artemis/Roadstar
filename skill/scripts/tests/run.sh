@@ -1099,11 +1099,11 @@ pass 'quota-config unknown key and bad values exit 2 without writing, set/show r
 
 # quota-status.py 1.12 columns: grok login states and api key names only.
 : > "$FAKE_TRACE_FILE"
-XAI_API_KEY='sk-SECRET-VALUE-DO-NOT-PRINT' python3 "$SCRIPTS/quota-status.py" --json > "$TMP/q112.json"
-json_check "$TMP/q112.json" 'd["grok"]["source"] == "live" and d["grok"]["logged_in"] is True and d["grok"]["default_model"] == "grok-4.7" and len(d["grok"]["models"]) == 4 and "xai" in d["api_keys"]["present"] and "ANTHROPIC_API_KEY" in d["api_keys"]["checked"] and "SECRET" not in open(sys.argv[1]).read() and set(d["claude"]) >= {"tier","plan","source","fetched_at","five_hour","seven_day","fable","pending_tier"} and set(d["codex"]) >= {"weekly","five_hour","reset_cards","credits","plan","source","fetched_at","tier","pending_tier"}'
+XAI_API_KEY='placeholder-not-a-key-DO-NOT-PRINT' python3 "$SCRIPTS/quota-status.py" --json > "$TMP/q112.json"
+json_check "$TMP/q112.json" 'd["grok"]["source"] == "live" and d["grok"]["logged_in"] is True and d["grok"]["default_model"] == "grok-4.7" and len(d["grok"]["models"]) == 4 and "xai" in d["api_keys"]["present"] and "ANTHROPIC_API_KEY" in d["api_keys"]["checked"] and "DO-NOT-PRINT" not in open(sys.argv[1]).read() and set(d["claude"]) >= {"tier","plan","source","fetched_at","five_hour","seven_day","fable","pending_tier"} and set(d["codex"]) >= {"weekly","five_hour","reset_cards","credits","plan","source","fetched_at","tier","pending_tier"}'
 grep -q '"cli":"grok"' "$FAKE_TRACE_FILE"
-XAI_API_KEY='sk-SECRET-VALUE-DO-NOT-PRINT' python3 "$SCRIPTS/quota-status.py" > "$TMP/q112.txt"
-grep -q 'Grok：已登录 grok-4.7' "$TMP/q112.txt" && grep -q 'API key：有' "$TMP/q112.txt" && ! grep -q 'SECRET' "$TMP/q112.txt"
+XAI_API_KEY='placeholder-not-a-key-DO-NOT-PRINT' python3 "$SCRIPTS/quota-status.py" > "$TMP/q112.txt"
+grep -q 'Grok：已登录 grok-4.7' "$TMP/q112.txt" && grep -q 'API key：有' "$TMP/q112.txt" && ! grep -q 'DO-NOT-PRINT' "$TMP/q112.txt"
 FAKE_GROK_STATE=logged_out python3 "$SCRIPTS/quota-status.py" --json > "$TMP/q112-out.json"
 json_check "$TMP/q112-out.json" 'd["grok"]["source"] == "none" and d["grok"]["logged_in"] is False and d["grok"]["models"] == []'
 FAKE_GROK_STATE=error python3 "$SCRIPTS/quota-status.py" --json > "$TMP/q112-err.json"
@@ -1214,6 +1214,22 @@ assert any("Haiku 停用" in l for l in b["preview"]) and any("复核 Codex 的"
 # Quality strategy moves the start layer up and says 停下来问 nowhere in the panel (that is a runtime rule).
 q = render(est / "a.json", "--usage", "协同", "--strategy", "quality")
 assert any("Astra" in l for l in q["preview"] if l.startswith(" 页面")), q["preview"]
+# Codex empty with a reset card: implementation moves to the Claude ladder, reviews stay same-vendor, and the card is only "unlockable".
+src = json.load(open(est / "a.json", encoding="utf-8"))
+src["providers"]["codex"].update({"tier": "空", "tier_text": "空", "weekly_used": 97, "available_points": 0, "units": 0, "units_text": "约 0 件", "reading_text": "周 97%（10-19 16:10） → 空"})
+src["providers"]["claude"].update({"tier": "宽", "tier_text": "宽", "weekly_used": 20, "available_points": 70, "units_text": "70 点", "reading_text": "5h 20%（17:10）｜周 20%（10-19 16:10）｜Fable 20% → 宽"})
+json.dump(src, open(est / "codex-empty.json", "w", encoding="utf-8"), ensure_ascii=False)
+ce = render(est / "codex-empty.json", "--usage", "协同")
+assert any("Codex 空" in l and "Claude 梯子" in l for l in ce["preview"]) and any(l.startswith(" 页面") and "Sonnet" in l and "同家" in l for l in ce["preview"]), ce["preview"]
+assert any("可解锁" in l for l in ce["panel"])
+# Both wide under auto: hard work prefers Opus, routine work stays on 6.1 Sol.
+src = json.load(open(est / "codex-empty.json", encoding="utf-8"))
+src["providers"]["codex"].update({"tier": "宽", "tier_text": "宽", "weekly_used": 8, "available_points": 82})
+json.dump(src, open(est / "both-wide.json", "w", encoding="utf-8"), ensure_ascii=False)
+bw = render(est / "both-wide.json", "--usage", "协同")
+assert any(l.startswith(" 难活") and "Opus" in l and "优先 Opus" in l for l in bw["preview"]) and any(l.startswith(" 页面") and "6.1 Sol" in l for l in bw["preview"]), bw["preview"]
+bq = render(est / "both-wide.json", "--usage", "协同", "--strategy", "quality")
+assert any(l.startswith(" 难活") and "Astra" in l for l in bq["preview"]), bq["preview"]
 # Single mode: no Codex at all.
 src = json.load(open(est / "a.json", encoding="utf-8"))
 src["providers"]["codex"] = {"label": "Codex", "connected": False, "source": "none", "tier": None, "plan": None, "plan_text": "订阅", "available_points": None, "weekly_used": None, "points_per_unit": None, "calibrated": False, "coefficient_source": None, "units": None, "units_text": None, "unlockable_units": None, "unlockable_points": None, "unlockable_text": None, "confidence": "无", "reading_text": "读不到（本机没有 Codex）", "reset_text": None, "reset_at": None, "reset_jst": None, "note": "本机没有 Codex", "lines": [], "tier_text": "读不到"}
@@ -1233,7 +1249,7 @@ text = subprocess.run([sys.executable, panel, "--estimate", str(est / "a.json"),
 assert text.count("\n\n") == 2 and "本项目分配" in text
 PY
 expect_exit 2 python3 "$SCRIPTS/panel.py" --estimate "$EST/nope.json"
-pass 'panel: ≤14 lines and ≤80 columns for four strategies × four readings, every number traceable to the input JSON, unreadable Claude and single mode, compact two lines'
+pass 'panel: ≤14 lines and ≤80 columns for four strategies × four readings, every number traceable to the input JSON, unreadable Claude, Codex empty goes to the Claude ladder, both wide prefers Opus for hard work, single mode, compact two lines'
 
 # strategies.json / strategies.md consistency with SKILL §8.
 python3 - "$SCRIPTS/../SKILL.md" "$SCRIPTS/../references/strategies.json" "$SCRIPTS/../references/strategies.md" <<'PY'
