@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Summarize deduplicated Roadstar dispatch metadata using only local files."""
+"""Summarize deduplicated Roadstar dispatch metadata using only local files.
+
+1.12: the table gains a 预估偏差 column ((actual − est_minutes) / est_minutes,
+rounded to 5%) and ``--calibrate`` writes ``<config>/estimates.json`` with
+per-cell P50 / P80 minutes (cells with ≥ 5 samples only), token medians and,
+per family, tokens per weekly quota point learned from ``quota_delta`` and
+``tokens_used``.  Calibration only changes local time estimates; the starting
+layer table is shared and never touched here.
+"""
 
 import argparse
 from collections import defaultdict
@@ -98,6 +106,91 @@ def duration(record):
         return None
 
 
+def percentile(values, fraction):
+    ordered = sorted(values)
+    if not ordered:
+        return None
+    position = (len(ordered) - 1) * fraction
+    low, high = int(math.floor(position)), int(math.ceil(position))
+    if low == high:
+        return ordered[low]
+    return ordered[low] + (ordered[high] - ordered[low]) * (position - low)
+
+
+def estimate_minutes(record):
+    try:
+        value = float(record["est_minutes"])
+        return value if math.isfinite(value) and value > 0 else None
+    except (KeyError, ValueError):
+        return None
+
+
+def tokens(record):
+    try:
+        value = int(str(record["tokens_used"]).replace(",", ""))
+        return value if value > 0 else None
+    except (KeyError, ValueError):
+        return None
+
+
+def quota_points(record):
+    """('codex'|'claude', points) from quota_delta like codex_week=+3; None otherwise."""
+    value = record.get("quota_delta") or ""
+    for family, prefix in (("codex", "codex_week="), ("claude", "claude_week=")):
+        for part in value.split(";"):
+            part = part.strip()
+            if part.startswith(prefix):
+                try:
+                    points = float(part[len(prefix):].replace("+", ""))
+                except ValueError:
+                    return None
+                return (family, points) if math.isfinite(points) and points >= 0 else None
+    return None
+
+
+def bias(rows):
+    pairs = [((value := duration(row)), estimate_minutes(row)) for row in rows]
+    ratios = [(actual - est) / est for actual, est in pairs if actual is not None and est]
+    if not ratios:
+        return None, 0
+    mean = sum(ratios) / len(ratios)
+    return round(mean * 20) / 20, len(ratios)
+
+
+def calibrate(records, min_samples=5):
+    cells, families = {}, {"codex": {"tokens": 0, "points": 0.0, "records": 0}, "claude": {"tokens": 0, "points": 0.0, "records": 0}}
+    grouped = defaultdict(list)
+    for record in records:
+        model, effort = normalize_model(record.get("model") or "未知"), record.get("effort") or "未知"
+        if record.get("class"):
+            grouped[(record["class"], model, effort)].append(record)
+        grouped[("*", model, effort)].append(record)
+        learned = quota_points(record)
+        used = tokens(record)
+        if learned and used:
+            family, points = learned
+            families[family]["tokens"] += used
+            families[family]["points"] += points
+            families[family]["records"] += 1
+    for (category, model, effort), rows in grouped.items():
+        durations = [value for row in rows if (value := duration(row)) is not None]
+        if len(durations) < min_samples:
+            continue
+        token_values = [value for row in rows if (value := tokens(row))]
+        cells[f"{category}|{model}|{effort}"] = {
+            "count": len(durations), "p50_minutes": round(percentile(durations, 0.5), 1),
+            "p80_minutes": round(percentile(durations, 0.8), 1),
+            "p50_tokens": int(percentile(token_values, 0.5)) if token_values else None}
+    providers = {}
+    for family, data in families.items():
+        calibrated = data["points"] >= 3 and data["tokens"] > 0
+        providers[family] = {"tokens": data["tokens"], "points": data["points"], "records": data["records"],
+                             "tokens_per_point": int(data["tokens"] / data["points"]) if calibrated else None,
+                             "calibrated": calibrated}
+    return {"schema": 1, "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "min_samples": min_samples, "cells": cells, "providers": providers}
+
+
 def collect(roots):
     seen, records = set(), []
     paths = sorted({path for root in roots for path in root.rglob("exec-*.meta")
@@ -133,6 +226,7 @@ def summarize(records, min_samples):
         stalled = outcomes.count("stalled") / len(outcomes) if outcomes else None
         escalated = sum(bool(row.get("escalated_to")) for row in rows) / count
         durations = [value for row in rows if (value := duration(row)) is not None]
+        estimate_bias, bias_count = bias(rows)
         if count < min_samples:
             recommendation = "样本不足"
         elif completed is None:
@@ -148,6 +242,7 @@ def summarize(records, min_samples):
                        "completion_rate": completed, "stall_rate": stalled,
                        "escalation_rate": escalated,
                        "average_minutes": sum(durations) / len(durations) if durations else None,
+                       "estimate_bias": estimate_bias, "estimate_count": bias_count,
                        "recommendation": recommendation})
     return result
 
@@ -159,13 +254,15 @@ def print_table(groups):
     def width(value):
         return sum(2 if unicodedata.east_asian_width(char) in "WF" else 1 for char in value)
 
-    rows = [["类别", "型号", "强度", "次数", "有结果", "完成率", "碰壁率", "升级率", "平均分钟", "建议"]]
+    rows = [["类别", "型号", "强度", "次数", "有结果", "完成率", "碰壁率", "升级率", "平均分钟", "预估偏差", "建议"]]
     for group in groups:
         average = group["average_minutes"]
+        deviation = group.get("estimate_bias")
         rows.append([group["class"], group["model"], group["effort"], str(group["count"]),
                      str(group["outcome_count"]), percent(group["completion_rate"]),
                      percent(group["stall_rate"]), percent(group["escalation_rate"]),
-                     "—" if average is None else f"{average:.1f}", group["recommendation"]])
+                     "—" if average is None else f"{average:.1f}",
+                     "—" if deviation is None else f"{deviation:+.0%}（{group['estimate_count']}）", group["recommendation"]])
     widths = [max(width(row[column]) for row in rows) for column in range(len(rows[0]))]
     for row in rows:
         print("  ".join(value + " " * (size - width(value)) for value, size in zip(row, widths)).rstrip())
@@ -177,6 +274,8 @@ def main(argv=None):
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--min-samples", type=positive_int, default=5)
     parser.add_argument("--register", type=Path, metavar="目录")
+    parser.add_argument("--calibrate", action="store_true", help="把本机各格的 P50 / P80 和每点 token 数写进 estimates.json（只改预估，不改起步层）")
+    parser.add_argument("--out", type=Path, help="--calibrate 的输出路径，默认 <配置目录>/estimates.json")
     args = parser.parse_args(argv)
     if args.register is not None:
         if not args.register.expanduser().is_dir():
@@ -204,6 +303,20 @@ def main(argv=None):
         records = collect(roots)
     except (OSError, UnicodeError) as exc:
         parser.error(str(exc))
+    if args.calibrate:
+        table = calibrate(records, args.min_samples)
+        out = args.out or (config_dir() / "estimates.json")
+        try:
+            out.parent.mkdir(parents=True, exist_ok=True)
+            tmp = out.with_name(out.name + f".tmp.{os.getpid()}")
+            tmp.write_text(json.dumps(table, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            os.replace(tmp, out)
+        except OSError as exc:
+            print(f"写不进 {out}：{exc}", file=sys.stderr)
+            return 1
+        learned = "、".join(f"{family} {data['tokens_per_point']} token/点" for family, data in table["providers"].items() if data["calibrated"]) or "都还没到 3 个点，系数未校准"
+        print(f"已写 {out}：{len(table['cells'])} 格有 {args.min_samples} 条以上样本；每点 token：{learned}")
+        return 0
     groups = summarize(records, args.min_samples)
     if args.json:
         print(json.dumps({"total_records": len(records), "groups": groups}, ensure_ascii=False))

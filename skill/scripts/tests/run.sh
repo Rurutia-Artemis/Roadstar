@@ -1351,4 +1351,43 @@ json_check "$SCH/cal.json" 'd["confidence"] == "高" and all(r["est_minutes"] ==
 expect_exit 2 python3 "$SCRIPTS/schedule.py" --plan "$PLAN/plan.md"
 pass 'schedule: seven columns and four total lines, dependencies respected, Argo serial lane bounds the finish, strategy caps parallel lanes, empty weekly window gates lanes to the reset, cycle exit 2 with names, explicit estimates and folding beyond eight, calibrated P80'
 
+# dex-exec.sh --est-minutes / --strategy land in meta, including the detached worker.
+run_task T30 --class 页面实现 --est-minutes 25 --strategy quality > "$TMP/est.txt"
+grep -q '^est_minutes=25$' "$PLAN/rounds/exec-T30.meta" && grep -q '^strategy=quality$' "$PLAN/rounds/exec-T30.meta"
+! grep -q '^est_minutes=' "$PLAN/rounds/exec-T20.meta"
+expect_exit 2 run_task T31 --est-minutes 0
+expect_exit 2 run_task T31 --est-minutes abc
+expect_exit 2 run_task T31 --strategy fastest
+[[ ! -f "$PLAN/rounds/exec-T31.meta" ]]
+run_task T32 --detach --est-minutes 40 --strategy rush > /dev/null
+wait_done "$PLAN/rounds/exec-T32.exit"
+grep -q '^est_minutes=40$' "$PLAN/rounds/exec-T32.meta" && grep -q '^strategy=rush$' "$PLAN/rounds/exec-T32.meta"
+bash "$SCRIPTS/dex-exec.sh" --help | grep -q -- '--est-minutes'
+pass 'exec --est-minutes and --strategy write meta (foreground and detached), reject bad values before dispatch, documented in help'
+
+# dispatch-stats: 预估偏差 column and --calibrate.
+CAL="$TMP/calibrate"
+python3 - "$CAL" <<'PY'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+rounds = root / "p/docs/roadstar/s/rounds"; rounds.mkdir(parents=True)
+for i in range(7):
+    (rounds / f"exec-T{i}.meta").write_text(f"session_id=c{i}\nclass=页面实现\nmodel=gpt-6.1-sol\neffort=high\noutcome=done\nminutes={10 + i * 3}\nest_minutes=20\ntokens_used={30000 + i * 1000}\nquota_delta=codex_week=+{1 if i % 2 else 0}\n", encoding="utf-8")
+for i in range(3):
+    (rounds / f"exec-T1{i}.meta").write_text(f"session_id=d{i}\nclass=取证\nmodel=claude-haiku-5-5\neffort=medium\noutcome=done\nminutes=5\n", encoding="utf-8")
+(rounds / "exec-T99.meta").write_text("session_id=old\nmodel=gpt-6-astra\neffort=high\nminutes=30\n", encoding="utf-8")
+PY
+python3 "$SCRIPTS/dispatch-stats.py" "$CAL/p/docs/roadstar" --json > "$CAL/stats.json"
+json_check "$CAL/stats.json" 'next(g for g in d["groups"] if g["class"] == "页面实现")["estimate_bias"] == -0.05 and next(g for g in d["groups"] if g["class"] == "页面实现")["estimate_count"] == 7 and next(g for g in d["groups"] if g["class"] == "取证")["estimate_bias"] is None and next(g for g in d["groups"] if g["class"] == "未分类")["estimate_bias"] is None'
+python3 "$SCRIPTS/dispatch-stats.py" "$CAL/p/docs/roadstar" | grep -q '预估偏差'
+python3 "$SCRIPTS/dispatch-stats.py" "$CAL/p/docs/roadstar" | grep -q -- '-5%（7）'
+ROADSTAR_CONFIG_DIR="$CAL/cfg" python3 "$SCRIPTS/dispatch-stats.py" "$CAL/p/docs/roadstar" --calibrate > "$CAL/cal.txt"
+grep -q '已写' "$CAL/cal.txt" && grep -q 'codex 77000 token/点' "$CAL/cal.txt"
+json_check "$CAL/cfg/estimates.json" 'set(d["cells"]) == {"页面实现|gpt-6.1-sol|high", "*|gpt-6.1-sol|high"} and d["cells"]["页面实现|gpt-6.1-sol|high"]["count"] == 7 and d["cells"]["页面实现|gpt-6.1-sol|high"]["p50_minutes"] == 19 and d["cells"]["页面实现|gpt-6.1-sol|high"]["p80_minutes"] == 24.4 and d["cells"]["页面实现|gpt-6.1-sol|high"]["p50_tokens"] == 33000 and d["providers"]["codex"]["tokens_per_point"] == 77000 and d["providers"]["codex"]["calibrated"] is True and d["providers"]["claude"]["calibrated"] is False and d["providers"]["claude"]["tokens_per_point"] is None'
+[[ -z "$(ls "$CAL/cfg" | grep tmp)" ]]
+python3 "$SCRIPTS/dispatch-stats.py" "$CAL/p/docs/roadstar" --calibrate --out "$CAL/out.json" --min-samples 8 > /dev/null
+json_check "$CAL/out.json" 'd["cells"] == {} and d["providers"]["codex"]["calibrated"] is True'
+pass 'dispatch-stats: estimate bias column rounded to 5%, old metas without est_minutes fine, --calibrate writes P50/P80/tokens only for cells with enough samples and learns tokens per point'
+
 printf 'PASS %d checks\n' "$COUNT"
