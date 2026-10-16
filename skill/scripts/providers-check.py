@@ -15,7 +15,7 @@ import unicodedata
 
 DEFAULT = Path(__file__).resolve().parent.parent / "references" / "providers.json"
 ACCESS = {"subscription-cli", "api"}
-ROLES = {"主会话", "难活", "复核", "取证", "审方案", "实现", "试用", "不派"}
+ROLES = {"主会话", "难活", "复核", "取证", "审方案", "实现", "试用", "试用：取证、复核（只读）", "不派"}
 MODEL_KEYS = ("id", "family", "label", "access", "price", "price_checked", "price_source",
               "context", "max_output", "bench", "default_role", "unit_multiplier", "note")
 BENCH_KEYS = ("aa_index", "aa_rank", "lmarena_elo", "tb4", "swe_verified", "checked", "source")

@@ -59,7 +59,7 @@ def direction(estimate):
 
 def panel(estimate, strategy):
     p = estimate["providers"]
-    version = ".".join(str(estimate.get("skill_version", "")).split(".")[:2]) or "1.12"
+    version = ".".join(str(estimate.get("skill_version", "")).split(".")[:2]) or "1.13"
     title = f"Roadstar {version} · {estimate['connected_text']}" + ("＋Grace 调研" if estimate["grace"]["enabled"] else "")
     lines = [clip(rs.pad(title, WIDTH - rs.display_width(estimate["generated_at"])) + estimate["generated_at"]),
              "─" * (WIDTH - 8)]
@@ -150,7 +150,8 @@ def preview(estimate, strategy, strategies, title, usage, instructions, rounds):
         lines.append(f" 功能地图     我和 {mapper} 各想一遍{tail}")
     evidence = label_of(pick(classes["取证"][strategy]["exec"], ladder, claude_tight), "medium")
     batch = label_of(pick(classes["批量"][strategy]["exec"], ladder, claude_tight), "medium")
-    note = "（Haiku 停用：Claude 紧）" if claude_tight and not single else ""
+    why = claude["tier_text"] if claude["connected"] else "读不到"
+    note = f"（Haiku 停用：Claude {why}）" if claude_tight and not single else ""
     lines.append(f" 取证、批量   {evidence}{'' if evidence == batch else ' / ' + batch}{note}")
     def reviewer_for(exec_label):
         if single or (codex_empty and ladder == "claude"):
@@ -174,16 +175,19 @@ def preview(estimate, strategy, strategies, title, usage, instructions, rounds):
     lines.append(f" 视觉         {sketch} → 你点头 → {doer} 照做")
     if estimate["grace"]["enabled"]:
         lines.append(" 调研         Grace（任务书放 Google Drive 交接目录，交回后我并进来）")
+    if estimate.get("try_new_models") and estimate["providers"]["grok"].get("logged_in") is True:
+        lines.append(" 试用 Grok：取证、复核（只读，记战绩）")
     lines.append(f" 项目指令     {instructions or '无'}")
     return lines
 
 
-def discuss_intro(estimate, strategy, strategies):
+def discuss_intro(estimate, strategy, strategies, host_model=None):
     session = estimate.get("session")
     spec = strategies["strategies"][strategy]
     reviewer = label_of(strategies["classes"]["审方案"][strategy]["exec"])
     rounds = session["rounds"] if session else spec["review_rounds"]
-    lines = [f"探讨阶段用最强的：我用 Fable 主持，{reviewer} 审稿，默认 {rounds} 轮，收敛了提前停。"]
+    host = f"我用 {host_model} 主持" if host_model else "我主持"
+    lines = [f"探讨阶段用最强的：{host}，{reviewer} 审稿，默认 {rounds} 轮，收敛了提前停。"]
     if session and session.get("strategy") not in (None, strategy):
         lines.append(f"预计花：下面的数按{STRATEGY_LABEL.get(session['strategy'], session['strategy'])}算的，策略改了要准数再跑一次估算。")
     if session:
@@ -219,6 +223,7 @@ def main(argv=None):
     parser.add_argument("--usage", choices=["探讨", "复盘", "协同", "续接"], default="协同")
     parser.add_argument("--strategy", choices=STRATEGIES, help="本场策略；默认用 estimate 里的")
     parser.add_argument("--title", default="这次的题目")
+    parser.add_argument("--host-model", help="主会话实际型号；不填只写我主持")
     parser.add_argument("--instructions", default="", help="压过默认的项目指令，一句话")
     parser.add_argument("--rounds", type=int)
     parser.add_argument("--strategies", type=Path)
@@ -241,7 +246,7 @@ def main(argv=None):
         blocks["panel"] = panel(estimate, strategy)
         blocks["preview"] = preview(estimate, strategy, strategies, args.title, args.usage, args.instructions, args.rounds)
         if args.usage == "探讨":
-            blocks["discuss"] = discuss_intro(estimate, strategy, strategies)
+            blocks["discuss"] = discuss_intro(estimate, strategy, strategies, args.host_model)
     if args.json:
         print(json.dumps(blocks, ensure_ascii=False))
     else:

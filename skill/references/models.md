@@ -27,7 +27,7 @@ Claude 四层（主席 2026-10-10 定梯子，2026-10-14 改为按活常驻）�
 
 ## Grok 侧（本机 Grok CLI，2026-10-16 实读）
 
-`grok models` 列出 grok-4.7（默认）、grok-4.7-build-fast、grok-4.6、grok-4.5，已登录 grok.com 订阅。额度没有查询接口（grok.com 订阅的用量只在网页 Settings → Usage 以百分比显示），面板一律「？」。公开价和评测在 `providers.json`（grok-4.7 AA 46.5、TB4 28.79%，都明显低于两家的常规型号）。1.12 不派活：不进任何策略的默认起步层，要用等 1.13 的只读线（取证、复核）实测后再定。Grace 是另一回事：她是 Grok 侧的调研机器人，走 Google Drive 交接做调研活，不占本机额度。
+`grok models` 列出 grok-4.7（默认）、grok-4.7-build-fast、grok-4.6、grok-4.5，已登录 grok.com 订阅。额度没有查询接口（grok.com 订阅的用量只在网页 Settings → Usage 以百分比显示），面板一律「？」。公开价和评测在 `providers.json`（grok-4.7 AA 46.5、TB4 28.79%，都明显低于两家的常规型号）。1.13 接入 `grok-exec.sh` 只读线：仅「试新型号」开关开且已登录时接取证、复核，战绩满 5 条再决定进不进起步表；不进任何策略的默认起步层。Grace 是另一回事：她是 Grok 侧的调研机器人，走 Google Drive 交接做调研活，不占本机额度。
 
 ## 两条注意
 

@@ -9,20 +9,22 @@ SKILL.md「使用步骤」给形状，这里给完整例子和脚本命令。例
 ```bash
 python3 scripts/quota-status.py --json > rounds/probe.json
 python3 scripts/quota-estimate.py --probe rounds/probe.json --session 探讨 --size 中 > rounds/panel.json
-python3 scripts/panel.py --estimate rounds/panel.json --usage 探讨 --title "记账 App 1.0" --instructions "无"
+python3 scripts/panel.py --estimate rounds/panel.json --usage 探讨 --host-model "<主会话实际型号>" --title "记账 App 1.0" --instructions "无"
 ```
+
+Argo 按自己的实际型号填；下面以 Opus 5.5 为例。
 
 输出原样贴出，三段之间空一行：
 
 ```
-Roadstar 1.12 · 接了 2 家（Codex、Grok）＋Grace 调研             10-16 16:30 JST
+Roadstar 1.13 · 接了 2 家（Codex、Grok）＋Grace 调研             10-16 16:30 JST
 ────────────────────────────────────────────────────────────────────────
  家          读数（括号是重置时刻）→ 档位                              还能派
  Claude      读不到（额度不可用或尚未登录） → 紧                       按紧处理
  Codex Pro   周 9%（10-22 15:50） → 正常                               约 270 件
              重置卡 1 张（解锁约 300 件）｜credits 有，动真钱先问你
  Grok        已登录 grok-4.7；额度读不到（CLI 无接口） → ？            自报 未填
- API key  有：Claude（只记有无，1.12 不派 API）
+ API key  有：Claude（只记有无，本版不派 API）
 ────────────────────────────────────────────────────────────────────────
  这周合计：现有约 270 件（置信度低，系数未校准；Codex 81 点可用）
  可解锁 +300 件（刷重置卡）｜回满：Codex 10-22 15:50
@@ -34,26 +36,28 @@ Roadstar 1.12 · 接了 2 家（Codex、Grok）＋Grace 调研             10-16
 （Claude 读不到，读到正常前取证、复核都在 Codex 侧；实现走 Codex 梯子）
  讨论与审稿   我主持；审稿 Codex 的 Astra · 高，默认 3 轮，收敛了提前停
  功能地图     我和 Codex 的 Astra · 高 各想一遍，再审合并稿
- 取证、批量   Codex 的 6.1 Sol · 中（Haiku 停用：Claude 紧）
+ 取证、批量   Codex 的 6.1 Sol · 中（Haiku 停用：Claude 读不到）
  页面、窄回归 Codex 的 6.1 Sol · 高  复核 Codex 的 Astra · 高 只读
  难活、根因   Codex 的 Astra · 高    复核 Codex 的 6.1 Sol · 高 只读
  视觉         我出样张 → 你点头 → Codex 的 6.1 Sol · 高 照做
  调研         Grace（任务书放 Google Drive 交接目录，交回后我并进来）
  项目指令     无
 
-探讨阶段用最强的：我用 Fable 主持，Codex 的 Astra · 高 审稿，默认 3 轮，收敛了提前停。
+探讨阶段用最强的：我用 Opus 5.5 主持，Codex 的 Astra · 高 审稿，默认 3 轮，收敛了提前停。
 预计花：Codex 本周约 +8 点（功能地图 2 次 + 审稿 3 轮，约 24 件）；主会话只按 5 小时窗观察，不折件。
 预计用时 1h40 到 2h30，中间不开口；功能地图分档和纪要时找你。
 ```
 
-读法：「件」是标准件，1 件 = 一条页面实现类、6.1 Sol / high 或 Sonnet 做的执行线（约 3.5 万 token）；「约」表示系数还没校准，旁边一定有百分点；「？」表示接上了但读不到额度，不进合计、不派活；Claude 读不到时按紧处理，常驻活退回 Codex 侧。Claude 正常时 Claude 一行写「5h 18%（17:10）｜周 97%（10-18 12:59）｜Fable 19% → 空」，分配预览写「取证、批量 Haiku；复核 Sonnet 只读」。
+读法：「件」是标准件，1 件 = 一条页面实现类、6.1 Sol / high 或 Sonnet 做的执行线（约 3.5 万 token）；「约」表示系数还没校准，旁边一定有百分点；「？」表示接上了但读不到额度，不进合计；Grok 仅「试新型号」开且已登录时可试派取证、复核只读活；Claude 读不到时按紧处理，常驻活退回 Codex 侧。Claude 读到宽或正常时，分配预览写「取证、批量 Haiku；复核 Sonnet 只读」；读到空时常驻活仍退回 Codex。
+
+试新型号开且 Grok 已登录时，分配预览在项目指令前多一行「试用 Grok：取证、复核（只读，记战绩）」。关着或未登录时不出现，自动起步表不变。
 
 这条消息里还要有：这次走哪种用法、为什么、题目一句人话；有新版本提醒一句；第一次用问一次回传。要问的合成一次问，没有就直接往下。主席回车或不答 = 自动分配；说「质量优先」「省着用」「赶时间」只管本场，记账本「主席指令」。单家模式（本机没有 Codex）面板 Codex 行写「读不到（本机没有 Codex） → 单家模式」，预览写「审稿 Fable 子代理（同家）」。
 
 ## 续接和协同的压缩版
 
 ```bash
-python3 scripts/panel.py --estimate rounds/panel.json --compact --title 10-16-ledger-app --remaining 2 --finish 17:30
+python3 scripts/panel.py --estimate rounds/panel.json --compact --host-model "<主会话实际型号>" --title 10-16-ledger-app --remaining 2 --finish 17:30
 ```
 
 ```

@@ -101,6 +101,14 @@
       "rush":    {"exec": "Argo + Astra / high 各想一遍，审合并稿那一步跳过", "cap": "每次 30 分钟", "review": "不审"}
     }
   },
+  "trials": {
+    "grok-4.7": {
+      "enabled_by": "try_new_models", "requires_login": true,
+      "classes": ["取证", "复核"], "sandbox": "read-only",
+      "min_records": 5, "review_policy": "审查人和执行方不同家",
+      "promotion": "战绩记满 5 条再决定进不进起步表，不自动改 auto 列"
+    }
+  },
   "fixed_rows": [
     "同一问题两轮没收敛（第三轮）：Fable 子代理查根因写方案（质量优先改成一轮没收敛就派），实现回到原梯子",
     "钱、权限、迁移、工作区外：Codex 写 ｜ Sonnet 写，Argo 亲自验实际状态",

@@ -13,7 +13,7 @@
 | 省着用（thrift） | 往下挪到最低能做的那层；易活不派复核，Argo 读 diff | ≤ 2 条（护 5 小时窗） | 2 | 不问刷卡，直接挂到重置后 |
 | 赶时间（rush） | 不挪层，改并行和复核：Codex 3 + Claude 3；中活 Argo 复跑验收代替独立复核；性能活推迟 | Codex 3 + Claude 3，模拟器仍 ≤ 2 | 2 | 不串行，先问刷卡 |
 
-「试新型号」是开关，不是策略（`quota.json` 的 `try_new_models`）：开了之后取证、批量这类简单活按一半比例分给还没进起步表的型号（Luna，以后还有 grok-4.7-build-fast）试用并记战绩，其余不变。
+「试新型号」是开关，不是策略（`quota.json` 的 `try_new_models`）：开了之后，Luna 可在取证、批量这类简单活里按一半比例试用；Grok 已登录时，取证、复核两类只读活可分给 `grok-4.7` 试用并记战绩，批量和其他写活不派 Grok。Grok 战绩记满 5 条再决定进不进起步表，自动列保持原样；复核时审查人和执行方不同家照常成立。
 
 ## 各类活在四种策略下的起步型号
 
@@ -37,7 +37,7 @@
 
 三行在四种策略下固定：同一问题两轮没收敛的第三轮由 Fable 子代理查根因写方案（质量优先改成一轮）；钱、权限、迁移、工作区外的活 Codex 写或 Sonnet 写，Argo 亲自验实际状态；Argo 自己改的整合小修超过 30 行交 6.1 Sol / high 只读复核。
 
-Fable 在四种策略下都只做主会话，派子代理只有两种情况（两轮没收敛查根因、审方案要最强一层），质量优先把「两轮」改成「一轮」。Luna 和 Grok 不在任何策略的默认起步层，只在开关开时接取证和批量，战绩照记。
+Fable 在四种策略下都只做主会话，派子代理只有两种情况（两轮没收敛查根因、审方案要最强一层），质量优先把「两轮」改成「一轮」。Luna 和 Grok 不在任何策略的默认起步层。开关开时 Luna 接取证、批量试用；Grok 仅接取证、复核只读试用，规则见 `strategies.json` 的 `trials`。
 
 ## 额度不够时怎么降、怎么提醒
 
@@ -54,4 +54,4 @@ Fable 在四种策略下都只做主会话，派子代理只有两种情况（�
 
 ## 记账
 
-`.meta` 多一个 `strategy` 字段（auto / quality / thrift / rush），`dex-exec.sh --strategy` 写入，Claude 子代理的 `.meta` 由 Argo 手写；`dispatch-stats.py` 的经验表按它分组看。回传字段等 schema 2 再加，1.12 不动 schema。主席开场选的策略和中途切换都记进账本「主席指令」。
+`.meta` 多一个 `strategy` 字段（auto / quality / thrift / rush），`dex-exec.sh --strategy` 和 `grok-exec.sh --strategy` 写入，Claude 子代理的 `.meta` 由 Argo 手写；`dispatch-stats.py` 的经验表按它分组看。回传字段等 schema 2 再加，本版不动 schema，Grok 的 model 归为 `other`。主席开场选的策略和中途切换都记进账本「主席指令」。

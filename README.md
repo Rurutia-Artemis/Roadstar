@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.12.0-F2B544?style=flat-square" alt="版本 1.12.0">
+  <img src="https://img.shields.io/badge/version-1.13.0-F2B544?style=flat-square" alt="版本 1.13.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="只用 bash 和 Python 标准库">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT 许可">
 </p>
@@ -64,7 +64,7 @@ Claude 紧、Codex 正常，所以这一周写代码的活就往 Codex 派，读
 
 <p align="center"><img src="./assets/readme/section-3.zh-CN.svg" width="100%" alt="03 不是特别方便的地方：要装 Codex 命令行，单家模式还没实跑"></p>
 
-它是按两边订阅都有来设计的，审方案和派活的两份脚本要本机装着 Codex 命令行，版本 0.160 以上。只订阅了 Claude 的朋友也能跑单家模式，审方案换成 Claude 另开一个 Fable 实例来挑错，执行走 Haiku、Sonnet、Opus，但是少了两家互相挑错那一层，而且这个模式还没有在一整场里实跑过；Claude 四层常驻、碰壁升级和经验表这一套是 10 月 14 号刚加的，同样还没实跑，以前的派活记录大多没写活的类别，所以经验表要再攒几场才真正用得上；开场面板和排活表是 10 月 16 号刚做的，脚本层面的测试都过了，但是整场按新流程走还没走过，面板上的件数系数也还是默认值；Grok 命令行它能列出来，但是读不到额度，这版先不派活；只订阅 GPT 的版本我还没做。另外跑一场探讨要用掉两边的额度和半小时到一小时的时间，但是因为大活返工一次的代价远比这个高，所以对我个人来讲影响不大。
+它是按两边订阅都有来设计的，审方案和派活的两份脚本要本机装着 Codex 命令行，版本 0.160 以上。只订阅了 Claude 的朋友也能跑单家模式，审方案换成 Claude 另开一个 Fable 实例来挑错，执行走 Haiku、Sonnet、Opus，但是少了两家互相挑错那一层，而且这个模式还没有在一整场里实跑过；Claude 四层常驻、碰壁升级和经验表这一套是 10 月 14 号刚加的，同样还没实跑，以前的派活记录大多没写活的类别，所以经验表要再攒几场才真正用得上；开场面板和排活表是 10 月 16 号刚做的，脚本层面的测试都过了，但是整场按新流程走还没走过，面板上的件数系数也还是默认值；Grok 命令行读不到额度；从这版起，打开「试新型号」且登录后，可以试派取证、复核两类只读活，先记满 5 条战绩再决定进不进起步表；只订阅 GPT 的版本我还没做。另外跑一场探讨要用掉两边的额度和半小时到一小时的时间，但是因为大活返工一次的代价远比这个高，所以对我个人来讲影响不大。
 
 总之我个人来讲，两边订阅都有、经常让 AI 干一个小时干不完的大活的朋友，这个东西非常值得试一下；平时只改改小东西的朋友，其实不用特别的着急。试的时候哪里不顺手，直接告诉我就行。OK 那，这些就是我这段时间做 Roadstar 的一些体会，希望对大家有一定的参考价值。
 
@@ -84,7 +84,7 @@ cd Roadstar && ./install.sh
 
 1. 克隆到一个长期保留的目录，比如 `~/Roadstar`。安装脚本链接的就是这个目录，不要克隆到临时目录，装完也不要移动或删除它。
 2. 在仓库根目录跑 `./install.sh`，每个目标会打印一行「已链接」。
-3. 验证：`ls -l ~/.claude/skills/roadstar` 指向仓库里的 `skill/`；`bash skill/scripts/tests/run.sh` 最后一行是 `PASS 83 checks`。
+3. 验证：`ls -l ~/.claude/skills/roadstar` 指向仓库里的 `skill/`；`bash skill/scripts/tests/run.sh` 最后一行是 `PASS 94 checks`。
 4. 查 Codex：`codex --version` 要 0.160 以上（没有就 `npm i -g @openai/codex@latest`），`codex login status` 要显示已登录。登录会打开浏览器，请让用户自己跑 `codex login`。没有 Codex 也能用单家模式。
 5. 告诉用户重开一个 Claude Code 会话（技能在会话开始时加载），说一句「用 skill」或输入 `/roadstar`。
 

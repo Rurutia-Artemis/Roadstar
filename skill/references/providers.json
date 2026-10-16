@@ -352,9 +352,9 @@
         "checked": "2026-10-16",
         "source": "同上；官方写 No text output limit"
       },
-      "default_role": "不派",
+      "default_role": "试用：取证、复核（只读）",
       "unit_multiplier": null,
-      "note": "CLI 已登录能列出；额度读不到；1.12 不派活"
+      "note": "CLI 已登录；额度读不到；仅试新型号开关开时试派取证、复核只读活，战绩满 5 条再决定进不进起步表"
     },
     {
       "id": "grok-4.7-build-fast",

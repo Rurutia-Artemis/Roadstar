@@ -2,7 +2,18 @@
 # Offline Grok CLI stub. FAKE_GROK_STATE: logged_in (default) | logged_out | hang | error
 set -euo pipefail
 trace="${FAKE_TRACE_FILE:-}"
-if [[ -n "$trace" ]]; then printf '{"cli":"grok","args":%s}\n' "$(printf '%s' "$*" | python3 -c 'import json,sys;print(json.dumps(sys.stdin.read()))')" >> "$trace"; fi
+if [[ -n "$trace" ]]; then
+  python3 - "$@" <<'TRACE' >> "$trace"
+import json, sys
+print(json.dumps({"cli": "grok", "args": sys.argv[1:]}, separators=(",", ":")))
+TRACE
+fi
+if [[ "${1:-}" == -p ]]; then
+  sleep "${FAKE_GROK_DELAY:-0}"
+  if [[ "${FAKE_GROK_EXIT:-0}" != 0 ]]; then echo 'stub Grok failure' >&2; exit "$FAKE_GROK_EXIT"; fi
+  printf '%s' "$2"
+  exit 0
+fi
 [[ "${1:-}" == models ]] || { echo "unsupported: $*" >&2; exit 2; }
 case "${FAKE_GROK_STATE:-logged_in}" in
   logged_in)

@@ -21,7 +21,7 @@ def star(cx, cy, r, fill, opacity=1.0):
 
 T = {
     "en": dict(
-        lang="en", eyebrow="CLAUDE CODE SKILL · v1.12.0",
+        lang="en", eyebrow="CLAUDE CODE SKILL · v1.13.0",
         tag1="Claude plans, splits and verifies.", tag2="Codex writes the code.",
         sub=["Both subscriptions get used,", "and the other vendor's model reviews every plan."],
         lanes=[("T1", "6.1 Sol", "≤ 2 h"), ("T2", "Astra", "≤ 4 h"), ("✓", "Review", "other model")],
@@ -34,7 +34,7 @@ T = {
         wf_title="Three modes, one entry",
     ),
     "zh-CN": dict(
-        lang="zh-CN", eyebrow="CLAUDE CODE SKILL · v1.12.0",
+        lang="zh-CN", eyebrow="CLAUDE CODE SKILL · v1.13.0",
         tag1="Claude 想方案、拆活、验收，", tag2="Codex 写代码。",
         sub=["两边订阅都用上，", "每份方案都有另一家模型挑错。"],
         lanes=[("T1", "6.1 Sol", "≤ 2 小时"), ("T2", "Astra", "≤ 4 小时"), ("✓", "复核", "换型号审")],
@@ -47,7 +47,7 @@ T = {
         wf_title="三种用法，一个入口",
     ),
     "ja": dict(
-        lang="ja", eyebrow="CLAUDE CODE SKILL · v1.12.0",
+        lang="ja", eyebrow="CLAUDE CODE SKILL · v1.13.0",
         tag1="計画と確認は Claude、", tag2="コードを書くのは Codex。",
         sub=["両方のサブスクを無駄なく使い、", "計画は必ずもう一社のモデルがレビュー。"],
         lanes=[("T1", "6.1 Sol", "≤ 2 時間"), ("T2", "Astra", "≤ 4 時間"), ("✓", "検証", "別モデル")],

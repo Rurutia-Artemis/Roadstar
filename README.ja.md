@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.12.0-F2B544?style=flat-square" alt="バージョン 1.12.0">
+  <img src="https://img.shields.io/badge/version-1.13.0-F2B544?style=flat-square" alt="バージョン 1.13.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash と Python 標準ライブラリのみ">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT ライセンス">
 </p>
@@ -88,7 +88,7 @@ cd Roadstar && ./install.sh
 
 1. `~/Roadstar` のような長く残すフォルダにクローンします。インストーラーはこのフォルダへリンクを張るので、一時ディレクトリには置かず、インストール後も移動・削除しないでください。
 2. リポジトリのルートで `./install.sh` を実行します。リンク先ごとに「已链接」（リンク済み）が 1 行ずつ表示されます。
-3. 確認：`ls -l ~/.claude/skills/roadstar` がリポジトリの `skill/` を指していること、`bash skill/scripts/tests/run.sh` の最後が `PASS 83 checks` であること。
+3. 確認：`ls -l ~/.claude/skills/roadstar` がリポジトリの `skill/` を指していること、`bash skill/scripts/tests/run.sh` の最後が `PASS 94 checks` であること。
 4. Codex の確認：`codex --version` が 0.160 以上（なければ `npm i -g @openai/codex@latest`）、`codex login status` がログイン済みであること。ログインにはブラウザが開くので、`codex login` はユーザー本人に実行してもらってください。Codex がなくても Claude だけのモードで動きます。
 5. Claude Code のセッションを開き直すようユーザーに伝えます（skill はセッション開始時に読み込まれます）。そのあと「用 skill」と言うか `/roadstar` と入力すれば始まります。
 
@@ -98,7 +98,7 @@ cd Roadstar && ./install.sh
 - [Codex CLI](https://github.com/openai/codex) 0.160 以上、ChatGPT アカウントでログイン済み：`npm i -g @openai/codex@latest`
 - macOS、bash、Python 3（スクリプトは標準ライブラリのみ）
 
-Codex がなくても Claude だけのモードで動きます。計画のレビューは Fable のサブエージェントが担当し（記録には同じ会社のモデル同士と明記）、実装は作業内容に応じて Haiku、Sonnet、Opus が担当します。このモードは実装済みですが、実際のプロジェクトで最初から最後まで通したことはまだありません。2026-10-14 に加えた Claude 4 層の常時運用、早めの停止、実績からの学習も同じくまだ本番で通していません。2026-10-16 に加えた最初のパネルと工程表も、スクリプトのテストは通っていますが、新しい画面で一回を通したことはまだなく、パネルの件数係数も既定値のままです。Grok CLI はパネルに並ぶだけで、この版では仕事を回しません。過去の記録の多くには作業の種類が入っていないため、実績表が役に立つまでには何回か実行を重ねる必要があります。
+Codex がなくても Claude だけのモードで動きます。計画のレビューは Fable のサブエージェントが担当し（記録には同じ会社のモデル同士と明記）、実装は作業内容に応じて Haiku、Sonnet、Opus が担当します。このモードは実装済みですが、実際のプロジェクトで最初から最後まで通したことはまだありません。2026-10-14 に加えた Claude 4 層の常時運用、早めの停止、実績からの学習も同じくまだ本番で通していません。2026-10-16 に加えた最初のパネルと工程表も、スクリプトのテストは通っていますが、新しい画面で一回を通したことはまだなく、パネルの件数係数も既定値のままです。Grok CLI の残量は読めません。「新モデルを試す」を有効にし、ログイン済みなら、取証と確認の読み取り専用タスクを試せます。実績を 5 件ためてから、既定の分担表に加えるか判断します。過去の記録の多くには作業の種類が入っていないため、実績表が役に立つまでには何回か実行を重ねる必要があります。
 
 ## 構成
 

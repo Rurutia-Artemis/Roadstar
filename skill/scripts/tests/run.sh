@@ -1127,7 +1127,7 @@ EST="$TMP/estimate"
 mkdir -p "$EST"
 FAKE_CLAUDE_USED=97 FAKE_CLAUDE_FABLE=19 FAKE_CODEX_USED=8 FAKE_CODEX_CARDS=1 python3 "$SCRIPTS/quota-status.py" --json > "$EST/probe-a.json"
 ROADSTAR_CONFIG_DIR="$EST/nocfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-a.json" --session 探讨 --now 2026-10-16T06:00:00Z > "$EST/a.json"
-json_check "$EST/a.json" 'd["providers"]["codex"]["available_points"] == 82 and d["providers"]["codex"]["calibrated"] is False and d["providers"]["codex"]["units_text"].startswith("约 ") and d["providers"]["codex"]["confidence"] == "低" and d["providers"]["codex"]["unlockable_units"] is not None and d["providers"]["codex"]["units"] == int(82 / 0.3) and d["providers"]["claude"]["tier"] == "空" and d["providers"]["claude"]["units"] is None and d["providers"]["claude"]["available_points"] == 0 and d["total"]["included"] == ["codex"] and d["total"]["units"] == d["providers"]["codex"]["units"] and d["total"]["confidence"] == "低" and d["strategy"] == "auto" and d["strategy_from"] == "默认" and d["config_exists"] is False and d["session"]["rounds"] == 3 and d["session"]["feature_map_calls"] == 2 and d["session"]["codex_points"] > 0 and d["session"]["enough"] is True and d["connected_count"] == 3 and d["connected_text"].startswith("接了 3 家") and d["grace"]["role"] == "调研协作方" and d["skill_version"].startswith("1.12")'
+json_check "$EST/a.json" 'd["providers"]["codex"]["available_points"] == 82 and d["providers"]["codex"]["calibrated"] is False and d["providers"]["codex"]["units_text"].startswith("约 ") and d["providers"]["codex"]["confidence"] == "低" and d["providers"]["codex"]["unlockable_units"] is not None and d["providers"]["codex"]["units"] == int(82 / 0.3) and d["providers"]["claude"]["tier"] == "空" and d["providers"]["claude"]["units"] is None and d["providers"]["claude"]["available_points"] == 0 and d["total"]["included"] == ["codex"] and d["total"]["units"] == d["providers"]["codex"]["units"] and d["total"]["confidence"] == "低" and d["strategy"] == "auto" and d["strategy_from"] == "默认" and d["config_exists"] is False and d["session"]["rounds"] == 3 and d["session"]["feature_map_calls"] == 2 and d["session"]["codex_points"] > 0 and d["session"]["enough"] is True and d["connected_count"] == 3 and d["connected_text"].startswith("接了 3 家") and d["grace"]["role"] == "调研协作方" and d["skill_version"].startswith("1.13")'
 python3 - "$EST/a.json" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1], encoding="utf-8"))
@@ -1194,7 +1194,7 @@ for name, extra in (("a", ["--usage", "探讨", "--title", "记账 App"]), ("b",
         lines = blocks["panel"]
         assert 10 <= len(lines) <= 14, (name, strategy, len(lines))
         assert max(width(l) for l in lines) <= 80, (name, strategy, [width(l) for l in lines])
-        assert lines[0].startswith("Roadstar 1.12 · 接了") and lines[-1].endswith("不改我就跑。")
+        assert lines[0].startswith("Roadstar 1.13 · 接了") and lines[-1].endswith("不改我就跑。")
         assert any("策略：" in l for l in lines) and any("这周合计" in l for l in lines)
         traceable(lines, est / f"{name}.json")
         assert blocks["preview"][0].endswith({"auto": "自动分配", "quality": "质量优先", "thrift": "省着用", "rush": "赶时间"}[strategy])
@@ -1466,5 +1466,8 @@ R="$MAIN/docs/roadstar/2026-10-01-x/rounds"
 [[ ! -f "$R/exec-T1-stdout.log" && ! -f "$R/old.patch" && ! -d "$R/T1-shots" ]]
 expect_exit 2 python3 "$SCRIPTS/cleanup.py" --project "$TMP"
 pass 'cleanup: dry-run leaves the tree byte-identical, dirty/unmerged/unpushed/locked worktrees untouched on apply, merged clean worktree and stale intermediates removed, protected rounds files kept, non-repo exits 2'
+
+source "$TEST_DIR/panel-113.sh"
+source "$TEST_DIR/grok-113.sh"
 
 printf 'PASS %d checks\n' "$COUNT"

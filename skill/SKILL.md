@@ -3,7 +3,7 @@ name: roadstar
 description: >-
   Roadstar · 引路星：Claude 主会话当总调度，和 Codex 一起干项目。主席说「用 skill」「用 Roadstar」时先弹一张接入与额度面板（接了几家、各剩多少、重置卡算进去估这周还能派几件、本项目怎么分），问一次策略（自动分配 / 质量优先 / 省着用 / 赶时间，回车就是自动），然后自动判用法就跑。三种用法：探讨（主席只说构思，开场说清讨论用高等级模型，两家先把副功能、设置、衍生功能想全、主席分档，再默认三轮谈工程到能落地）、复盘（两家各读一遍现有项目，按产品层或代码层的尺子交叉审出不足清单；「全面 review」「全部排查」也走这里）、协同（方案已有，Argo 拆活、分型号、定审查人，派活、验收、交报告）。讨论完排活给一张表：每件给谁、为什么、预估用时、预计几点完成，加总时长和完工时刻；完工报告把预估和实际对账。拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核；调研类活交 Grace。触发：「用 skill」「用 Roadstar」「按 skill 来」「Roadstar」「引路星」「/roadstar」「开圆桌」「探讨一下怎么落地」「我想做个类似 X 的」「帮我规划功能」「还能加什么功能」「复盘这个项目」「全面 review」「看看哪里能改进」「直接调度」「你来安排谁做」「总舵主」「还能派多少活」「额度面板」「填额度」。产出在项目 docs/roadstar/<日期>-<slug>/。不处理：一小时内能做完的活（直接干）；只要 Codex 单次二审（→ call-codex）；只要网页 Pro 策划（→ pro-orchestrator）；仅维护本 skill。
 metadata:
-  version: "1.12.0"
+  version: "1.13.0"
 ---
 
 # Roadstar · 引路星：先看面板，再谈、再派、再审
@@ -21,7 +21,7 @@ metadata:
 | Grace | Grok 侧的调研机器人，跑在 Grok 那边的虚拟机里（主席 2026-10-16 定） | 调研协作方：查官方规范、竞品、价格与评测、外部资料这类活。Argo 把任务书放进 Google Drive「Grace × Cloud 交接 / 05-Roadstar 引路星」，按该目录 00-约定 命名并记日志，Grace 交回后 Argo 并进来。面板里单列，不按额度折件 |
 | Pro | 网页 GPT Pro（可选） | 大活起草或终审；Codex 空时的跨家审稿兜底；每趟要主席动手 |
 
-型号、用途、强度见 `references/models.md`，各家价格与评测在 `references/providers.json`。名字只是发言标签，没有人设。Argo 转述 Dex 时原文照贴进账本、标明 `Dex：`，自己的回应另起一段；主席的话记进账本，效力最高。改名只改这张表。本机 Grok CLI 面板里列出来（已登录哪些型号、额度读不到），1.12 不派活。
+型号、用途、强度见 `references/models.md`，各家价格与评测在 `references/providers.json`。名字只是发言标签，没有人设。Argo 转述 Dex 时原文照贴进账本、标明 `Dex：`，自己的回应另起一段；主席的话记进账本，效力最高。改名只改这张表。本机 Grok CLI 面板列登录状态与型号，额度读不到；仅「试新型号」开关开且已登录时试派取证、复核只读活，战绩满 5 条再决定进不进起步表。
 
 ## 先判用法（主席说「用 skill」时的路由，按顺序取第一条命中）
 
@@ -81,7 +81,7 @@ metadata:
 
 ### 0 开场：面板、策略一问、分配预览（一条消息）
 
-1. 按顺序跑：`scripts/quota-status.py --json` 存成 `rounds/probe.json`；`scripts/quota-estimate.py --probe rounds/probe.json [--session 探讨 --size <规模>]` 存成 `rounds/panel.json`；`scripts/panel.py --estimate rounds/panel.json --usage <用法> --title <题目> --instructions <项目指令一句>`；另跑 `scripts/update-check.py`、`codex --version`、`scripts/telemetry.py status`。`codex --version` 跑不出来或未登录就进单家模式（面板会写）。
+1. 按顺序跑：`scripts/quota-status.py --json` 存成 `rounds/probe.json`；`scripts/quota-estimate.py --probe rounds/probe.json [--session 探讨 --size <规模>]` 存成 `rounds/panel.json`；`scripts/panel.py --estimate rounds/panel.json --usage <用法> --title <题目> --host-model <主会话实际型号> --instructions <项目指令一句>`；另跑 `scripts/update-check.py`、`codex --version`、`scripts/telemetry.py status`。Argo 按自己的实际型号填。`codex --version` 跑不出来或未登录就进单家模式（面板会写）。
 2. 把 `panel.py` 的输出原样贴出，一个数字都不改。面板第一行直说接了几家；Grace 单列为调研协作方；读不到的家写「读不到（原因）」并按紧处理；系数没校准的件数带「约」并同时给百分点。面板末行「要改说一声，不改我就跑」之前那行就是策略一问：主席回车或不答就是自动分配（quota.json 设了默认就是那个），说「质量优先」「省着用」「赶时间」只管本场，记进账本「主席指令」。
 3. 面板下面紧跟「本项目分配」预览（类别 → 型号，按策略表和额度方向实例化，最后一行写压过默认的项目指令），探讨用法再加三行「探讨阶段用最强的」说明（型号、预计扣几点几件、预计用时）。
 4. 这条消息里还要说的：这次走哪种用法、为什么、题目一句人话；有新版本加一句「说『更新 Roadstar』就拉到最新」；`telemetry.py status` 显示「还没问过」就把回传同意问一次（问法照 `docs/社区数据回传.md` 第 1 节，默认不开）；quota.json 不存在时面板会提示「填额度」。要问的事合成一次 AskUserQuestion 问齐，没有要问的就说完直接往下。
@@ -177,6 +177,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 - 每件活一份任务书（`references/task-brief-template.md`），引用 `docs/roadstar/_common.md` 的常驻边界，只写它没写的。一份任务书一个目标、一条能失败的完成线；写明「预计用时」（抄排活表）和上限（预计的两倍，最多不超过类型默认上限，见 estimates.md），不许直接套 120 分钟；写明「验证方式只用 X」，禁止执行方自己发明验证手段。派之前过一遍 division-of-labor 第 15 节。
 - 任务书写明涉及哪几个模块（用地图里的名字）。改动碰了模块的入口文件、对外接口、测试命令或规矩，执行方在同一提交里更新地图那一节；验收方核对地图和代码一致。
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --class <类别> --est-minutes <预估> --strategy <策略> --brief … --max-minutes <上限>`，默认只读，要改文件加 `--write`。任何会话派 Codex 一律走这个脚本，哪怕只有一件活、不在 Roadstar 场次里；裸 `codex exec` 只留给一句话提问。到点脚本停掉 codex、退出码 124、meta 记 `timed_out=1`。
+- Grok 试用任务：仅「试新型号」开关开且已登录时，取证、复核两类只读活可走 `scripts/grok-exec.sh <plan-dir> T<n> --brief … --class <取证或复核> --max-minutes <上限> --est-minutes <预估> --strategy <策略>`（默认 `grok-4.7` / high、30 轮，可用 `--model`、`--effort`、`--max-turns` 指定；支持 `--detach`、`--status`、`--dry-run`）。`--write` 退出 2，提示「写活等后续版本」；产物、限时止损和项目登记与 Dex 线一致，复核时审查人和执行方不同家照常成立。战绩满 5 条再决定进不进起步表，自动列不变；telemetry 的 Grok model 归为 `other`，schema 不改。
 - Claude 子代理任务：用 Agent 工具派，`model` 按 §8 选 haiku / sonnet / opus，fable 只用于那两种情况并在调度记录写明；任务书同一份模板原文当提示，回复存成 `rounds/exec-T<n>.md`，`.meta` 由主会话手写（型号、起止时间、上限、est_minutes、strategy、派前后读数）。到点用 TaskStop 停。
 - 调研类活（官方规范、竞品、价格与评测、外部资料）交 Grace：任务书建成 Google Doc 放进 Google Drive「Grace × Cloud 交接 / 05-Roadstar 引路星」，文件名「日期-来源-题目」，在同目录 01-记忆账本 记一行（JST 时间、做了什么、产出在哪、需要对方做什么），对主席只回一句「OK 了」；网盘里不放密码、token、cookie。排活表里这类活写「Grace，交回后并入」，不计入完工时刻。交回后先抽查一到两成关键事实（命令或官方页面核一遍），核过的才进 plan 或 `providers.json`，没核成的标「未独立核实」，再记账。
 - 有界面的活：完成线包含 vela 的 `references/ui-acceptance.md`；Argo 亲自逐张看截图、在模拟器里走核心任务。设计类的活按主席 2026-10-12 定的默认：先从 Huemo 配套编号写进任务书，方向稿 2 到 3 版由主席挑，完成线含两遍 review 与默认两遍打磨记录。
@@ -205,6 +206,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 
 ## 验证记录
 
+- 2026-10-16：1.13.0 修正 Claude 停用原因和主会话主持型号，接 Grok 取证／复核只读试用线，开关开且已登录才试派，战绩满 5 条再决定进起步表。验证：桩测试 `PASS 94 checks`，三语 README 审计通过；真实 Grok 推理与整场流程未验证。安装命令与本地提交受当前权限限制，现有发现软链指向本仓库已核对，未 push。
 - 2026-10-16：1.12.0 由 Fable 5.1 无头会话按主席 10-16 拍板重构：开场面板（接了几家、各剩几件、重置卡可解锁、策略一问、分配预览、探讨开场说明）、`providers.json` 型号登记表、`quota.json`、按件估额度、四种策略表（自动列与 §8 逐行一致的测试）、排期脚本与七列排活表、`.meta` 加 est_minutes 与 strategy、预估对账与本机校准、场内清理第一档。验证：桩测试 73 → 83 条全过；本机真实读数跑面板和示例排期（见 `docs/2026-10-16-多家型号与自检闭环/重构报告-1.12.md`）。未验证：一整场真实探讨还没按 1.12 的屏走过；Codex 的件数系数是默认值，要攒 3 个点以上的记录才校准；Claude 件数只显示百分点。
 - 2026-10-14：1.11.0 社区自动回传上线；1.10.0 所有人共用一张分工表、项目登记表、开场提醒新版本；1.9.0 探讨开头加功能地图；1.8.0 Claude 四层按活常驻、碰壁止损与升级补全、派活经验回路。细节在 CHANGELOG 同日各条。
 - 2026-10-12：1.7.0 设计类活的默认接进派活与验收（Huemo 配套、方向稿 2 到 3 版、两遍 review 与两遍打磨）。
