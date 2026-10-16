@@ -1271,4 +1271,84 @@ for strategy, spec in data["strategies"].items():
 PY
 pass 'strategies.json auto column equals SKILL §8 row by row; four columns filled without 同左; strategies.md lists every class and strategy'
 
+# schedule.py: cycles, Argo serial lane, weekly-reset gating, folding, JSON input.
+SCH="$TMP/schedule"
+mkdir -p "$SCH"
+cat > "$SCH/plan.md" <<'MD'
+## 10 拆分表
+| T# | 任务 | 类别 | 执行方（型号·强度） | 上限 | 审查人 | 依赖 | 理由 |
+|---|---|---|---|---|---|---|---|
+| T1 | 数据层：账目模型与存储 | 跨模块 | Codex 的 Astra · 高 | 4h | Codex 的 6.1 Sol 只读 | 无 | 跨模块、后面三页都靠它 |
+| T2 | 首页和「记一笔」样张 | 视觉照做 | 我 | — | 你点头 | 无 | 视觉判断 Codex 做不好 |
+| T3 | 「记一笔」页面 | 页面实现 | Codex 的 6.1 Sol · 高 | 2h | Codex 的 Astra 只读 | T2 | 照样张做，规格清楚 |
+| T4 | 月度统计页 | 页面实现 | Codex 的 6.1 Sol · 高 | 2h | Codex 的 Astra 只读 | T2 | 同上 |
+| T5 | 导出 CSV | 批量 | Codex 的 6.1 Sol · 中 | 1h | 我读 diff | 无 | 照抄模式，易 |
+| T6 | 合并三条线、全量回归 | 跨模块 | Codex 的 6.1 Sol · 高 | 2h | 我在主干复跑 | T1 T3 T4 T5 | 合并后整包跑测试 |
+MD
+python3 "$SCRIPTS/schedule.py" --plan "$SCH/plan.md" --start 2026-10-16T06:00:00Z --probe "$EST/probe-a.json" > "$SCH/table.md"
+python3 "$SCRIPTS/schedule.py" --plan "$SCH/plan.md" --start 2026-10-16T06:00:00Z --probe "$EST/probe-a.json" --json > "$SCH/table.json"
+python3 - "$SCH/table.md" "$SCH/table.json" <<'PY'
+import json, re, sys
+md = open(sys.argv[1], encoding="utf-8").read()
+d = json.load(open(sys.argv[2], encoding="utf-8"))
+lines = md.splitlines()
+assert lines[0].startswith("拆分表（自动分配") and "置信度" in lines[0]
+header = lines[1].split()
+assert header == ["#", "事", "给谁", "·", "强度", "为什么", "预估", "预计完成", "审查人", "依赖"], header
+assert len(d["rows"]) == 6 and [r["id"] for r in d["rows"]] == ["T1", "T2", "T3", "T4", "T5", "T6"]
+assert d["parallel"]["codex"] == 3 and d["parallel"]["claude"] == 0
+assert "线上工时合计" in md and "预计全部完工" in md and "额度：" in md and md.rstrip().endswith("开工就按表派，改哪条说一声。")
+assert "等你点头的时间不算" in md and "关键路径" in md
+assert d["rows"][5]["finish"] == max(r["finish"] for r in d["rows"]) and d["finish"] == d["rows"][5]["finish"]
+for r in d["rows"]:
+    for dep in r["deps"]:
+        assert d["rows"][int(dep[1:]) - 1]["finish"] <= r["start"], (r["id"], dep)
+assert d["rows"][1]["family"] == "argo" and d["rows"][1]["est_minutes"] > 0
+assert d["total_minutes"] >= 6 * (5 + 8 + 3), d["total_minutes"]
+assert d["critical_path"][-1] == "T6" and len(d["critical_path"]) >= 2
+assert d["confidence"] == "低" and all(r["est_source"] == "默认值表" for r in d["rows"] if r["family"] != "chair")
+assert "Codex 本周预计 8% →" in d["quota_text"], d["quota_text"]
+PY
+# Argo is one serial lane: six independent tasks still finish no earlier than six briefs + six acceptances + six merges.
+python3 - "$SCH/six.json" <<'PY'
+import json, sys
+json.dump([{"id": f"T{i}", "name": f"独立活 {i}", "class": "页面实现", "executor": "Codex 的 6.1 Sol · 高", "reviewer": "我复跑", "deps": []} for i in range(1, 7)], open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False)
+PY
+python3 "$SCRIPTS/schedule.py" --tasks "$SCH/six.json" --start 2026-10-16T06:00:00Z --json > "$SCH/six-out.json"
+json_check "$SCH/six-out.json" 'd["total_minutes"] >= 6 * (5 + 8 + 3) and d["argo_minutes"] == 6 * (5 + 8 + 3) and d["parallel"]["codex"] == 3'
+python3 "$SCRIPTS/schedule.py" --tasks "$SCH/six.json" --start 2026-10-16T06:00:00Z --strategy thrift --json > "$SCH/six-thrift.json"
+json_check "$SCH/six-thrift.json" 'd["parallel"]["codex"] == 2'
+# A family whose weekly window is empty starts after its reset; the reset time is inside this run.
+python3 - "$EST/probe-a.json" "$SCH/probe-empty.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+d["codex"]["weekly"] = {"used": 97, "resets_at": "2026-10-16T08:00:00Z"}; d["codex"]["tier"] = "空"
+json.dump(d, open(sys.argv[2], "w", encoding="utf-8"))
+PY
+python3 "$SCRIPTS/schedule.py" --tasks "$SCH/six.json" --start 2026-10-16T06:00:00Z --probe "$SCH/probe-empty.json" --json > "$SCH/gated.json"
+json_check "$SCH/gated.json" 'all(r["start"] >= "2026-10-16T08:00" for r in d["rows"]) and all(r["waits_for_reset"] for r in d["rows"]) and any("重置之后" in n for n in d["notes"]) and d["gates"]["codex"].startswith("2026-10-16T08:00")'
+grep -q '重置后' <(python3 "$SCRIPTS/schedule.py" --tasks "$SCH/six.json" --start 2026-10-16T06:00:00Z --probe "$SCH/probe-empty.json")
+# Dependency cycle names the tasks and exits 2; a given estimate overrides the table.
+python3 - "$SCH/cycle.json" "$SCH/est.json" <<'PY'
+import json, sys
+json.dump([{"id": "T1", "name": "甲", "class": "页面实现", "executor": "Codex 的 6.1 Sol · 高", "deps": ["T2"]}, {"id": "T2", "name": "乙", "class": "页面实现", "executor": "Codex 的 6.1 Sol · 高", "deps": ["T3"]}, {"id": "T3", "name": "丙", "class": "页面实现", "executor": "Codex 的 6.1 Sol · 高", "deps": ["T1"]}], open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False)
+json.dump([{"id": "T1", "name": "甲", "class": "页面实现", "executor": "Codex 的 6.1 Sol · 高", "est": "90"}], open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False)
+PY
+expect_exit 2 python3 "$SCRIPTS/schedule.py" --tasks "$SCH/cycle.json"
+grep -q '依赖成环：T1、T2、T3' "$TMP/last-output"
+python3 "$SCRIPTS/schedule.py" --tasks "$SCH/est.json" --start 2026-10-16T06:00:00Z --json > "$SCH/est-out.json"
+json_check "$SCH/est-out.json" 'd["rows"][0]["est_minutes"] == 90 and d["rows"][0]["est_source"] == "表里给的" and d["rows"][0]["est_text"] == "1h30"'
+# More than eight tasks fold into a summary line.
+python3 - "$SCH/many.json" <<'PY'
+import json, sys
+json.dump([{"id": f"T{i}", "name": f"页面 {i}", "class": "页面实现", "executor": "Codex 的 6.1 Sol · 高", "reviewer": "Sonnet 只读", "deps": []} for i in range(1, 12)], open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False)
+PY
+python3 "$SCRIPTS/schedule.py" --tasks "$SCH/many.json" --start 2026-10-16T06:00:00Z > "$SCH/many.md"
+grep -q '另 3 件页面实现' "$SCH/many.md" && [[ "$(grep -c '^ [0-9]' "$SCH/many.md")" == 8 ]]
+# Local calibration raises confidence and uses P80 without buffer.
+python3 "$SCRIPTS/schedule.py" --tasks "$SCH/six.json" --start 2026-10-16T06:00:00Z --estimates "$EST/estimates.json" --json > "$SCH/cal.json"
+json_check "$SCH/cal.json" 'd["confidence"] == "高" and all(r["est_minutes"] == 25 and r["est_source"] == "本机 P80" for r in d["rows"])'
+expect_exit 2 python3 "$SCRIPTS/schedule.py" --plan "$PLAN/plan.md"
+pass 'schedule: seven columns and four total lines, dependencies respected, Argo serial lane bounds the finish, strategy caps parallel lanes, empty weekly window gates lanes to the reset, cycle exit 2 with names, explicit estimates and folding beyond eight, calibrated P80'
+
 printf 'PASS %d checks\n' "$COUNT"
