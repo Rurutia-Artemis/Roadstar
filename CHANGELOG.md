@@ -6,6 +6,7 @@
 
 - 型号登记表 `references/providers.json`：8 家（Claude、Codex、Grok 三家订阅 CLI，DeepSeek、Kimi、Qwen、GLM、MiniMax 五家 API 只登记不接）、16 个型号，每条带接法、价格（R1 官方价，带查证日期和来源，DeepSeek 只有人民币就记人民币）、上下文、评测（R2 的 AA 指数、LMArena、TB4、SWE，查不到为 null）、默认角色、折算到标准件的倍率；`families` 带 API key 环境变量名（只查有无）和每标准件扣几个点的默认系数（Codex 0.3，写明上下界来源；Claude null 只显示百分点）；`partners.grace` 单列调研协作方。校验脚本 `scripts/providers-check.py`（缺字段、未知家、角色或日期不合法退出 2，`--list` 出表）。验证：桩测试新增 1 条（合法样例退出 0、四种坏样例退出 2）。未验证：价格和评测只到 Grace 10-16 的查证日期，没有二次核对链接可达。
 - `scripts/quota-config.py`：读写 `~/.config/roadstar/quota.json`（`init` / `show [--json]` / `set 键 值`），只收 `default_strategy`（auto / quality / thrift / rush）、`try_new_models`、`grok_plan`（自报档位，只定上限）、`grace.enabled`、`grace.folder`；没有 API 预算键（主席 10-16 定 1.12 不问）。未知键或坏值退出 2 且不写文件；写入走临时文件改名；文件不存在时 `show` 给默认值并提示「填额度」。验证：桩测试 +1（未知键、坏值、往返、原子写、init 幂等、坏文件回退）。
+- 额度探针 `quota-status.py` 加两列，旧字段一个不动：`grok`（跑 `grok models` 判登录和型号表，15 秒超时，不读额度，CLI 没有接口）和 `api_keys`（按 providers.json 的变量名单只查有无，值从不读进报告）。人读输出多两行「Grok：已登录 …（额度读不到）→ ？」「API key：有（…）；1.12 只记有无，派活不用」。桩 `tests/bin/grok` 覆盖已登录、未登录、出错、挂起四种。验证：桩测试 +1（假 key 断言不泄露、超时在打补丁的 0.3 秒内返回、没装 grok 时 `source=none`）；本机实跑 Grok 列出 grok-4.7 等 4 个型号、环境变量里有 ANTHROPIC_API_KEY。
 
 ## 2026-10-16 · 更正：Luna 改为「还没实测」，不再写主席判它太差
 

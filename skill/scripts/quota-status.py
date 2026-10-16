@@ -4,6 +4,13 @@
 ``pending_tier`` is the persisted candidate for --prev hysteresis.  Keep the
 complete --json output between invocations; no state is written by this script.
 Codex rollout records are a Codex-only fallback, never a Claude quota source.
+
+1.12 adds two read-only columns, both backward compatible (old keys untouched):
+``grok``      ``grok models`` tells login state and the model list; the grok.com
+              quota has no CLI interface, so no percentage is ever reported.
+``api_keys``  which families' API key environment variables are set, by name
+              only (``providers.json`` lists the names). Values are never read
+              into the report.
 """
 
 import argparse
@@ -25,6 +32,11 @@ UTC = timezone.utc
 JST = timezone(timedelta(hours=9), "JST")
 TIMEOUT = 15
 TIERS = {"宽": 0, "正常": 1, "紧": 2, "空": 3}
+PROVIDERS_FILE = Path(__file__).resolve().parent.parent / "references" / "providers.json"
+# Fallback list when providers.json is unreadable; names only, values never leave the process.
+API_KEY_ENV = {"anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "xai": "XAI_API_KEY",
+               "deepseek": "DEEPSEEK_API_KEY", "moonshot": "MOONSHOT_API_KEY", "alibaba": "DASHSCOPE_API_KEY",
+               "zhipu": "ZHIPUAI_API_KEY", "minimax": "MINIMAX_API_KEY"}
 
 
 class ProbeError(Exception):
@@ -304,6 +316,76 @@ def rollout_fallback():
     return latest[1] if latest else None
 
 
+def api_key_env_names():
+    try:
+        data = json.loads(PROVIDERS_FILE.read_text(encoding="utf-8"))
+        names = {family: spec["api_key_env"] for family, spec in data["families"].items()
+                 if isinstance(spec.get("api_key_env"), str) and spec["api_key_env"]}
+        if names:
+            return names
+    except (OSError, ValueError, KeyError, AttributeError, TypeError):
+        pass
+    return dict(API_KEY_ENV)
+
+
+def api_keys_probe(environ=None):
+    """Report which families have a key set.  Only variable names are inspected."""
+    environ = os.environ if environ is None else environ
+    names = api_key_env_names()
+    present = sorted(family for family, variable in names.items() if environ.get(variable, "").strip())
+    return {"present": present, "checked": sorted(names.values())}
+
+
+def grok_probe():
+    """Run ``grok models`` (read-only, no inference).  Never reports a quota."""
+    now = datetime.now(UTC)
+    result = {"source": "none", "logged_in": None, "default_model": None, "models": [], "fetched_at": iso(now), "note": None}
+    executable = shutil.which("grok")
+    if executable is None:
+        result["note"] = "命令不存在"
+        return result
+    try:
+        process = subprocess.Popen([executable, "models"], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, start_new_session=True)
+    except OSError:
+        result["note"] = "命令启动失败"
+        return result
+    try:
+        output, _ = process.communicate(timeout=TIMEOUT)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        process.communicate()
+        result["note"] = f"读取超时（{TIMEOUT:g} 秒）"
+        return result
+    text = output.decode("utf-8", "replace")
+    models = []
+    default = None
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line.lower().startswith("default model:"):
+            default = line.split(":", 1)[1].strip() or None
+        elif line[:2] in ("* ", "- "):
+            name = line[2:].split()[0] if line[2:].split() else ""
+            if name:
+                models.append(name)
+                if line.startswith("*") or "(default)" in line:
+                    default = default or name
+    logged_in = "logged in" in text.lower() and "not logged in" not in text.lower()
+    if process.returncode != 0 and not models:
+        result["note"] = "未登录或命令失败"
+        result["logged_in"] = False if "log" in text.lower() else None
+        return result
+    if not models:
+        result["note"] = "未登录或没有型号"
+        result["logged_in"] = False
+        return result
+    result.update({"source": "live", "logged_in": logged_in or True, "default_model": default, "models": models})
+    return result
+
+
 def unavailable(provider, now):
     result = {"tier": None, "plan": None, "source": "none", "fetched_at": iso(now)}
     keys = ("five_hour", "seven_day", "fable") if provider == "claude" else ("weekly", "five_hour", "reset_cards", "credits")
@@ -371,6 +453,13 @@ def human_output(report, now, problems):
             if side["credits"] is not None:
                 parts.append(f"credits {side['credits']}")
         print(f"{title}：" + ("｜".join(parts) + f" → {side['tier']}" if parts else "读不到"))
+    grok = report.get("grok") or {}
+    if grok.get("source") == "live":
+        print(f"Grok：已登录 {grok.get('default_model') or grok['models'][0]}（{len(grok['models'])} 个型号）｜额度读不到（CLI 没有接口） → ？")
+    else:
+        print(f"Grok：读不到（{grok.get('note') or '未接入'}）")
+    keys = (report.get("api_keys") or {}).get("present") or []
+    print("API key：" + ("有（" + "、".join(keys) + "）；1.12 只记有无，派活不用" if keys else "无"))
     if all(report[key]["source"] == "live" for key in ("claude", "codex")):
         sources = "两边都是实时读数"
     else:
@@ -402,11 +491,15 @@ def main(argv=None):
         except (OSError, ValueError):
             previous = {}
             notes.append("上次读数无法读取，使用本次档位")
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         futures = {provider: pool.submit(fetch, provider) for provider in ("claude", "codex")}
+        grok_future = pool.submit(grok_probe)
         fetched = {provider: future.result() for provider, future in futures.items()}
+        grok = grok_future.result()
     now = datetime.now(UTC)
     report = {provider: value[0] for provider, value in fetched.items()}
+    report["grok"] = grok
+    report["api_keys"] = api_keys_probe()
     problems = []
     for provider, title in (("claude", "Claude"), ("codex", "Codex")):
         side, error = fetched[provider]

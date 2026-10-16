@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Offline Grok CLI stub. FAKE_GROK_STATE: logged_in (default) | logged_out | hang | error
+set -euo pipefail
+trace="${FAKE_TRACE_FILE:-}"
+if [[ -n "$trace" ]]; then printf '{"cli":"grok","args":%s}\n' "$(printf '%s' "$*" | python3 -c 'import json,sys;print(json.dumps(sys.stdin.read()))')" >> "$trace"; fi
+[[ "${1:-}" == models ]] || { echo "unsupported: $*" >&2; exit 2; }
+case "${FAKE_GROK_STATE:-logged_in}" in
+  logged_in)
+    cat <<'TXT'
+You are logged in with grok.com.
+
+Default model: grok-4.7
+
+Available models:
+  * grok-4.7 (default)
+  - grok-4.7-build-fast
+  - grok-4.6
+  - grok-4.5
+TXT
+    ;;
+  logged_out) echo "You are not logged in. Run 'grok login' first." >&2; exit 1 ;;
+  hang) sleep 60 ;;
+  error) echo "boom" >&2; exit 3 ;;
+esac

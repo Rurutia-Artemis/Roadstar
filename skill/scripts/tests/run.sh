@@ -1097,4 +1097,29 @@ printf 'not json' > "$QCFG/quota.json"
 ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" show | grep -q '还没建文件'
 pass 'quota-config unknown key and bad values exit 2 without writing, set/show round-trip, atomic write leaves no temp file, init idempotent, broken file falls back'
 
+# quota-status.py 1.12 columns: grok login states and api key names only.
+: > "$FAKE_TRACE_FILE"
+XAI_API_KEY='sk-SECRET-VALUE-DO-NOT-PRINT' python3 "$SCRIPTS/quota-status.py" --json > "$TMP/q112.json"
+json_check "$TMP/q112.json" 'd["grok"]["source"] == "live" and d["grok"]["logged_in"] is True and d["grok"]["default_model"] == "grok-4.7" and len(d["grok"]["models"]) == 4 and "xai" in d["api_keys"]["present"] and "ANTHROPIC_API_KEY" in d["api_keys"]["checked"] and "SECRET" not in open(sys.argv[1]).read() and set(d["claude"]) >= {"tier","plan","source","fetched_at","five_hour","seven_day","fable","pending_tier"} and set(d["codex"]) >= {"weekly","five_hour","reset_cards","credits","plan","source","fetched_at","tier","pending_tier"}'
+grep -q '"cli":"grok"' "$FAKE_TRACE_FILE"
+XAI_API_KEY='sk-SECRET-VALUE-DO-NOT-PRINT' python3 "$SCRIPTS/quota-status.py" > "$TMP/q112.txt"
+grep -q 'Grok：已登录 grok-4.7' "$TMP/q112.txt" && grep -q 'API key：有' "$TMP/q112.txt" && ! grep -q 'SECRET' "$TMP/q112.txt"
+FAKE_GROK_STATE=logged_out python3 "$SCRIPTS/quota-status.py" --json > "$TMP/q112-out.json"
+json_check "$TMP/q112-out.json" 'd["grok"]["source"] == "none" and d["grok"]["logged_in"] is False and d["grok"]["models"] == []'
+FAKE_GROK_STATE=error python3 "$SCRIPTS/quota-status.py" --json > "$TMP/q112-err.json"
+json_check "$TMP/q112-err.json" 'd["grok"]["source"] == "none" and d["codex"]["tier"] == "宽"'
+PYTHONDONTWRITEBYTECODE=1 FAKE_GROK_STATE=hang python3 - "$SCRIPTS/quota-status.py" <<'PY'
+import importlib.util, sys, time
+from unittest.mock import patch
+spec = importlib.util.spec_from_file_location("quota_status", sys.argv[1]); q = importlib.util.module_from_spec(spec); spec.loader.exec_module(q)
+with patch.object(q, "TIMEOUT", 0.3):
+    started = time.monotonic(); r = q.grok_probe()
+assert r["source"] == "none" and "超时" in r["note"] and time.monotonic() - started < 3, r
+with patch.object(q.shutil, "which", return_value=None):
+    r = q.grok_probe()
+assert r["source"] == "none" and r["note"] == "命令不存在", r
+assert q.api_keys_probe({"OPENAI_API_KEY": "x", "DEEPSEEK_API_KEY": "  "})["present"] == ["openai"]
+PY
+pass 'quota-status grok column: logged in, logged out, error, hang within patched timeout, missing binary; api_keys by name only, secrets never printed, old keys intact'
+
 printf 'PASS %d checks\n' "$COUNT"
