@@ -54,19 +54,21 @@
 | `outcome` | `done`（全部检查项过）、`partial`（到点、有项没过）、`stalled`（碰壁被停）、`failed`（没做成或白做） |
 | `done_items` | `k/n` |
 | `minutes` | 实际用时 |
-| `quota_delta` | 派前派后探针读数差，例 `claude_week=+2` 或 `codex_week=+5` |
+| `quota_delta` | 派前派后探针读数差，例 `claude_week=+2` 或 `codex_week=+5`；和 `tokens_used` 一起给校准脚本反推每点 token 数 |
+| `est_minutes`、`strategy` | 排活表的预估用时和本场策略（auto / quality / thrift / rush），`dex-exec.sh --est-minutes` / `--strategy` 写入；完工报告「预估对账」和 `dispatch-stats.py` 的「预估偏差」列用它 |
+| `outcome=timed_out` | 到 `--max-minutes` 被停掉的线（meta 有 `timed_out=1`）记这个，和 stalled 分开统计 |
 | `escalated_to`、`escalated_from`、`stall_reason` | 有升级时写 |
 
 ## 6 经验回路：所有人用同一张分工表，一起变准
 
-主席 2026-10-14 定：大家朝一个方向走，不让每个人的派活方式各自分叉。所以起步层只有一个来源，就是 SKILL.md 第 8 节的表；这张表只随新版本更新，依据是所有回传用户的数据汇总，经主席拍板。本机的派活记录不单独改本机的起步层，只用来回传和出周报。大家按同一张表派活，回传上来的数据才能放在一起比。
+主席 2026-10-14 定：大家朝一个方向走，不让每个人的派活方式各自分叉。所以起步层只有一个来源，就是 SKILL.md 第 8 节的表；这张表只随新版本更新，依据是所有回传用户的数据汇总。主席 2026-10-16 改：打分和迭代由 Claude 自己持有，主席每周说一句「可以迭代了」，Claude 按下面的门槛自动改表、发新版本，周报只给主席看结论（改了什么、依据什么、没动什么），不逐条拍板；主席没说那句就只出周报不改表。本机的派活记录不单独改本机的起步层，只用来回传、出周报和校准本机的用时预估（`dispatch-stats.py --calibrate`，见 `estimates.md`）。四种策略是运行时叠在表上的偏移（`strategies.md`），也不写回表。
 
 1. 每场完工报告前跑 `scripts/dispatch-stats.py`，它扫本机登记过的项目（`~/.config/roadstar/projects.txt`，dex-exec.sh 每次派活自动登记；也可以用参数指定目录）里的 `docs/roadstar/**/rounds/exec-*.meta`，按「类别 × 型号 × 强度」出表：次数、完成率、碰壁率、升级率、平均用时、平均额度差。没写 `class` 的旧记录归「未分类」。完工报告的「派活经验」一节贴这张表的要点，这些数据随回传进社区汇总（`docs/社区数据回传.md`）。
 2. 作者每周出一次「社区经验周报」，用社区汇总表（还没有回传数据时用作者本机的表），按下面的门槛提调整建议，交主席拍板：
    - 往下挪（省额度）：某类活在更便宜的一层有 5 次以上记录、来自至少 3 个不同的人、完成率 ≥ 90%，把这类活的起步层降到它。
    - 往上挪（少返工）：某类活在当前起步层有 5 次以上记录，完成率 < 60% 或碰壁率 > 30%，起步层升一级。
    - 样本不够的只记不改。
-3. 主席点头后，改 SKILL.md 第 8 节的表和 `models.md` 的实测表，CHANGELOG 记一条，写明依据的统计行，发新版本。主席没点头的建议留在周报里，不改表。
+3. 主席说「可以迭代了」的那周，Claude 按门槛改 SKILL.md 第 8 节的表、`strategies.json` 的自动列和 `models.md` 的实测表，CHANGELOG 记一条写明依据的统计行，发新版本；周报写结论给主席。没说就只出周报，不改表。自动迭代脚本（`iterate.py`）1.12 不做，先靠这条手工规矩。
 4. 用户开场时 `scripts/update-check.py` 会提醒有没有新版本，说「更新 Roadstar」就拉到最新，分工表跟着更新。
 
 ## 7 只用 Claude 时
