@@ -1076,4 +1076,25 @@ for bad in bad-missing bad-family bad-role bad-date; do expect_exit 2 python3 "$
 expect_exit 2 python3 "$SCRIPTS/providers-check.py" "$TMP/does-not-exist.json"
 pass 'providers.json valid; every priced model has date and source; missing field, unknown family, bad role and bad date exit 2'
 
+# quota-config.py: unknown key, missing file, atomic write, idempotent init.
+QCFG="$TMP/quota config"
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" show > "$TMP/qc-show.txt"
+grep -q '还没建文件' "$TMP/qc-show.txt" && grep -q '未填' "$TMP/qc-show.txt"
+[[ ! -e "$QCFG/quota.json" ]]
+expect_exit 2 env ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" set api_budget_usd.openai 20
+expect_exit 2 env ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" set default_strategy fastest
+expect_exit 2 env ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" set grok_plan gold
+[[ ! -e "$QCFG/quota.json" ]]
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" set default_strategy thrift > /dev/null
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" set try_new_models 开 > /dev/null
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" set grok_plan premium > /dev/null
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" set grace.folder "Grace × Cloud 交接 / 05-Roadstar 引路星" > /dev/null
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" show --json > "$TMP/qc.json"
+json_check "$TMP/qc.json" 'd["default_strategy"] == "thrift" and d["try_new_models"] is True and d["grok_plan"] == "premium" and d["grace"]["enabled"] is True and d["exists"] is True and "api_budget_usd" not in d'
+[[ -z "$(ls "$QCFG" | grep -v '^quota.json$')" ]]
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" init | grep -q '已有'
+printf 'not json' > "$QCFG/quota.json"
+ROADSTAR_CONFIG_DIR="$QCFG" python3 "$SCRIPTS/quota-config.py" show | grep -q '还没建文件'
+pass 'quota-config unknown key and bad values exit 2 without writing, set/show round-trip, atomic write leaves no temp file, init idempotent, broken file falls back'
+
 printf 'PASS %d checks\n' "$COUNT"
