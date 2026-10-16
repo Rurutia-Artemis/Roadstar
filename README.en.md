@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 or later">
-  <img src="https://img.shields.io/badge/version-1.11.0-F2B544?style=flat-square" alt="version 1.11.0">
+  <img src="https://img.shields.io/badge/version-1.12.0-F2B544?style=flat-square" alt="version 1.12.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash and Python standard library only">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT license">
 </p>
@@ -27,10 +27,14 @@ Every run starts with one line of setup and a live quota reading. The probe read
 ```console
 $ python3 skill/scripts/quota-status.py
 Claude：5 小时 4%（18:49 重置）｜本周 82%（10-18 12:59 重置）｜Fable 2%（上限是周额度一半） → 紧
-Codex：本周 24%（10-20 14:57 重置）｜重置卡 1 张｜credits … → 正常
+Codex：本周 9%（10-22 15:50 重置）｜重置卡 1 张｜credits … → 正常
+Grok：已登录 grok-4.7（4 个型号）｜额度读不到（CLI 没有接口） → ？
+API key：有（anthropic）；1.12 只记有无，派活不用
 ```
 
-Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this week the coding goes to Codex.
+Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this week the coding goes to Codex. Since 1.12 the reading opens a panel: how many providers are connected, each one's reading and tier, and how many pieces of work the week still holds once reset cards are counted (a piece is one ordinary page-implementation lane). Numbers whose coefficient is still the default carry a "≈" and the raw percentage next to them. The panel ends with one question about strategy. Enter means auto; one word switches to quality, thrift or rush for this run only.
+
+<p align="center"><img src="./assets/readme/panel.svg" width="100%" alt="Opening panel, one question, then a schedule. Panel: 3 providers connected plus Grace for research; Claude Max week 97%, 0 points left; Codex Pro week 8% with 1 reset card, about 273 pieces; Grok logged in but quota unreadable. About 273 pieces this week at low confidence, 300 more per reset card. Strategy: auto, quality, thrift, rush; Enter means auto. Schedule: six tasks with model, estimate and finish time; lane time 5h48, three Codex lanes, critical path 2, 3, 5, 6, all done by 19:24. Every number comes from a script."></p>
 
 <p align="center"><img src="./assets/readme/section-2.svg" width="100%" alt="02 What it fixes: two subscriptions, a second model, less babysitting"></p>
 
@@ -48,7 +52,7 @@ Discuss mode does not open with engineering. Most people know the main feature a
 
 ### Dispatching and checking work is exhausting
 
-Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
+After the discussion, the task table is a schedule: for each task the model, the reason, an estimated duration and the time it should be accepted, then a total line with lane hours, the critical path and the finish time for the whole run. The completion report compares estimate with actual, and a local calibration table makes the next estimate closer. Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
 
 ### A stuck task stops early, and only the unfinished part moves up
 
@@ -82,7 +86,7 @@ If you are an AI agent doing the install, follow these steps:
 
 1. Clone into a permanent folder such as `~/Roadstar`. The installer links to that folder, so do not clone into a temp directory and do not move or delete it afterwards.
 2. Run `./install.sh` from the repo root. It prints one `已链接` (linked) line per target.
-3. Verify: `ls -l ~/.claude/skills/roadstar` points to the repo's `skill/`, and `bash skill/scripts/tests/run.sh` ends with `PASS 32 checks`.
+3. Verify: `ls -l ~/.claude/skills/roadstar` points to the repo's `skill/`, and `bash skill/scripts/tests/run.sh` ends with `PASS 83 checks`.
 4. Check Codex: `codex --version` should be 0.160 or later (install with `npm i -g @openai/codex@latest`), and `codex login status` should say logged in. Logging in opens a browser, so ask the human to run `codex login` themselves. Without Codex, Roadstar still runs in Claude-only mode.
 5. Tell the human to start a new Claude Code session (skills load at session start) and say 「用 skill」 or `/roadstar`.
 
@@ -92,7 +96,7 @@ Requirements:
 - [Codex CLI](https://github.com/openai/codex) 0.160 or later, signed in with a ChatGPT account: `npm i -g @openai/codex@latest`
 - macOS, bash and Python 3; the scripts use only the standard library
 
-No Codex? It falls back to a Claude-only mode: a Fable subagent reviews the plan (marked as same-vendor in the notes) and Haiku, Sonnet or Opus does the work. This mode exists but has not been through a complete real run yet. The same goes for the four-tier Claude setup, early stops and the learning loop, added on 2026-10-14. Most older dispatch records carry no task class, so the experience table needs a few more runs before it says much.
+No Codex? It falls back to a Claude-only mode: a Fable subagent reviews the plan (marked as same-vendor in the notes) and Haiku, Sonnet or Opus does the work. This mode exists but has not been through a complete real run yet. The same goes for the four-tier Claude setup, early stops and the learning loop, added on 2026-10-14, and for the opening panel and schedule added on 2026-10-16: the scripts pass their tests, but no full run has gone through the new screens yet, and the pieces-per-point coefficient on the panel is still a default. Grok CLI is listed on the panel but gets no work in this version. Most older dispatch records carry no task class, so the experience table needs a few more runs before it says much.
 
 ## Repository
 

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 580" role="img" aria-labelledby="t d">
+<title id="t">Opening panel, one question, then a schedule</title>
+<desc id="d">Connected: 3 providers + Grace. Claude Max week 97% 0 pt; Codex Pro week 8% · 1 reset card ≈ 273 pieces; Grok logged in · quota unreadable ?. ≈ 273 pieces this week (low confidence) · +300 per reset card. Strategy: Auto / Quality / Thrift / Rush. Enter = Auto. One word switches, this run only. Schedule: who, why, estimate, done by: 1 Data layer Astra · high 103 min 17:12; 2 Mockups me 37 min 15:58; 3 Entry page 6.1 Sol · high 31 min 16:58; 4 Monthly stats 6.1 Sol · high 31 min 17:23; 5 CSV export 6.1 Sol · medium 13 min 17:34; 6 Merge + full tests 6.1 Sol · high 94 min 19:24. Lane time 5h48 · 3 Codex lanes · critical path 2 → 3 → 5 → 6 All done by 19:24 JST, counted from your go Every number comes from a script; the report later compares estimate with actual.</desc>
+<rect width="1200" height="580" rx="28" fill="#F7F4EE"/>
+<text x="56" y="66" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="40" font-weight="800" fill="#2B2A3D">Opening panel, one question, then a schedule</text>
+<rect x="56" y="96" width="520" height="396" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<path d="M86,118 Q86,130 98,130 Q86,130 86,142 Q86,130 74,130 Q86,130 86,118 Z" fill="#F2B544" opacity="1.0"/>
+<text x="108" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#2B2A3D">Connected: 3 providers + Grace</text>
+<text x="84" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="700" fill="#2B2A3D">Claude Max</text>
+<text x="236" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">week 97%</text>
+<rect x="84" y="192" width="300" height="12" rx="6" fill="#E4DED3"/>
+<rect x="84" y="192" width="291" height="12" rx="6" fill="#E07A5F"/>
+<text x="548" y="202" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="22" font-weight="800" fill="#E07A5F">0 pt</text>
+<text x="84" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="700" fill="#2B2A3D">Codex Pro</text>
+<text x="236" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">week 8% · 1 reset card</text>
+<rect x="84" y="258" width="300" height="12" rx="6" fill="#E4DED3"/>
+<rect x="84" y="258" width="24" height="12" rx="6" fill="#3E9C9E"/>
+<text x="548" y="268" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="22" font-weight="800" fill="#3E9C9E">≈ 273 pieces</text>
+<text x="84" y="312" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="700" fill="#2B2A3D">Grok</text>
+<text x="236" y="312" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">logged in · quota unreadable</text>
+<rect x="84" y="324" width="300" height="12" rx="6" fill="#E4DED3"/>
+<text x="234" y="335" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#8A8798">? ? ?</text>
+<text x="548" y="334" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="22" font-weight="800" fill="#8A8798">?</text>
+<text x="84" y="380" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="17" fill="#2B2A3D">≈ 273 pieces this week (low confidence) · +300 per reset card</text>
+<text x="84" y="422" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" font-weight="700" fill="#2B2A3D">Strategy</text>
+<rect x="184" y="402" width="78" height="30" rx="15" fill="#F2B544" stroke="#F2B544" stroke-width="2"/>
+<text x="223.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">Auto</text>
+<rect x="272" y="402" width="114" height="30" rx="15" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="329.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="500" fill="#2B2A3D">Quality</text>
+<rect x="396" y="402" width="102" height="30" rx="15" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="447.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="500" fill="#2B2A3D">Thrift</text>
+<rect x="508" y="402" width="78" height="30" rx="15" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="547.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="500" fill="#2B2A3D">Rush</text>
+<text x="84" y="456" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">Enter = Auto. One word switches, this run only.</text>
+<rect x="612" y="96" width="532" height="396" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<path d="M642,118 Q642,130 654,130 Q642,130 642,142 Q642,130 630,130 Q642,130 642,118 Z" fill="#3E9C9E" opacity="1.0"/>
+<text x="664" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#2B2A3D">Schedule: who, why, estimate, done by</text>
+<text x="636" y="186" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">1</text>
+<text x="656" y="186" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">Data layer</text>
+<text x="656" y="206" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">Astra · high</text>
+<rect x="812" y="172" width="94" height="18" rx="9" fill="#E07A5F" opacity="0.9"/>
+<text x="1120" y="186" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">17:12</text>
+<text x="636" y="232" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">2</text>
+<text x="656" y="232" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">Mockups</text>
+<text x="656" y="252" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">me</text>
+<rect x="821" y="218" width="34" height="18" rx="9" fill="#F2B544" opacity="0.9"/>
+<text x="1120" y="232" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">15:58</text>
+<text x="636" y="278" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">3</text>
+<text x="656" y="278" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">Entry page</text>
+<text x="656" y="298" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · high</text>
+<rect x="869" y="264" width="28" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="278" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">16:58</text>
+<text x="636" y="324" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">4</text>
+<text x="656" y="324" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">Monthly stats</text>
+<text x="656" y="344" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · high</text>
+<rect x="874" y="310" width="28" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="324" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">17:23</text>
+<text x="636" y="370" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">5</text>
+<text x="656" y="370" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">CSV export</text>
+<text x="656" y="390" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · medium</text>
+<rect x="909" y="356" width="12" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="370" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">17:34</text>
+<text x="636" y="416" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">6</text>
+<text x="656" y="416" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">Merge + full tests</text>
+<text x="656" y="436" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · high</text>
+<rect x="957" y="402" width="85" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="416" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">19:24</text>
+<text x="636" y="458" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="16" fill="#2B2A3D">Lane time 5h48 · 3 Codex lanes · critical path 2 → 3 → 5 → 6</text>
+<text x="636" y="480" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="16" fill="#2B2A3D">All done by 19:24 JST, counted from your go</text>
+<rect x="56" y="514" width="1088" height="44" rx="14" fill="#2B2A3D"/>
+<path d="M84,528 Q84,536 92,536 Q84,536 84,544 Q84,536 76,536 Q84,536 84,528 Z" fill="#F2B544" opacity="1.0"/>
+<text x="104" y="543" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#F7F4EE">Every number comes from a script; the report later compares estimate with actual.</text>
+</svg>

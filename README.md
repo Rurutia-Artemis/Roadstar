@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.11.0-F2B544?style=flat-square" alt="版本 1.11.0">
+  <img src="https://img.shields.io/badge/version-1.12.0-F2B544?style=flat-square" alt="版本 1.12.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="只用 bash 和 Python 标准库">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT 许可">
 </p>
@@ -41,10 +41,16 @@
 ```console
 $ python3 skill/scripts/quota-status.py
 Claude：5 小时 4%（18:49 重置）｜本周 82%（10-18 12:59 重置）｜Fable 2%（上限是周额度一半） → 紧
-Codex：本周 24%（10-20 14:57 重置）｜重置卡 1 张｜credits … → 正常
+Codex：本周 9%（10-22 15:50 重置）｜重置卡 1 张｜credits … → 正常
+Grok：已登录 grok-4.7（4 个型号）｜额度读不到（CLI 没有接口） → ？
+API key：有（anthropic）；1.12 只记有无，派活不用
 ```
 
 Claude 紧、Codex 正常，所以这一周写代码的活就往 Codex 派，读到紧或者空了它一定停下来问我。模型最后拍板的永远是我，我说一句「这个月多用 GPT」，它这段时间都照着排。
+
+然后 1.12 这版我把这个读数做成了开场的一张面板，因为以前它只报一行宽紧，我心里其实没数这周到底还能派多少活。现在一调用，它先列出接了几家、每家读数和档位，再把重置卡算进去估一个「这周还能派约多少件」，一件就是一条常规的页面实现活，所以我一眼就能把「还能派 270 件」和「这场 6 件」放在一起看；只有一点要说明，就是每件扣多少额度这个系数现在还是默认值，所以数字前面带着「约」，旁边一定写着百分点，等它攒够几个点的记录以后会自己校准。面板最后问我一次策略，自动分配、质量优先、省着用、赶时间四种，我直接回车就是自动，说一个词就切，只管这一场；而且新项目它开场就说清楚讨论阶段用的是最强的型号、大概扣几点、要多久，我个人来讲是很喜欢这种先把账算给我看的做法。讨论完排活也换成了一张非常清楚的表，每件给哪个型号、为什么、预估多久、预计几点完成，下面加一行总时长和完工时刻，完工报告再把预估和实际对一遍账，所以它的预估会越跑越准。大家看，下面这张图就是这两屏的样子：
+
+<p align="center"><img src="./assets/readme/panel.zh-CN.svg" width="100%" alt="开场一张面板，问一次策略，排活给一张表。面板：接了 3 家加 Grace 调研；Claude Max 周 97% 还能派 0 点；Codex Pro 周 8%、重置卡 1 张，约 273 件；Grok 已登录但额度读不到。这周合计约 273 件（置信度低），刷重置卡可解锁 300 件。策略：自动分配、质量优先、省着用、赶时间，回车就是自动。排活表：6 件活各自的型号、预估和完成时刻，线上工时 5 小时 48 分，并行 3 条 Codex 线，关键路径 2、3、5、6，预计 19:24 全部完工。每个数字都来自脚本输出。"></p>
 
 另外一个是干活的和验收的一定不是同一个型号。Astra 写的让 Sol 复核，Sol 写的让 Astra 复核，或者 Claude 自己把验收命令重跑一遍；全部过了以后，Claude 还要在合并后的主干上亲自再跑一遍完整测试，Codex 自己报的<mark>「全过」只当参考</mark>。
 
@@ -58,7 +64,7 @@ Claude 紧、Codex 正常，所以这一周写代码的活就往 Codex 派，读
 
 <p align="center"><img src="./assets/readme/section-3.zh-CN.svg" width="100%" alt="03 不是特别方便的地方：要装 Codex 命令行，单家模式还没实跑"></p>
 
-它是按两边订阅都有来设计的，审方案和派活的两份脚本要本机装着 Codex 命令行，版本 0.160 以上。只订阅了 Claude 的朋友也能跑单家模式，审方案换成 Claude 另开一个 Fable 实例来挑错，执行走 Haiku、Sonnet、Opus，但是少了两家互相挑错那一层，而且这个模式还没有在一整场里实跑过；Claude 四层常驻、碰壁升级和经验表这一套是 10 月 14 号刚加的，同样还没实跑，以前的派活记录大多没写活的类别，所以经验表要再攒几场才真正用得上；只订阅 GPT 的版本我还没做。另外跑一场探讨要用掉两边的额度和半小时到一小时的时间，但是因为大活返工一次的代价远比这个高，所以对我个人来讲影响不大。
+它是按两边订阅都有来设计的，审方案和派活的两份脚本要本机装着 Codex 命令行，版本 0.160 以上。只订阅了 Claude 的朋友也能跑单家模式，审方案换成 Claude 另开一个 Fable 实例来挑错，执行走 Haiku、Sonnet、Opus，但是少了两家互相挑错那一层，而且这个模式还没有在一整场里实跑过；Claude 四层常驻、碰壁升级和经验表这一套是 10 月 14 号刚加的，同样还没实跑，以前的派活记录大多没写活的类别，所以经验表要再攒几场才真正用得上；开场面板和排活表是 10 月 16 号刚做的，脚本层面的测试都过了，但是整场按新流程走还没走过，面板上的件数系数也还是默认值；Grok 命令行它能列出来，但是读不到额度，这版先不派活；只订阅 GPT 的版本我还没做。另外跑一场探讨要用掉两边的额度和半小时到一小时的时间，但是因为大活返工一次的代价远比这个高，所以对我个人来讲影响不大。
 
 总之我个人来讲，两边订阅都有、经常让 AI 干一个小时干不完的大活的朋友，这个东西非常值得试一下；平时只改改小东西的朋友，其实不用特别的着急。试的时候哪里不顺手，直接告诉我就行。OK 那，这些就是我这段时间做 Roadstar 的一些体会，希望对大家有一定的参考价值。
 
@@ -69,7 +75,7 @@ git clone https://github.com/Rurutia-Artemis/Roadstar.git
 cd Roadstar && ./install.sh
 ```
 
-`install.sh` 把 `skill/` 软链到 `~/.claude/skills`、`~/.agents/skills` 和 `~/.codex/skills`。在任意项目里重开一个 Claude Code 会话，说一句「用 skill」或输入 `/roadstar` 就开始。以后我发了新版本，它开场时会提醒一句，说「更新 Roadstar」就拉到最新。
+`install.sh` 把 `skill/` 软链到 `~/.claude/skills`、`~/.agents/skills` 和 `~/.codex/skills`。在任意项目里重开一个 Claude Code 会话，说一句「用 skill」或输入 `/roadstar` 就开始，第一屏就是接入与额度面板。以后我发了新版本，它开场时会提醒一句，说「更新 Roadstar」就拉到最新。
 
 > [!TIP]
 > 最省事的装法是把这个仓库地址丢给 Claude Code，说一句「帮我装上」。
@@ -78,7 +84,7 @@ cd Roadstar && ./install.sh
 
 1. 克隆到一个长期保留的目录，比如 `~/Roadstar`。安装脚本链接的就是这个目录，不要克隆到临时目录，装完也不要移动或删除它。
 2. 在仓库根目录跑 `./install.sh`，每个目标会打印一行「已链接」。
-3. 验证：`ls -l ~/.claude/skills/roadstar` 指向仓库里的 `skill/`；`bash skill/scripts/tests/run.sh` 最后一行是 `PASS 32 checks`。
+3. 验证：`ls -l ~/.claude/skills/roadstar` 指向仓库里的 `skill/`；`bash skill/scripts/tests/run.sh` 最后一行是 `PASS 83 checks`。
 4. 查 Codex：`codex --version` 要 0.160 以上（没有就 `npm i -g @openai/codex@latest`），`codex login status` 要显示已登录。登录会打开浏览器，请让用户自己跑 `codex login`。没有 Codex 也能用单家模式。
 5. 告诉用户重开一个 Claude Code 会话（技能在会话开始时加载），说一句「用 skill」或输入 `/roadstar`。
 

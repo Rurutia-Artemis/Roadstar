@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 580" role="img" aria-labelledby="t d">
+<title id="t">最初にパネル、方針を一度だけ確認、そして工程表</title>
+<desc id="d">接続 3 社 ＋ Grace（調査担当）. Claude Max 週 97% 0 pt; Codex Pro 週 8% · リセット 1 枚 約 273 件; Grok ログイン済 · 残量は読めない ？. 今週の合計 約 273 件（信頼度 低）· リセットで +300 件. 方針: 自動 / 品質優先 / 節約 / 急ぎ. Enter で自動。一言で切り替え、この回だけ有効。 工程表：担当、理由、見積、完了時刻: 1 データ層 Astra · high 103 min 17:12; 2 モック 私 37 min 15:58; 3 入力画面 6.1 Sol · high 31 min 16:58; 4 月次集計 6.1 Sol · high 31 min 17:23; 5 CSV 出力 6.1 Sol · medium 13 min 17:34; 6 統合と全テスト 6.1 Sol · high 94 min 19:24. 作業 5h48 · Codex 3 並列 · クリティカルパス 2 → 3 → 5 → 6 19:24 JST 完了見込み、開始の合図から数えて 数字はすべてスクリプトの出力。完了時に見積と実績を突き合わせる。</desc>
+<rect width="1200" height="580" rx="28" fill="#F7F4EE"/>
+<text x="56" y="66" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="40" font-weight="800" fill="#2B2A3D">最初にパネル、方針を一度だけ確認、そして工程表</text>
+<rect x="56" y="96" width="520" height="396" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<path d="M86,118 Q86,130 98,130 Q86,130 86,142 Q86,130 74,130 Q86,130 86,118 Z" fill="#F2B544" opacity="1.0"/>
+<text x="108" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#2B2A3D">接続 3 社 ＋ Grace（調査担当）</text>
+<text x="84" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="700" fill="#2B2A3D">Claude Max</text>
+<text x="236" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">週 97%</text>
+<rect x="84" y="192" width="300" height="12" rx="6" fill="#E4DED3"/>
+<rect x="84" y="192" width="291" height="12" rx="6" fill="#E07A5F"/>
+<text x="548" y="202" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="22" font-weight="800" fill="#E07A5F">0 pt</text>
+<text x="84" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="700" fill="#2B2A3D">Codex Pro</text>
+<text x="236" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">週 8% · リセット 1 枚</text>
+<rect x="84" y="258" width="300" height="12" rx="6" fill="#E4DED3"/>
+<rect x="84" y="258" width="24" height="12" rx="6" fill="#3E9C9E"/>
+<text x="548" y="268" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="22" font-weight="800" fill="#3E9C9E">約 273 件</text>
+<text x="84" y="312" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="700" fill="#2B2A3D">Grok</text>
+<text x="236" y="312" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#8A8798">ログイン済 · 残量は読めない</text>
+<rect x="84" y="324" width="300" height="12" rx="6" fill="#E4DED3"/>
+<text x="234" y="335" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#8A8798">? ? ?</text>
+<text x="548" y="334" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="22" font-weight="800" fill="#8A8798">？</text>
+<text x="84" y="380" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="17" fill="#2B2A3D">今週の合計 約 273 件（信頼度 低）· リセットで +300 件</text>
+<text x="84" y="422" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" font-weight="700" fill="#2B2A3D">方針</text>
+<rect x="140" y="402" width="66" height="30" rx="15" fill="#F2B544" stroke="#F2B544" stroke-width="2"/>
+<text x="173.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">自動</text>
+<rect x="216" y="402" width="110" height="30" rx="15" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="271.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="500" fill="#2B2A3D">品質優先</text>
+<rect x="336" y="402" width="66" height="30" rx="15" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="369.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="500" fill="#2B2A3D">節約</text>
+<rect x="412" y="402" width="66" height="30" rx="15" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<text x="445.0" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="500" fill="#2B2A3D">急ぎ</text>
+<text x="84" y="456" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">Enter で自動。一言で切り替え、この回だけ有効。</text>
+<rect x="612" y="96" width="532" height="396" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
+<path d="M642,118 Q642,130 654,130 Q642,130 642,142 Q642,130 630,130 Q642,130 642,118 Z" fill="#3E9C9E" opacity="1.0"/>
+<text x="664" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#2B2A3D">工程表：担当、理由、見積、完了時刻</text>
+<text x="636" y="186" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">1</text>
+<text x="656" y="186" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">データ層</text>
+<text x="656" y="206" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">Astra · high</text>
+<rect x="812" y="172" width="94" height="18" rx="9" fill="#E07A5F" opacity="0.9"/>
+<text x="1120" y="186" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">17:12</text>
+<text x="636" y="232" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">2</text>
+<text x="656" y="232" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">モック</text>
+<text x="656" y="252" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">私</text>
+<rect x="821" y="218" width="34" height="18" rx="9" fill="#F2B544" opacity="0.9"/>
+<text x="1120" y="232" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">15:58</text>
+<text x="636" y="278" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">3</text>
+<text x="656" y="278" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">入力画面</text>
+<text x="656" y="298" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · high</text>
+<rect x="869" y="264" width="28" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="278" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">16:58</text>
+<text x="636" y="324" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">4</text>
+<text x="656" y="324" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">月次集計</text>
+<text x="656" y="344" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · high</text>
+<rect x="874" y="310" width="28" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="324" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">17:23</text>
+<text x="636" y="370" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">5</text>
+<text x="656" y="370" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">CSV 出力</text>
+<text x="656" y="390" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · medium</text>
+<rect x="909" y="356" width="12" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="370" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">17:34</text>
+<text x="636" y="416" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#8A8798">6</text>
+<text x="656" y="416" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="700" fill="#2B2A3D">統合と全テスト</text>
+<text x="656" y="436" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="15" fill="#8A8798">6.1 Sol · high</text>
+<rect x="957" y="402" width="85" height="18" rx="9" fill="#3E9C9E" opacity="0.9"/>
+<text x="1120" y="416" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#2B2A3D">19:24</text>
+<text x="636" y="458" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="16" fill="#2B2A3D">作業 5h48 · Codex 3 並列 · クリティカルパス 2 → 3 → 5 → 6</text>
+<text x="636" y="480" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="16" fill="#2B2A3D">19:24 JST 完了見込み、開始の合図から数えて</text>
+<rect x="56" y="514" width="1088" height="44" rx="14" fill="#2B2A3D"/>
+<path d="M84,528 Q84,536 92,536 Q84,536 84,544 Q84,536 76,536 Q84,536 84,528 Z" fill="#F2B544" opacity="1.0"/>
+<text x="104" y="543" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" fill="#F7F4EE">数字はすべてスクリプトの出力。完了時に見積と実績を突き合わせる。</text>
+</svg>

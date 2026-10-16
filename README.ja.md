@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 以上">
-  <img src="https://img.shields.io/badge/version-1.11.0-F2B544?style=flat-square" alt="バージョン 1.11.0">
+  <img src="https://img.shields.io/badge/version-1.12.0-F2B544?style=flat-square" alt="バージョン 1.12.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash と Python 標準ライブラリのみ">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT ライセンス">
 </p>
@@ -27,10 +27,16 @@ Roadstar は、Claude Code のメインセッションを Codex の指揮役に�
 ```console
 $ python3 skill/scripts/quota-status.py
 Claude：5 小时 4%（18:49 重置）｜本周 82%（10-18 12:59 重置）｜Fable 2%（上限是周额度一半） → 紧
-Codex：本周 24%（10-20 14:57 重置）｜重置卡 1 张｜credits … → 正常
+Codex：本周 9%（10-22 15:50 重置）｜重置卡 1 张｜credits … → 正常
+Grok：已登录 grok-4.7（4 个型号）｜额度读不到（CLI 没有接口） → ？
+API key：有（anthropic）；1.12 只记有无，派活不用
 ```
 
 Claude の利用枠は「逼迫」（紧）、Codex は「通常」（正常）なので、今週の実装は Codex に回します。出力は中国語です。
+
+1.12 からは、この読み取りが最初の画面になります。接続している会社の数、各社の残量と段階、リセット券を含めて今週あと何件さばけるか（1 件は通常の画面実装 1 本分）を一枚のパネルに並べます。係数がまだ既定値の数字には「約」が付き、横に百分率も残します。パネルの最後に方針を一度だけ尋ねます。Enter なら自動、一言で品質優先・節約・急ぎに切り替わり、その回だけ有効です。議論が終わると工程表が出ます。各タスクの担当モデル、理由、見積時間、完了見込み時刻に、全体の作業時間と完了時刻を添えます。完了レポートでは見積と実績を突き合わせ、次回の見積に反映します。
+
+<p align="center"><img src="./assets/readme/panel.ja.svg" width="100%" alt="最初にパネル、方針を一度だけ確認、そして工程表。パネル：接続 3 社と調査担当 Grace。Claude Max は週 97% で残り 0 pt、Codex Pro は週 8% でリセット 1 枚、約 273 件、Grok はログイン済みだが残量は読めない。今週の合計は約 273 件（信頼度 低）、リセットで 300 件追加。方針：自動、品質優先、節約、急ぎ。Enter で自動。工程表：6 件それぞれのモデル、見積、完了時刻。作業 5 時間 48 分、Codex 3 並列、クリティカルパス 2、3、5、6、19:24 完了見込み。数字はすべてスクリプトの出力。"></p>
 
 <p align="center"><img src="./assets/readme/section-2.ja.svg" width="100%" alt="02 何が楽になるか：サブスク二つ、もう一社の目、割り振りと確認"></p>
 
@@ -82,7 +88,7 @@ cd Roadstar && ./install.sh
 
 1. `~/Roadstar` のような長く残すフォルダにクローンします。インストーラーはこのフォルダへリンクを張るので、一時ディレクトリには置かず、インストール後も移動・削除しないでください。
 2. リポジトリのルートで `./install.sh` を実行します。リンク先ごとに「已链接」（リンク済み）が 1 行ずつ表示されます。
-3. 確認：`ls -l ~/.claude/skills/roadstar` がリポジトリの `skill/` を指していること、`bash skill/scripts/tests/run.sh` の最後が `PASS 32 checks` であること。
+3. 確認：`ls -l ~/.claude/skills/roadstar` がリポジトリの `skill/` を指していること、`bash skill/scripts/tests/run.sh` の最後が `PASS 83 checks` であること。
 4. Codex の確認：`codex --version` が 0.160 以上（なければ `npm i -g @openai/codex@latest`）、`codex login status` がログイン済みであること。ログインにはブラウザが開くので、`codex login` はユーザー本人に実行してもらってください。Codex がなくても Claude だけのモードで動きます。
 5. Claude Code のセッションを開き直すようユーザーに伝えます（skill はセッション開始時に読み込まれます）。そのあと「用 skill」と言うか `/roadstar` と入力すれば始まります。
 
@@ -92,7 +98,7 @@ cd Roadstar && ./install.sh
 - [Codex CLI](https://github.com/openai/codex) 0.160 以上、ChatGPT アカウントでログイン済み：`npm i -g @openai/codex@latest`
 - macOS、bash、Python 3（スクリプトは標準ライブラリのみ）
 
-Codex がなくても Claude だけのモードで動きます。計画のレビューは Fable のサブエージェントが担当し（記録には同じ会社のモデル同士と明記）、実装は作業内容に応じて Haiku、Sonnet、Opus が担当します。このモードは実装済みですが、実際のプロジェクトで最初から最後まで通したことはまだありません。2026-10-14 に加えた Claude 4 層の常時運用、早めの停止、実績からの学習も同じくまだ本番で通していません。過去の記録の多くには作業の種類が入っていないため、実績表が役に立つまでには何回か実行を重ねる必要があります。
+Codex がなくても Claude だけのモードで動きます。計画のレビューは Fable のサブエージェントが担当し（記録には同じ会社のモデル同士と明記）、実装は作業内容に応じて Haiku、Sonnet、Opus が担当します。このモードは実装済みですが、実際のプロジェクトで最初から最後まで通したことはまだありません。2026-10-14 に加えた Claude 4 層の常時運用、早めの停止、実績からの学習も同じくまだ本番で通していません。2026-10-16 に加えた最初のパネルと工程表も、スクリプトのテストは通っていますが、新しい画面で一回を通したことはまだなく、パネルの件数係数も既定値のままです。Grok CLI はパネルに並ぶだけで、この版では仕事を回しません。過去の記録の多くには作業の種類が入っていないため、実績表が役に立つまでには何回か実行を重ねる必要があります。
 
 ## 構成
 
