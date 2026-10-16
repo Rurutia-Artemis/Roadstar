@@ -1051,4 +1051,29 @@ print('telemetry built-in validation enforces exact keys, enum values, types, bo
 PY
 while IFS= read -r check; do pass "$check"; done < "$TMP/telemetry-checks.txt"
 
+
+# ---------------------------------------------------------------- 1.12 ----
+# providers.json registry and its validator (no network; the data file is the fixture).
+python3 "$SCRIPTS/providers-check.py" > "$TMP/providers.txt"
+grep -q '合法' "$TMP/providers.txt"
+python3 "$SCRIPTS/providers-check.py" --list | grep -q 'Fable 5.1'
+python3 - "$SCRIPTS/../references/providers.json" "$TMP" <<'PY'
+import json, sys
+from pathlib import Path
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+out = Path(sys.argv[2])
+for model in data["models"]:
+    assert set(("family", "access", "price", "context", "bench", "default_role")) <= set(model), model["id"]
+    if model["price"] is not None:
+        assert model["price_checked"] and model["price_source"], model["id"]
+assert "grace" in data["partners"] and data["partners"]["grace"]["role"] == "调研协作方"
+bad = json.loads(json.dumps(data)); del bad["models"][0]["bench"]; (out / "bad-missing.json").write_text(json.dumps(bad), encoding="utf-8")
+bad = json.loads(json.dumps(data)); bad["models"][1]["family"] = "unknown-house"; (out / "bad-family.json").write_text(json.dumps(bad), encoding="utf-8")
+bad = json.loads(json.dumps(data)); bad["models"][2]["default_role"] = "随便"; (out / "bad-role.json").write_text(json.dumps(bad), encoding="utf-8")
+bad = json.loads(json.dumps(data)); bad["models"][3]["price_checked"] = "昨天"; (out / "bad-date.json").write_text(json.dumps(bad), encoding="utf-8")
+PY
+for bad in bad-missing bad-family bad-role bad-date; do expect_exit 2 python3 "$SCRIPTS/providers-check.py" "$TMP/$bad.json"; done
+expect_exit 2 python3 "$SCRIPTS/providers-check.py" "$TMP/does-not-exist.json"
+pass 'providers.json valid; every priced model has date and source; missing field, unknown family, bad role and bad date exit 2'
+
 printf 'PASS %d checks\n' "$COUNT"
