@@ -1122,6 +1122,54 @@ assert q.api_keys_probe({"OPENAI_API_KEY": "x", "DEEPSEEK_API_KEY": "  "})["pres
 PY
 pass 'quota-status grok column: logged in, logged out, error, hang within patched timeout, missing binary; api_keys by name only, secrets never printed, old keys intact'
 
+# quota-estimate.py: units, confidence, unlockable, unreadable family, calibrated path, session and plan.
+EST="$TMP/estimate"
+mkdir -p "$EST"
+FAKE_CLAUDE_USED=97 FAKE_CLAUDE_FABLE=19 FAKE_CODEX_USED=8 FAKE_CODEX_CARDS=1 python3 "$SCRIPTS/quota-status.py" --json > "$EST/probe-a.json"
+ROADSTAR_CONFIG_DIR="$EST/nocfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-a.json" --session 探讨 --now 2026-10-16T06:00:00Z > "$EST/a.json"
+json_check "$EST/a.json" 'd["providers"]["codex"]["available_points"] == 82 and d["providers"]["codex"]["calibrated"] is False and d["providers"]["codex"]["units_text"].startswith("约 ") and d["providers"]["codex"]["confidence"] == "低" and d["providers"]["codex"]["unlockable_units"] is not None and d["providers"]["codex"]["units"] == int(82 / 0.3) and d["providers"]["claude"]["tier"] == "空" and d["providers"]["claude"]["units"] is None and d["providers"]["claude"]["available_points"] == 0 and d["total"]["included"] == ["codex"] and d["total"]["units"] == d["providers"]["codex"]["units"] and d["total"]["confidence"] == "低" and d["strategy"] == "auto" and d["strategy_from"] == "默认" and d["config_exists"] is False and d["session"]["rounds"] == 3 and d["session"]["feature_map_calls"] == 2 and d["session"]["codex_points"] > 0 and d["session"]["enough"] is True and d["connected_count"] == 3 and d["connected_text"].startswith("接了 3 家") and d["grace"]["role"] == "调研协作方" and d["skill_version"].startswith("1.12")'
+python3 - "$EST/a.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+c = d["providers"]["codex"]
+assert c["unlockable_points"] == 90 and c["unlockable_units"] == int(90 / 0.3), c
+assert c["units"] + c["unlockable_units"] > c["units"] and d["total"]["unlockable_units"] == c["unlockable_units"]
+assert "10-19" in c["reset_jst"] and d["providers"]["claude"]["reset_jst"]
+assert d["providers"]["grok"]["connected"] and d["providers"]["grok"]["units"] is None and d["providers"]["grok"]["confidence"] == "无"
+PY
+# Unreadable Claude: not in the total, note carried from the probe, tier text says 按紧处理.
+python3 - "$EST/probe-a.json" "$EST/probe-b.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+d["claude"] = {"tier": None, "plan": None, "source": "none", "fetched_at": d["claude"]["fetched_at"], "five_hour": None, "seven_day": None, "fable": None, "pending_tier": None}
+d["note"] = ["Claude（额度不可用或尚未登录）"]
+json.dump(d, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False)
+PY
+ROADSTAR_CONFIG_DIR="$EST/nocfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-b.json" > "$EST/b.json"
+json_check "$EST/b.json" 'd["providers"]["claude"]["connected"] is False and d["providers"]["claude"]["confidence"] == "无" and "尚未登录" in d["providers"]["claude"]["note"] and "按紧处理" in d["providers"]["claude"]["tier_text"] and d["total"]["included"] == ["codex"] and d["connected_count"] == 2'
+# Calibrated local table removes 约 and lifts confidence; quota.json default strategy and --strategy override.
+cat > "$EST/estimates.json" <<'JSON'
+{"schema": 1, "cells": {"页面实现|gpt-6.1-sol|high": {"count": 12, "p50_minutes": 18, "p80_minutes": 25, "p50_tokens": 40000}}, "providers": {"codex": {"tokens_per_point": 80000, "points": 5, "calibrated": true}, "claude": {"tokens_per_point": null, "calibrated": false}}}
+JSON
+mkdir -p "$EST/cfg"
+printf '{"default_strategy": "thrift", "try_new_models": true, "grok_plan": "super", "grace": {"enabled": false}}\n' > "$EST/cfg/quota.json"
+ROADSTAR_CONFIG_DIR="$EST/cfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-a.json" --estimates "$EST/estimates.json" > "$EST/c.json"
+json_check "$EST/c.json" 'd["providers"]["codex"]["calibrated"] is True and abs(d["providers"]["codex"]["points_per_unit"] - 0.5) < 1e-9 and d["providers"]["codex"]["units"] == 164 and d["providers"]["codex"]["units_text"] == "164 件" and d["providers"]["codex"]["confidence"] == "高" and d["total"]["calibrated"] is True and d["strategy"] == "thrift" and d["strategy_from"] == "quota.json" and d["try_new_models"] is True and d["providers"]["grok"]["self_reported_plan"] == "super" and d["grace"]["enabled"] is False and d["config_exists"] is True'
+ROADSTAR_CONFIG_DIR="$EST/cfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-a.json" --strategy rush --session 探讨 --size 大 > "$EST/d.json"
+json_check "$EST/d.json" 'd["strategy"] == "rush" and d["strategy_from"] == "命令行" and d["session"]["rounds"] == 2 and d["session"]["feature_map_calls"] == 1'
+cat > "$EST/plan.md" <<'MD'
+## 10 拆分表
+| T# | 任务 | 类别 | 执行方（型号·强度） | 上限 | 审查人 | 依赖 | 理由 |
+|---|---|---|---|---|---|---|---|
+| T1 | 数据层 | 跨模块 | Codex 的 Astra · 高 | 4h | Codex 的 6.1 Sol 只读 | 无 | 底座 |
+| T2 | 页面 A | 页面实现 | Codex 的 6.1 Sol · 高 | 2h | Sonnet 只读 | T1 | 规格清楚 |
+| T3 | 页面 B | 页面实现 | Sonnet | 2h | Codex 的 6.1 Sol 只读 | T1 | Codex 线满 |
+MD
+ROADSTAR_CONFIG_DIR="$EST/nocfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-a.json" --plan "$EST/plan.md" > "$EST/e.json"
+json_check "$EST/e.json" 'len(d["plan"]["tasks"]) == 3 and d["plan"]["tasks"][0]["family"] == "codex" and d["plan"]["tasks"][2]["family"] == "claude" and d["plan"]["totals"]["codex"]["units"] > d["plan"]["totals"]["claude"]["units"] > 0 and d["plan"]["totals"]["codex"]["points"] > 0 and "→" in d["plan"]["totals"]["codex"]["text"] and d["plan"]["shortfall"] == {}'
+expect_exit 2 python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/missing.json"
+pass 'quota-estimate: uncalibrated 约 with points, reset cards only unlockable, unreadable family out of total, calibrated local table, quota.json default and --strategy override, session and plan costs'
+
 # strategies.json / strategies.md consistency with SKILL §8.
 python3 - "$SCRIPTS/../SKILL.md" "$SCRIPTS/../references/strategies.json" "$SCRIPTS/../references/strategies.md" <<'PY'
 import json, re, sys
