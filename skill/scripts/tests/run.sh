@@ -1170,6 +1170,71 @@ json_check "$EST/e.json" 'len(d["plan"]["tasks"]) == 3 and d["plan"]["tasks"][0]
 expect_exit 2 python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/missing.json"
 pass 'quota-estimate: uncalibrated 约 with points, reset cards only unlockable, unreadable family out of total, calibrated local table, quota.json default and --strategy override, session and plan costs'
 
+# panel.py: size limits, every number traceable to the input JSON, strategies, single mode, compact.
+python3 - "$SCRIPTS/panel.py" "$EST" <<'PY'
+import json, re, subprocess, sys, unicodedata
+from pathlib import Path
+panel, est = sys.argv[1], Path(sys.argv[2])
+def width(text):
+    return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
+def render(estimate, *extra):
+    out = subprocess.run([sys.executable, panel, "--estimate", str(estimate), "--json", *extra], capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr
+    return json.loads(out.stdout)
+numbers = re.compile(r"\d+(?:[.:]\d+)*")
+model_names = re.compile(r"6\.1 Sol|grok-4\.\d(?:-build-fast)?")  # model names carry digits that are labels, not readings
+def traceable(lines, source):
+    blob = json.dumps(json.load(open(source, encoding="utf-8")), ensure_ascii=False)
+    for line in lines:
+        for token in numbers.findall(model_names.sub("", line)):
+            assert token in blob, (token, line)
+for name, extra in (("a", ["--usage", "探讨", "--title", "记账 App"]), ("b", ["--usage", "协同"]), ("c", ["--usage", "复盘"]), ("e", ["--usage", "协同"])):
+    for strategy in ("auto", "quality", "thrift", "rush"):
+        blocks = render(est / f"{name}.json", "--strategy", strategy, *extra)
+        lines = blocks["panel"]
+        assert 10 <= len(lines) <= 14, (name, strategy, len(lines))
+        assert max(width(l) for l in lines) <= 80, (name, strategy, [width(l) for l in lines])
+        assert lines[0].startswith("Roadstar 1.12 · 接了") and lines[-1].endswith("不改我就跑。")
+        assert any("策略：" in l for l in lines) and any("这周合计" in l for l in lines)
+        traceable(lines, est / f"{name}.json")
+        assert blocks["preview"][0].endswith({"auto": "自动分配", "quality": "质量优先", "thrift": "省着用", "rush": "赶时间"}[strategy])
+        assert any(l.startswith(" 项目指令") for l in blocks["preview"])
+        if "探讨" in extra:
+            assert len(blocks["discuss"]) == (3 if strategy == "auto" else 4) and "探讨阶段用最强的" in blocks["discuss"][0]
+            if strategy != "auto":
+                assert "策略改了要准数再跑一次估算" in blocks["discuss"][1]
+            traceable(blocks["discuss"], est / f"{name}.json")
+        else:
+            assert "discuss" not in blocks
+# Unreadable Claude shows 按紧处理 and the Codex-side review pairing; readable Grok shows ？.
+b = render(est / "b.json", "--usage", "探讨")
+assert any("Claude" in l and "读不到" in l and "按紧处理" in l for l in b["panel"]), b["panel"]
+assert any("Grok" in l and "？" in l for l in b["panel"])
+assert any("Haiku 停用" in l for l in b["preview"]) and any("复核 Codex 的" in l for l in b["preview"]), b["preview"]
+# Quality strategy moves the start layer up and says 停下来问 nowhere in the panel (that is a runtime rule).
+q = render(est / "a.json", "--usage", "协同", "--strategy", "quality")
+assert any("Astra" in l for l in q["preview"] if l.startswith(" 页面")), q["preview"]
+# Single mode: no Codex at all.
+src = json.load(open(est / "a.json", encoding="utf-8"))
+src["providers"]["codex"] = {"label": "Codex", "connected": False, "source": "none", "tier": None, "plan": None, "plan_text": "订阅", "available_points": None, "weekly_used": None, "points_per_unit": None, "calibrated": False, "coefficient_source": None, "units": None, "units_text": None, "unlockable_units": None, "unlockable_points": None, "unlockable_text": None, "confidence": "无", "reading_text": "读不到（本机没有 Codex）", "reset_text": None, "reset_at": None, "reset_jst": None, "note": "本机没有 Codex", "lines": [], "tier_text": "读不到"}
+src["total"] = {"units": None, "included": [], "confidence": "无", "calibrated": False, "units_text": "件数待校准", "points_only": ["claude"], "unlockable_units": None, "unlockable_text": None, "resets": [], "resets_text": None}
+src["connected"] = ["claude", "grok"]; src["connected_count"] = 2; src["connected_text"] = "接了 2 家（Claude、Grok）"
+json.dump(src, open(est / "single.json", "w", encoding="utf-8"), ensure_ascii=False)
+s = render(est / "single.json", "--usage", "探讨")
+assert len(s["panel"]) <= 14 and any("单家模式" in l for l in s["panel"]) and any("单家模式" in l for l in s["preview"]) and any("同家" in l for l in s["preview"]), s
+traceable(s["panel"], est / "single.json")
+# Compact: two lines, carries both readings and the strategy.
+c = render(est / "a.json", "--compact", "--title", "10-16-ledger", "--remaining", "2", "--finish", "17:30")
+assert len(c["compact"]) == 2 and c["compact"][0].startswith("接着 10-16-ledger 那场，还剩 2 件。") and "Codex 本周 8%" in c["compact"][0] and "重置卡 1" in c["compact"][0] and "策略自动分配" in c["compact"][0] and c["compact"][1].startswith("预计 17:30 完工。"), c
+c = render(est / "b.json", "--compact", "--title", "题目")
+assert c["compact"][0].startswith("这次走协同：题目。Claude 读不到｜") , c
+# Text output joins blocks with a blank line.
+text = subprocess.run([sys.executable, panel, "--estimate", str(est / "a.json"), "--usage", "探讨"], capture_output=True, text=True).stdout
+assert text.count("\n\n") == 2 and "本项目分配" in text
+PY
+expect_exit 2 python3 "$SCRIPTS/panel.py" --estimate "$EST/nope.json"
+pass 'panel: ≤14 lines and ≤80 columns for four strategies × four readings, every number traceable to the input JSON, unreadable Claude and single mode, compact two lines'
+
 # strategies.json / strategies.md consistency with SKILL §8.
 python3 - "$SCRIPTS/../SKILL.md" "$SCRIPTS/../references/strategies.json" "$SCRIPTS/../references/strategies.md" <<'PY'
 import json, re, sys
