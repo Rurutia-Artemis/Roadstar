@@ -1122,4 +1122,40 @@ assert q.api_keys_probe({"OPENAI_API_KEY": "x", "DEEPSEEK_API_KEY": "  "})["pres
 PY
 pass 'quota-status grok column: logged in, logged out, error, hang within patched timeout, missing binary; api_keys by name only, secrets never printed, old keys intact'
 
+# strategies.json / strategies.md consistency with SKILL §8.
+python3 - "$SCRIPTS/../SKILL.md" "$SCRIPTS/../references/strategies.json" "$SCRIPTS/../references/strategies.md" <<'PY'
+import json, re, sys
+skill = open(sys.argv[1], encoding="utf-8").read()
+data = json.load(open(sys.argv[2], encoding="utf-8"))
+md = open(sys.argv[3], encoding="utf-8").read()
+section = skill[skill.index("### 8 "):]
+section = section[:section.index("\n### 9 ")]
+rows = {}
+for line in section.splitlines():
+    if line.startswith("|") and not line.startswith("|---") and not line.startswith("| 活"):
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) == 4:
+            rows[cells[0]] = cells
+assert len(rows) >= 12, rows.keys()
+checked = 0
+for klass, spec in data["classes"].items():
+    for strategy in ("auto", "quality", "thrift", "rush"):
+        cell = spec[strategy]
+        for key in ("exec", "cap", "review"):
+            assert cell.get(key), (klass, strategy, key)
+            assert "同左" not in cell[key] and "同上" not in cell[key], (klass, strategy, key)
+    assert klass in md, klass
+    if spec["skill_row"]:
+        row = rows.get(spec["skill_row"])
+        assert row, (klass, spec["skill_row"], list(rows))
+        assert row[1] == spec["auto"]["exec"], (klass, row[1], spec["auto"]["exec"])
+        assert row[2] == spec["auto"]["cap"], (klass, row[2], spec["auto"]["cap"])
+        assert row[3] == spec["auto"]["review"], (klass, row[3], spec["auto"]["review"])
+        checked += 1
+assert checked >= 10, checked
+for strategy, spec in data["strategies"].items():
+    assert spec["label"] in md and set(spec["parallel"]) == {"codex", "claude", "simulator"}
+PY
+pass 'strategies.json auto column equals SKILL §8 row by row; four columns filled without 同左; strategies.md lists every class and strategy'
+
 printf 'PASS %d checks\n' "$COUNT"

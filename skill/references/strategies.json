@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "note": "四种策略的起步层表，机器读。auto 列必须和 SKILL.md §8 表逐行一致（tests/run.sh 有断言）；策略只改起步层，碰壁升级链、经验回路、审查人跨家、钱和权限由 Argo 亲验在四种策略下一个字不变。策略偏移是运行时叠在表上的，不写回 §8。",
+  "strategies": {
+    "auto":    {"label": "自动分配", "one_line": "按 SKILL §8 那张表派，额度紧就自动降档并报一行",
+                "parallel": {"codex": 3, "claude": 1, "simulator": 2}, "review_rounds": 3, "review_rounds_large": 4, "fuse_delta": 0,
+                "quota_short": "自动降档、换梯子，报一行", "feature_map_review": true},
+    "quality": {"label": "质量优先", "one_line": "每类往梯子上挪到顶；额度不够停下来问，不自动降型号",
+                "parallel": {"codex": 3, "claude": 1, "simulator": 2}, "review_rounds": 4, "review_rounds_large": 4, "fuse_delta": 1,
+                "quota_short": "停下来问（刷卡、等重置、还是降档）", "feature_map_review": true},
+    "thrift":  {"label": "省着用", "one_line": "往下挪到最低能做的那层；易活不派复核；并行最多 2 条",
+                "parallel": {"codex": 2, "claude": 1, "simulator": 2}, "review_rounds": 2, "review_rounds_large": 3, "fuse_delta": -1,
+                "quota_short": "直接挂到重置后，不问刷卡", "feature_map_review": true},
+    "rush":    {"label": "赶时间", "one_line": "不挪层，改并行和复核：Codex 3 + Claude 3，中活 Argo 复跑验收代替独立复核，性能活推迟",
+                "parallel": {"codex": 3, "claude": 3, "simulator": 2}, "review_rounds": 2, "review_rounds_large": 2, "fuse_delta": 0,
+                "quota_short": "不串行，先问刷卡", "feature_map_review": false}
+  },
+  "classes": {
+    "页面实现": {
+      "skill_row": "规格或样张清楚的页面、功能、测试、合并",
+      "auto":    {"exec": "6.1 Sol / high ｜ Sonnet", "cap": "2h", "review": "Argo 复跑验收命令；Codex 写的加 Sonnet 只读复核"},
+      "quality": {"exec": "Astra / high ｜ Opus", "cap": "2h", "review": "Codex 写的 Opus 只读复核；Claude 写的 Astra / high 只读复核"},
+      "thrift":  {"exec": "6.1 Sol / medium ｜ Sonnet；碰壁先升强度再升型号", "cap": "2h", "review": "Argo 复跑验收命令；易活不派复核"},
+      "rush":    {"exec": "6.1 Sol / high ｜ Sonnet；Codex 线满 3 条时规格清楚的直接给 Sonnet 并行", "cap": "2h", "review": "Argo 复跑验收命令，不派独立复核"}
+    },
+    "窄回归": {
+      "skill_row": "已定位的窄回归、测试误判",
+      "auto":    {"exec": "6.1 Sol / high ｜ Sonnet", "cap": "1h", "review": "Argo 复跑"},
+      "quality": {"exec": "Astra / high ｜ Opus", "cap": "1h", "review": "Argo 复跑 + 另一家只读复核"},
+      "thrift":  {"exec": "6.1 Sol / medium ｜ Sonnet", "cap": "1h", "review": "Argo 复跑"},
+      "rush":    {"exec": "6.1 Sol / high ｜ Sonnet", "cap": "30 分钟", "review": "Argo 复跑"}
+    },
+    "跨模块": {
+      "skill_row": "跨模块底座、整库编译、多线合并加排查",
+      "auto":    {"exec": "Astra / high ｜ Opus", "cap": "4h", "review": "另一家只读复核（6.1 Sol / high 或 Sonnet）"},
+      "quality": {"exec": "Astra / xhigh ｜ Opus", "cap": "4h", "review": "另一家只读复核（Opus 或 Astra / high）"},
+      "thrift":  {"exec": "6.1 Sol / high ｜ Sonnet，拆到每份 1.5 小时内", "cap": "1.5h", "review": "另一家只读复核（Sonnet 或 6.1 Sol / high）"},
+      "rush":    {"exec": "Astra / high ｜ Opus，到点直接升级补全", "cap": "2h", "review": "另一家只读复核（6.1 Sol / high 或 Sonnet）"}
+    },
+    "根因": {
+      "skill_row": "根因不明的 bug",
+      "auto":    {"exec": "Astra / xhigh ｜ Opus，任务书附日志和可复现环境", "cap": "2h", "review": "Argo 复现 + 另一家只读复核"},
+      "quality": {"exec": "Astra / xhigh ｜ Opus，一轮没收敛就派 Fable 查根因", "cap": "2h", "review": "Argo 复现 + 另一家只读复核"},
+      "thrift":  {"exec": "Astra / high ｜ Opus", "cap": "2h", "review": "Argo 复现 + 另一家只读复核"},
+      "rush":    {"exec": "Astra / xhigh ｜ Opus，任务书附日志和可复现环境", "cap": "2h", "review": "Argo 复现 + 另一家只读复核"}
+    },
+    "补全": {
+      "skill_row": "碰壁后的补全（只含没过的检查项）",
+      "auto":    {"exec": "升级链高一级：Sol → Astra → Opus 或 Fable；Haiku → Sonnet → Opus → Fable", "cap": "原上限一半，最多 1h", "review": "和补全方型号不同的一家只读复核"},
+      "quality": {"exec": "升级链高一级：Sol → Astra → Opus 或 Fable；Haiku → Sonnet → Opus → Fable", "cap": "原上限一半，最多 1h", "review": "和补全方型号不同的一家只读复核"},
+      "thrift":  {"exec": "先升强度，再升型号", "cap": "原上限一半，最多 1h", "review": "和补全方型号不同的一家只读复核"},
+      "rush":    {"exec": "升级链高一级：Sol → Astra → Opus 或 Fable；Haiku → Sonnet → Opus → Fable", "cap": "原上限一半，最多 30 分钟", "review": "和补全方型号不同的一家只读复核"}
+    },
+    "性能": {
+      "skill_row": "对着数字的性能",
+      "auto":    {"exec": "Astra / high ｜ Opus，每小时看指标", "cap": "4h", "review": "换型号另开独立线复测"},
+      "quality": {"exec": "Astra / xhigh ｜ Opus，每小时看指标", "cap": "4h", "review": "换型号另开独立线复测"},
+      "thrift":  {"exec": "Astra / high ｜ Opus，每小时看指标", "cap": "2h", "review": "换型号另开独立线复测"},
+      "rush":    {"exec": "不接：赶时间做不了对数字的优化，纪要里写明推迟", "cap": "—", "review": "—"}
+    },
+    "视觉照做": {
+      "skill_row": "视觉设计",
+      "auto":    {"exec": "Argo 出样张（可派 Opus 子代理画）→ 主席点头 → 6.1 Sol / high ｜ Sonnet 照做", "cap": "—", "review": "Argo 逐元素对照样张"},
+      "quality": {"exec": "Opus 出 2 到 3 版样张 → 主席点头 → Astra / high ｜ Opus 照做", "cap": "—", "review": "Argo 逐元素对照样张"},
+      "thrift":  {"exec": "Argo 出 1 版样张 → 主席点头 → 6.1 Sol / medium ｜ Sonnet 照做", "cap": "—", "review": "Argo 逐元素对照样张"},
+      "rush":    {"exec": "Argo 出样张（可派 Opus 子代理画）→ 主席点头 → 6.1 Sol / high ｜ Sonnet 照做", "cap": "—", "review": "Argo 逐元素对照样张"}
+    },
+    "取证": {
+      "skill_row": "取证、扫记忆库、整理日志",
+      "auto":    {"exec": "Haiku 只读（常驻；Claude 紧时 6.1 Sol / medium 只读）", "cap": "—", "review": "不审"},
+      "quality": {"exec": "6.1 Sol / high 只读 ｜ Sonnet 只读（取证漏项的代价在后面）", "cap": "—", "review": "不审"},
+      "thrift":  {"exec": "Haiku 只读；开关开时 Luna / high 分一半试用", "cap": "—", "review": "不审"},
+      "rush":    {"exec": "Haiku 只读，一次发出一次收齐（Claude 紧时 6.1 Sol / medium 只读）", "cap": "—", "review": "不审"}
+    },
+    "批量": {
+      "skill_row": "机械批量（改名、格式、照抄模式、造测试数据）",
+      "auto":    {"exec": "Haiku（常驻；Claude 紧时 6.1 Sol / low 或 medium）", "cap": "1h", "review": "Argo 读 diff"},
+      "quality": {"exec": "6.1 Sol / medium ｜ Sonnet", "cap": "1h", "review": "Argo 读 diff"},
+      "thrift":  {"exec": "Haiku；开关开时 Luna 试用", "cap": "1h", "review": "Argo 读 diff"},
+      "rush":    {"exec": "Haiku（常驻；Claude 紧时 6.1 Sol / low 或 medium）", "cap": "1h", "review": "Argo 读 diff"}
+    },
+    "复核": {
+      "skill_row": "复核别人写的活（只读）",
+      "auto":    {"exec": "Codex 写的 Sonnet 只读；Claude 写的 6.1 Sol / high 只读", "cap": "30 分钟", "review": "不审"},
+      "quality": {"exec": "Codex 写的 Opus 只读；Claude 写的 Astra / high 只读", "cap": "30 分钟", "review": "不审"},
+      "thrift":  {"exec": "同自动；易活不派复核，Argo 读 diff", "cap": "30 分钟", "review": "不审"},
+      "rush":    {"exec": "中活改 Argo 复跑验收命令，不派独立线；难活仍跨家复核", "cap": "30 分钟", "review": "不审"}
+    },
+    "审方案": {
+      "skill_row": "审方案（探讨内环、复盘合并稿）",
+      "auto":    {"exec": "Astra / high；规模大或难回滚 xhigh", "cap": "每轮 30 分钟", "review": "不审"},
+      "quality": {"exec": "Astra / xhigh；Pro 终审（中、大）", "cap": "每轮 30 分钟", "review": "不审"},
+      "thrift":  {"exec": "6.1 Sol / high；Pro 不参与", "cap": "每轮 30 分钟", "review": "不审"},
+      "rush":    {"exec": "Astra / high 一轮加 Argo 自审；Pro 不参与", "cap": "每轮 30 分钟", "review": "不审"}
+    },
+    "功能地图": {
+      "skill_row": null,
+      "auto":    {"exec": "Argo + Astra / high 各想一遍，Astra 再审合并稿", "cap": "每次 30 分钟", "review": "不审"},
+      "quality": {"exec": "Argo + Astra / xhigh 各想一遍，Astra 再审合并稿", "cap": "每次 30 分钟", "review": "不审"},
+      "thrift":  {"exec": "Argo + 6.1 Sol / high 各想一遍，6.1 Sol 再审合并稿", "cap": "每次 30 分钟", "review": "不审"},
+      "rush":    {"exec": "Argo + Astra / high 各想一遍，审合并稿那一步跳过", "cap": "每次 30 分钟", "review": "不审"}
+    }
+  },
+  "fixed_rows": [
+    "同一问题两轮没收敛（第三轮）：Fable 子代理查根因写方案（质量优先改成一轮没收敛就派），实现回到原梯子",
+    "钱、权限、迁移、工作区外：Codex 写 ｜ Sonnet 写，Argo 亲自验实际状态",
+    "Argo 自己改的整合小修超过 30 行：6.1 Sol / high 只读复核（Codex 紧时 Sonnet 子代理）"
+  ]
+}

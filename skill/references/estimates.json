@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "note": "预估用时的默认值表（分钟，P50），没有本机校准数据时用；来源见 references/estimates.md。本机 estimates.json（~/.config/roadstar/estimates.json，由 dispatch-stats.py --calibrate 写）优先。",
+  "buffer": 1.3,
+  "standard_unit_tokens": 35000,
+  "default_minutes": {
+    "取证": 8, "批量": 10, "页面实现": 20, "窄回归": 15, "跨模块": 60, "根因": 45, "性能": 90,
+    "视觉照做": 20, "复核": 10, "审方案": 15, "补全": 15, "功能地图": 15, "探讨审稿": 25
+  },
+  "argo_minutes": {"brief": 5, "accept": 8, "merge": 3, "feature_map": 20, "review_handling": 10},
+  "effort_multiplier": {"low": 0.8, "medium": 1.0, "high": 1.2, "xhigh": 1.8, "max": 2.2, "ultra": 3.0},
+  "model_speed": {"haiku": 0.7, "sonnet": 1.0, "opus": 1.2, "fable": 1.2, "gpt-6.1-sol": 1.0, "gpt-6-astra": 1.1, "gpt-6-luna": 0.7}
+}

@@ -3,7 +3,7 @@ name: roadstar
 description: >-
   Roadstar · 引路星：Claude 主会话当总调度，和 Codex 一起干项目。主席说「用 skill」「用 Roadstar」时自动判用法，开场一行报出来就跑，不等答复。三种用法：探讨（主席只说构思，两家最强模型先把主功能之外的副功能、设置、衍生功能想全、主席分档，再默认三轮谈工程到能落地）、复盘（两家各读一遍现有项目，按产品层或代码层的尺子交叉审出不足清单；「全面 review」「全部排查」也走这里）、协同（方案已有，Argo 拆活、分型号、定审查人，派活、验收、交报告）。拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核。触发：「用 skill」「用 Roadstar」「按 skill 来」「Roadstar」「引路星」「/roadstar」「开圆桌」「探讨一下怎么落地」「我想做个类似 X 的」「帮我规划功能」「还能加什么功能」「复盘这个项目」「全面 review」「看看哪里能改进」「直接调度」「你来安排谁做」「总舵主」。产出在项目 docs/roadstar/<日期>-<slug>/。不处理：一小时内能做完的活（直接干）；只要 Codex 单次二审（→ call-codex）；只要网页 Pro 策划（→ pro-orchestrator）；仅维护本 skill。
 metadata:
-  version: "1.11.0"
+  version: "1.12.0"
 ---
 
 # Roadstar · 引路星：先判用法，再谈、再派、再审
@@ -169,6 +169,8 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 | 钱、权限、迁移、工作区外 | Codex 写 ｜ Sonnet 写 | — | Argo 亲自验实际状态 |
 | 取证、扫记忆库、整理日志 | Haiku 只读（常驻；Claude 紧时 6.1 Sol / medium 只读） | — | 不审 |
 | 机械批量（改名、格式、照抄模式、造测试数据） | Haiku（常驻；Claude 紧时 6.1 Sol / low 或 medium） | 1h | Argo 读 diff |
+| 复核别人写的活（只读） | Codex 写的 Sonnet 只读；Claude 写的 6.1 Sol / high 只读 | 30 分钟 | 不审 |
+| 审方案（探讨内环、复盘合并稿） | Astra / high；规模大或难回滚 xhigh | 每轮 30 分钟 | 不审 |
 | Argo 自己改的整合小修超过 30 行 | Argo | — | 6.1 Sol / high 只读复核（Codex 紧时 Sonnet 子代理） |
 
 审查人和执行方型号不同，优先跨家：Claude 梯子写的交 Codex 只读复核，Codex 写的中、难活默认交 Sonnet 子代理只读复核；审方案一律 Astra / high（单家模式或主席点名最强时 Fable 子代理）。Codex 宽时把实现派给 Claude 梯子，理由栏必须写一句（Haiku 的常驻活和 Sonnet 复核不算），防止回到 10-02 对账里「Claude 自己闷头干、Codex 闲着」的老路。
