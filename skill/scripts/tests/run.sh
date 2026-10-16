@@ -1390,4 +1390,65 @@ python3 "$SCRIPTS/dispatch-stats.py" "$CAL/p/docs/roadstar" --calibrate --out "$
 json_check "$CAL/out.json" 'd["cells"] == {} and d["providers"]["codex"]["calibrated"] is True'
 pass 'dispatch-stats: estimate bias column rounded to 5%, old metas without est_minutes fine, --calibrate writes P50/P80/tokens only for cells with enough samples and learns tokens per point'
 
+# cleanup.py: dirty, unmerged, unpushed and locked worktrees are never touched; dry-run changes nothing; protected rounds files stay.
+CL="$TMP/cleanup"
+mkdir -p "$CL"
+python3 - "$CL" <<'PY'
+import os, subprocess, sys, time
+from pathlib import Path
+root = Path(sys.argv[1])
+def git(*args, cwd):
+    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, env={**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@x", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@x", "HOME": str(root)})
+remote = root / "remote.git"; git("init", "--bare", "-q", str(remote), cwd=root)
+main = root / "main"; git("init", "-q", "-b", "main", str(main), cwd=root)
+(main / "a.txt").write_text("a\n"); git("add", "a.txt", cwd=main); git("commit", "-q", "-m", "init", cwd=main)
+git("remote", "add", "origin", str(remote), cwd=main); git("push", "-q", "-u", "origin", "main", cwd=main)
+def lane(name, *, commit=True, merge=False, dirty=False, push_upstream=False, lock=False):
+    path = root / f"wt-{name}"
+    git("worktree", "add", "-q", "-b", name, str(path), "main", cwd=main)
+    (path / "big.bin").write_bytes(b"0" * 4096)
+    if commit:
+        (path / f"{name}.txt").write_text(name); git("add", ".", cwd=path); git("commit", "-q", "-m", name, cwd=path)
+    if push_upstream:
+        git("push", "-q", "-u", "origin", name, cwd=path)
+        (path / f"{name}-2.txt").write_text("more"); git("add", ".", cwd=path); git("commit", "-q", "-m", name + " 2", cwd=path)
+    if merge:
+        git("merge", "-q", "--no-ff", "-m", "merge " + name, name, cwd=main)
+    if dirty:
+        (path / "scratch.txt").write_text("unsaved")
+    if lock:
+        git("worktree", "lock", str(path), cwd=main)
+lane("merged-clean", merge=True)
+lane("merged-dirty", merge=True, dirty=True)
+lane("unmerged")
+lane("merged-unpushed", merge=True, push_upstream=True)
+lane("slot", merge=True, lock=True)
+git("push", "-q", "origin", "main", cwd=main)
+rounds = main / "docs/roadstar/2026-10-01-x/rounds"; rounds.mkdir(parents=True)
+old = time.time() - 10 * 86400
+for name in ("exec-T1.meta", "exec-T1-request.md", "exec-T1.md", "check-T1.md", "exec-T1.progress", "r1-plan.md", "r1-dex-review.json", "exec-T1-stdout.log", "old.patch"):
+    (rounds / name).write_text("x"); os.utime(rounds / name, (old, old))
+(rounds / "T1-shots").mkdir(); (rounds / "T1-shots" / "a.png").write_bytes(b"0" * 2048); os.utime(rounds / "T1-shots", (old, old))
+(rounds / "exec-T2-stdout.log").write_text("fresh")
+PY
+MAIN="$CL/main"
+tree_before="$(cd "$MAIN" && find . -not -path './.git*' -print0 | sort -z | xargs -0 stat -f '%N %z' | shasum)"
+python3 "$SCRIPTS/cleanup.py" --project "$MAIN" --json > "$CL/dry.json"
+tree_after="$(cd "$MAIN" && find . -not -path './.git*' -print0 | sort -z | xargs -0 stat -f '%N %z' | shasum)"
+[[ "$tree_before" == "$tree_after" ]]
+json_check "$CL/dry.json" 'd["mode"] == "dry-run" and [w["branch"] for w in d["worktrees_remove"]] == ["merged-clean"] and {w["branch"]: w["reasons"] for w in d["worktrees_keep"]}.keys() == {"merged-dirty", "unmerged", "merged-unpushed", "slot"} and any("未提交" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "merged-dirty")) and any("没合进" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "unmerged")) and any("未推送" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "merged-unpushed")) and any("锁定" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "slot")) and sorted(p["path"].rsplit("/", 1)[1] for p in d["intermediates"]) == ["T1-shots", "exec-T1-stdout.log", "old.patch"] and d["bytes"] > 4096'
+[[ -d "$CL/wt-merged-clean" && -f "$MAIN/docs/roadstar/2026-10-01-x/rounds/exec-T1-stdout.log" ]]
+python3 "$SCRIPTS/cleanup.py" --project "$MAIN" > "$CL/dry.txt"
+grep -q '只列不删' "$CL/dry.txt" && grep -q '不动 .*merged-dirty' "$CL/dry.txt"
+python3 "$SCRIPTS/cleanup.py" --project "$MAIN" --apply --json > "$CL/apply.json"
+json_check "$CL/apply.json" 'd["mode"] == "apply" and d["errors"] == [] and all(w.get("done") for w in d["worktrees_remove"]) and all(i.get("done") for i in d["intermediates"])'
+[[ ! -d "$CL/wt-merged-clean" && -d "$CL/wt-merged-dirty" && -d "$CL/wt-unmerged" && -d "$CL/wt-merged-unpushed" && -d "$CL/wt-slot" ]]
+! git -C "$MAIN" rev-parse --verify --quiet merged-clean > /dev/null
+git -C "$MAIN" rev-parse --verify --quiet unmerged > /dev/null
+R="$MAIN/docs/roadstar/2026-10-01-x/rounds"
+[[ -f "$R/exec-T1.meta" && -f "$R/exec-T1-request.md" && -f "$R/exec-T1.md" && -f "$R/check-T1.md" && -f "$R/exec-T1.progress" && -f "$R/r1-plan.md" && -f "$R/r1-dex-review.json" && -f "$R/exec-T2-stdout.log" ]]
+[[ ! -f "$R/exec-T1-stdout.log" && ! -f "$R/old.patch" && ! -d "$R/T1-shots" ]]
+expect_exit 2 python3 "$SCRIPTS/cleanup.py" --project "$TMP"
+pass 'cleanup: dry-run leaves the tree byte-identical, dirty/unmerged/unpushed/locked worktrees untouched on apply, merged clean worktree and stale intermediates removed, protected rounds files kept, non-repo exits 2'
+
 printf 'PASS %d checks\n' "$COUNT"
