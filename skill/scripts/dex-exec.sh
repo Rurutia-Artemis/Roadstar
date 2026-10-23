@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # 圆桌 · 把一份任务书交给 Dex（codex exec）执行。
-# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--class 类别] [--est-minutes N] [--strategy S] [--root DIR] [--write] [--max-minutes N] [--resume SESSION_ID] [--detach] [--status] [--force] [--dry-run]
+# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--class 类别] [--est-minutes N] [--strategy S] [--root DIR] [--write [--network]] [--max-minutes N] [--resume SESSION_ID] [--detach] [--status] [--force] [--dry-run]
 #   T#        如 T3、T3b；产物写到 plan-dir/rounds/exec-T#*。
 #   --class   取证、批量、页面实现、窄回归、跨模块、根因、性能、视觉照做、复核、审方案、补全；可选，写入 meta。
 #   --est-minutes N  排活表里的预估用时（分钟），写入 meta 的 est_minutes，完工时和实际用时对账。
 #   --strategy S     本场策略 auto / quality / thrift / rush，写入 meta 的 strategy。
 #   --root    默认 plan-dir 所在 git 根，找不到用 plan-dir 的上级。
 #   --write   使用 workspace-write；默认 read-only。
+#   --network 联网（只配合 --write，且只给 --class 取证 的调研活；主席 2026-10-24 定）：加 -c sandbox_workspace_write.network_access=true。
 #   --max-minutes N  止损：到 N 分钟还没结束就停掉 codex，退出码 124，meta 记 timed_out=1（常规 120、难活 240）。
 #   --resume  续接会话；resume 不接 -m/-s/-C，脚本改用 -c model= / sandbox_mode= 覆盖并在 root 里启动（不传模型会退回 config 默认）。
 #   --detach  后台执行；--status 查询状态，不需要 model/effort/brief。
@@ -129,7 +130,7 @@ if [[ "${1:-}" == --_worker ]]; then
 fi
 
 PLAN_DIR=""; TASK=""; MODEL=""; EFFORT=""; BRIEF=""; ROOT=""; RESUME=""; MAX_MINUTES=""; TIMED_OUT=0; CLASS=""; EST_MINUTES=""; STRATEGY=""
-WRITE=0; DETACH=0; STATUS=0; FORCE=0; DRY=0
+WRITE=0; NETWORK=0; DETACH=0; STATUS=0; FORCE=0; DRY=0
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -160,6 +161,7 @@ while [[ $# -gt 0 ]]; do
       esac
       shift 2 ;;
     --write) WRITE=1; shift ;;
+    --network) NETWORK=1; shift ;;
     --detach) DETACH=1; shift ;;
     --status) STATUS=1; shift ;;
     --force) FORCE=1; shift ;;
@@ -219,14 +221,20 @@ for value in "$PLAN_DIR" "$MODEL" "$EFFORT" "$ROOT" "$RESUME"; do
 done
 SANDBOX=read-only
 [[ "$WRITE" -eq 0 ]] || SANDBOX=workspace-write
+NET_ARGS=()
+if [[ "$NETWORK" -eq 1 ]]; then
+  [[ "$WRITE" -eq 1 ]] || usage_error '--network 需要配合 --write（read-only 沙箱不联网）'
+  [[ "$CLASS" == 取证 ]] || usage_error '--network 只给 --class 取证 的调研活'
+  NET_ARGS=(-c "sandbox_workspace_write.network_access=true")
+fi
 CAP_TEXT=无
 [[ -z "$MAX_MINUTES" ]] || CAP_TEXT="$MAX_MINUTES 分钟"
 if [[ -n "$RESUME" ]]; then
   # codex exec resume 不接 -m/-s/-C，而且不沿用原会话的模型（实测 2026-10-04：不传就用 config 默认，当时默认的 gpt-6.1-sol 直接 400）。
   # 所以模型、沙箱用 -c 覆盖，工作目录靠在 ROOT 里启动（见 run_codex）。
-  CMD=(codex exec resume "$RESUME" --skip-git-repo-check -c "model=\"$MODEL\"" -c "sandbox_mode=\"$SANDBOX\"" -c "model_reasoning_effort=$EFFORT" --disable fast_mode -o "$OUT" -)
+  CMD=(codex exec resume "$RESUME" --skip-git-repo-check -c "model=\"$MODEL\"" -c "sandbox_mode=\"$SANDBOX\"" -c "model_reasoning_effort=$EFFORT" ${NET_ARGS[@]+"${NET_ARGS[@]}"} --disable fast_mode -o "$OUT" -)
 else
-  CMD=(codex exec --skip-git-repo-check -C "$ROOT" -s "$SANDBOX" -m "$MODEL" -c "model_reasoning_effort=$EFFORT" --disable fast_mode -o "$OUT" -)
+  CMD=(codex exec --skip-git-repo-check -C "$ROOT" -s "$SANDBOX" -m "$MODEL" -c "model_reasoning_effort=$EFFORT" ${NET_ARGS[@]+"${NET_ARGS[@]}"} --disable fast_mode -o "$OUT" -)
 fi
 
 choose_request() {
