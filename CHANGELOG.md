@@ -1,5 +1,12 @@
 # Roadstar · 更新日志
 
+## 1.13.3 · 2026-10-25
+
+- 1.13.1 定了「额度不够不自动降档」，但进度屏、`screens.md` 的提醒写法和两处降级梯子（`strategies.md`「额度不够时怎么排、怎么问」、`division-of-labor.md` 第 11 节）还写着「先降、再说一声我换回来」。统一成先问：自动走的只剩并行改串行、挂到重置后；降强度、换梯子、刷卡都列成选项问主席，主席回话前只派不受影响的活。问的写法固定一句。
+- 一起提交 10-23 记忆库搬家改的 `CLAUDE.md` 路径，和 1.13.1 当时没提交的 `strategies.json` / `strategies.md` 自动分配一行。
+- 版本号 SKILL.md 与三语 README 徽章从 1.13.0 补到 1.13.3。
+- 验证：`grep` 全仓已无「说一声我换回来」；`scripts/tests/run.sh` 仍在第 1139 行失败，在 HEAD 干净副本里跑同样失败（1.13.1 已记，属既有问题），本次没处理。
+
 ## 1.13.2 · 2026-10-24
 
 - dex-exec.sh 加 `--network`：只配合 `--write`、只给 `--class 取证` 的调研活，传 `-c sandbox_workspace_write.network_access=true`。起因：主席问「他为什么不能联网？」——Codex 沙箱写模式默认断网，补卡与找卡面图需要上网。验证：dry-run 三种组合（取证+write+network 带参数；复核+network 拒绝；无 write 拒绝），不加 --network 时命令不变。

@@ -2,9 +2,9 @@
   "schema": 1,
   "note": "四种策略的起步层表，机器读。auto 列必须和 SKILL.md §8 表逐行一致（tests/run.sh 有断言）；策略只改起步层，碰壁升级链、经验回路、审查人跨家、钱和权限由 Argo 亲验在四种策略下一个字不变。策略偏移是运行时叠在表上的，不写回 §8。",
   "strategies": {
-    "auto":    {"label": "自动分配", "one_line": "按 SKILL §8 那张表派，额度紧就自动降档并报一行",
+    "auto":    {"label": "自动分配", "one_line": "按 SKILL §8 那张表派；额度紧先停下来问主席，不自动降档（主席 10-22 定）",
                 "parallel": {"codex": 3, "claude": 1, "simulator": 2}, "review_rounds": 3, "review_rounds_large": 4, "fuse_delta": 0,
-                "quota_short": "自动降档、换梯子，报一行", "feature_map_review": true},
+                "quota_short": "停下来问：降档、暂停、还是先做别的活，主席定；不自动降", "feature_map_review": true},
     "quality": {"label": "质量优先", "one_line": "每类往梯子上挪到顶；额度不够停下来问，不自动降型号",
                 "parallel": {"codex": 3, "claude": 1, "simulator": 2}, "review_rounds": 4, "review_rounds_large": 4, "fuse_delta": 1,
                 "quota_short": "停下来问（刷卡、等重置、还是降档）", "feature_map_review": true},

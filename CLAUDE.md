@@ -6,9 +6,9 @@
 
 ## Obsidian 共享项目记忆
 
-本工作区是「Roadstar」，归属共享项目「Roadstar」。涉及继续项目、历史决定或用户偏好时，先读 `/Volumes/RuruData/ObsidianVaults/RuruOS/MEMORY.md`，再读 `/Volumes/RuruData/ObsidianVaults/RuruOS/10-Projects/Roadstar/项目主页.md`、当前记忆与最近会话记录。桌面端有 project-memory / ruru_memory 工具时，可调用 memory_context 定位同一份文件。
+本工作区是「Roadstar」，归属共享项目「Roadstar」。涉及继续项目、历史决定或用户偏好时，先读 `/Users/rurutia/Documents/RuruCode/RuruData/ObsidianVaults/RuruOS/MEMORY.md`，再读 `/Users/rurutia/Documents/RuruCode/RuruData/ObsidianVaults/RuruOS/10-Projects/Roadstar/项目主页.md`、当前记忆与最近会话记录。桌面端有 project-memory / ruru_memory 工具时，可调用 memory_context 定位同一份文件。
 
-用户已授权此共享记忆接入。收尾记录必须写明实际工作区 `/Users/rurutia/Documents/RuruCode/Roadstar` 和验证证据。只读任务不落盘，长期偏好仅按用户明确要求更新。外置盘离线时报告缺口，不回写旧本地库。前身 roundtable（RuruAgent 仓库，2026-09-24 至 10-04）的会话记录在 `10-Projects/RuruAgent/会话记录/`。
+用户已授权此共享记忆接入。收尾记录必须写明实际工作区 `/Users/rurutia/Documents/RuruCode/Roadstar` 和验证证据。只读任务不落盘，长期偏好仅按用户明确要求更新。记忆库目录不在时报告缺口，不回写旧库。前身 roundtable（RuruAgent 仓库，2026-09-24 至 10-04）的会话记录在 `10-Projects/RuruAgent/会话记录/`。
 
 ## 项目地图（用户明确要求 · 2026-10-05）
 
