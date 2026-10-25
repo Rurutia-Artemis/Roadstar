@@ -317,6 +317,11 @@ PY
 then
   : # Registration must never block an otherwise valid dispatch.
 fi
+if [[ "$WRITE" -eq 1 ]]; then
+  if ! (cd "$ROOT" && python3 "$SCRIPT_DIR/guard.py" mark "$PLAN_DIR" "$TASK") >/dev/null 2>&1; then
+    printf '警告：Roadstar 任务标记失败，继续派活（工作区：%s）。\n' "$ROOT" >&2
+  fi
+fi
 printf '模型 %s / 强度 %s；第 %s 次派活：%s；时间上限：%s\n' "$MODEL" "$EFFORT" "$ATTEMPT" "$TASK" "$CAP_TEXT"
 
 if [[ "$DETACH" -eq 1 ]]; then

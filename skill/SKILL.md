@@ -3,7 +3,7 @@ name: roadstar
 description: >-
   Roadstar · 引路星：Claude 主会话当总调度，和 Codex 一起干项目。主席说「用 skill」「用 Roadstar」时先弹一张接入与额度面板（接了几家、各剩多少、重置卡算进去估这周还能派几件、本项目怎么分），问一次策略（自动分配 / 质量优先 / 省着用 / 赶时间，回车就是自动），然后自动判用法就跑。三种用法：探讨（主席只说构思，开场说清讨论用高等级模型，两家先把副功能、设置、衍生功能想全、主席分档，再默认三轮谈工程到能落地）、复盘（两家各读一遍现有项目，按产品层或代码层的尺子交叉审出不足清单；「全面 review」「全部排查」也走这里）、协同（方案已有，Argo 拆活、分型号、定审查人，派活、验收、交报告）。讨论完排活给一张表：每件给谁、为什么、预估用时、预计几点完成，加总时长和完工时刻；完工报告把预估和实际对账。拆活和分配只由 Claude 做；Codex 只在讨论环节提意见、在执行环节干活和复核；调研类活交 Grace。触发：「用 skill」「用 Roadstar」「按 skill 来」「Roadstar」「引路星」「/roadstar」「开圆桌」「探讨一下怎么落地」「我想做个类似 X 的」「帮我规划功能」「还能加什么功能」「复盘这个项目」「全面 review」「看看哪里能改进」「直接调度」「你来安排谁做」「总舵主」「还能派多少活」「额度面板」「填额度」。产出在项目 docs/roadstar/<日期>-<slug>/。不处理：一小时内能做完的活（直接干）；只要 Codex 单次二审（→ call-codex）；只要网页 Pro 策划（→ pro-orchestrator）；仅维护本 skill。
 metadata:
-  version: "1.13.3"
+  version: "1.14.0"
 ---
 
 # Roadstar · 引路星：先看面板，再谈、再派、再审
@@ -107,6 +107,8 @@ metadata:
 
 ### 2 起草
 
+开工前先查三样（主席 10-22 定）：新产品或大改版（brief 规模「大」，或主席说新做、改版）要有第三只眼的拍板文件（`docs/third-eye/<slug>/runs/*/08-决定.md`）、模块地图 `docs/模块地图.md`，有界面的再加美术风格文件 `docs/design.md`。缺拍板文件先走 third-eye；缺地图或 design.md 先走 split-and-frame（拆分与定框架）；三样齐了、主席点头了才起草。修 bug 和不碰新模块的小功能不查这一步，照下面从地图取证。
+
 取证从项目地图开始：先读 `docs/模块地图.md`（规格见 `references/project-map.md`）。没有地图或地图和代码对不上，先派一件活建或补地图（Codex 6.1 Sol / medium 只读起草，Argo 核对后提交），算本场第一件活。取证（读代码、跑只读命令、查文档）在起草前一次做完，按策略表「取证」那格派（默认 Haiku 只读，Claude 紧或读不到时 6.1 Sol / medium），一次发出、一次收齐；结果只进 plan 的「现状」。规模小、中：Argo 起草 `plan.md`，按 plan-template 写满，写不出的槽位标「待定 + 缺什么信息」。规模大且 Pro 参与：先让 Pro 起草（`references/pro-stage.md`），Argo 整理后第一轮 Argo 和 Dex 各审一遍。
 
 ### 3 内环，每轮这样跑
@@ -176,6 +178,8 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 ### 9 执行与验收
 
 - 每件活一份任务书（`references/task-brief-template.md`），引用 `docs/roadstar/_common.md` 的常驻边界，只写它没写的。一份任务书一个目标、一条能失败的完成线；写明「预计用时」（抄排活表）和上限（预计的两倍，最多不超过类型默认上限，见 estimates.md），不许直接套 120 分钟；写明「验证方式只用 X」，禁止执行方自己发明验证手段。派之前过一遍 division-of-labor 第 15 节。
+- 有界面的活，字体、颜色、圆角、阴影、动效和图标编号一律从 `docs/design.md` 取，任务书写明取哪几节；design.md 里没有的样子不许执行方自己发明，先回来问主席。
+- 项目装了自动检查（`scripts/install-guard.sh <项目根> --claude`，split-and-frame 定完框架时装）时：派 `--write` 的活，`dex-exec.sh` 会给那个工作区打任务标记；Argo 在那里提交会自动带上 `Roadstar-Task`，改动出了任务书写的模块、改了模块入口没改地图都会被拦下；合并一律 `git merge --no-ff`，没有 `rounds/check-T<n>.md` 合不进来。被拦下就照提示改，不用 `--no-verify` 绕；确实要越界，在提交说明末尾空一行再写 `Roadstar-Scope: 理由`，地图确实不用改就写 `Roadstar-Map: 理由`（不空行 git 认不出），两种都在完工报告里列给主席。
 - 任务书写明涉及哪几个模块（用地图里的名字）。改动碰了模块的入口文件、对外接口、测试命令或规矩，执行方在同一提交里更新地图那一节；验收方核对地图和代码一致。
 - Codex 任务：`scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --class <类别> --est-minutes <预估> --strategy <策略> --brief … --max-minutes <上限>`，默认只读，要改文件加 `--write`；调研活（`--class 取证`）要联网再加 `--network`（只配合 `--write`，写代码的活不联网，主席 10-24 定）。任何会话派 Codex 一律走这个脚本，哪怕只有一件活、不在 Roadstar 场次里；裸 `codex exec` 只留给一句话提问。到点脚本停掉 codex、退出码 124、meta 记 `timed_out=1`。
 - Grok 试用任务：仅「试新型号」开关开且已登录时，取证、复核两类只读活可走 `scripts/grok-exec.sh <plan-dir> T<n> --brief … --class <取证或复核> --max-minutes <上限> --est-minutes <预估> --strategy <策略>`（默认 `grok-4.7` / high、30 轮，可用 `--model`、`--effort`、`--max-turns` 指定；支持 `--detach`、`--status`、`--dry-run`）。`--write` 退出 2，提示「写活等后续版本」；产物、限时止损和项目登记与 Dex 线一致，复核时审查人和执行方不同家照常成立。战绩满 5 条再决定进不进起步表，自动列不变；telemetry 的 Grok model 归为 `other`，schema 不改。
@@ -189,7 +193,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 
 ### 10 完工报告
 
-全部通过后：在 plan 追加执行记录；给每条线的 `.meta` 补齐 class、outcome、done_items、minutes、quota_delta（est_minutes 和 strategy 派时已写）；跑 `scripts/dispatch-stats.py --calibrate`（只改本机预估）；跑 `scripts/cleanup.py --project <项目根>`（默认只列不删，列出来的 worktree 和中间产物在报告里给主席看，主席点头一次后同一类可加 `--apply`）；跑 `scripts/telemetry.py send`（关闭或没问过时什么都不做）；写共享记忆；交完工报告（配方见 minutes-template 末尾）：做完了 / 做了一半；做了什么；怎么验的；预估对账（每件预估、实际、偏差，整场合计，最准和最偏的各一件，样本不到 5 条就说默认值先不动）；额度（两边读数从几到几，和排活表预计的比）；清理（删了什么、释放多少、哪些没动和原因）；没做完的；你要做的；记录在哪，回传了几条。
+全部通过后：在 plan 追加执行记录；给每条线的 `.meta` 补齐 class、outcome、done_items、minutes、quota_delta（est_minutes 和 strategy 派时已写）；跑 `scripts/dispatch-stats.py --calibrate`（只改本机预估）；跑 `scripts/cleanup.py --project <项目根>`（默认只列不删，列出来的 worktree 和中间产物在报告里给主席看，主席点头一次后同一类可加 `--apply`）；再跑收工检查 `scripts/cleanup.py --project <项目根> --plan-dir <场次目录> --check`：还有没合并的任务分支或工作副本、已合并没清的工作副本、有执行回复没有验收记录的活，退出码 1，这时不报「做完了」，完工报告第一行写「还没收完：」并逐条列出，主席说留着的写进「留着的」一栏（主席 10-22 定）；跑 `scripts/telemetry.py send`（关闭或没问过时什么都不做）；写共享记忆；交完工报告（配方见 minutes-template 末尾）：做完了 / 做了一半；做了什么；怎么验的；预估对账（每件预估、实际、偏差，整场合计，最准和最偏的各一件，样本不到 5 条就说默认值先不动）；额度（两边读数从几到几，和排活表预计的比）；清理（删了什么、释放多少、哪些没动和原因）；没做完的；你要做的；记录在哪，回传了几条。
 
 ## 纪律
 

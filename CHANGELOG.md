@@ -1,5 +1,16 @@
 # Roadstar · 更新日志
 
+## 1.14.0 · 2026-10-25
+
+主席 10-22 定的工作流重构（RuruAgent `docs/工作流重构/README.md`）里归 Roadstar 的三件，按 10-25 批准的改动清单第 14 到 17、20 到 23 条做。
+
+- 自动检查（新 `skill/scripts/guard.py`、`install-guard.sh`，Codex T2 实现）：装进项目后，Roadstar 派活的提交自动带 `Roadstar-Task`；改动出了任务书「涉及模块」在地图里的目录、改了模块入口没改地图，提交时拦下；带任务号的提交没有 `rounds/check-T<n>.md` 不让合并（git 的 pre-merge-commit 加 Claude Code 的 PreToolUse 两层，后者顺带拦快进合并）。确实要越界或地图不用改，提交说明末尾空一行写 `Roadstar-Scope:` / `Roadstar-Map:` 理由。`ROADSTAR_GUARD=off` 整体关闭；`install-guard.sh --uninstall` 卸载并恢复原钩子。`dex-exec.sh --write` 派活时给工作区打任务标记。
+- 收工检查（`cleanup.py --check`，Codex T3 起、T3b 改派 Astra 完成）：没合并的任务分支和工作副本、已合并没清的工作副本、有执行回复没有验收记录的活，逐条列出、退出码 1；SKILL §10 要求退出码 1 时不报「做完了」，报告第一行写「还没收完」。
+- SKILL：§2 开工前查三样（新产品或大改版要有第三只眼的 `08-决定.md`、模块地图、有界面的再加 `docs/design.md`，缺了先走 third-eye 或 split-and-frame；修 bug 和小功能不查）；§9 有界面的活样式一律从 `docs/design.md` 取，写明自动检查怎么配合；§10 收工检查。
+- Argo 验收中自己修的三处（各不到 30 行）：合并提交不再重复查范围和地图（Huemo 副本实测时，任务提交已写过 `Roadstar-Map` 理由，合并又被拦一次）；拦下的提示补「理由前要空一行，不空行 git 认不出」；钩子外壳找不到 `guard.py` 时提示一句并放行（仓库搬走时不至于挡住所有提交）。各补了一条测试。
+- Codex 那一层没装：实测 `codex exec` 不会触发没被信任过的 hook（`docs/roadstar/2026-10-25-guards/codex-hook-实测.md`）；Codex 派的活约定不提交，git 那层已经兜住。
+- 验证：`tests/guard-tests.sh` 43 条、`tests/close-check-tests.sh` 13 条在 `/bin/bash` 3.2 和 PATH 里的 bash 下都过；Huemo 本地副本里按真实地图跑了八种情况（范围内放行、越界拦、改入口没改地图拦、写了理由放行、没验收不让合并、Claude 敲快进合并拦、补验收后 `--no-ff` 合并成功、普通提交改非入口放行），然后装进了真 Huemo；收工检查对真 Huemo 只读实跑，列出 2 个没合并的工作副本。`run.sh` 第 1139 行的既有失败没处理。没验证：地图里用花括号简写的入口路径（如 `explore/{A,B}.tsx`）不会被识别为入口，属漏报；Mia、RUVO 还没装。
+
 ## 1.13.3 · 2026-10-25
 
 - 1.13.1 定了「额度不够不自动降档」，但进度屏、`screens.md` 的提醒写法和两处降级梯子（`strategies.md`「额度不够时怎么排、怎么问」、`division-of-labor.md` 第 11 节）还写着「先降、再说一声我换回来」。统一成先问：自动走的只剩并行改串行、挂到重置后；降强度、换梯子、刷卡都列成选项问主席，主席回话前只派不受影响的活。问的写法固定一句。

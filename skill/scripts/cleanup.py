@@ -2,7 +2,8 @@
 """Tier-1 cleanup after a run: merged, clean worktrees and stale rounds/ intermediates.
 
 Default is dry-run: it prints what would go and how much space that frees.
-``--apply`` deletes.  Rules that never bend:
+``--apply`` deletes; ``--check`` only reports unfinished work (exit 0/1).
+Rules that never bend:
   * a worktree with uncommitted changes (including untracked files), a locked
     worktree, a branch not merged into the base, or a branch with unpushed
     commits on its upstream is listed and left alone;
@@ -64,12 +65,12 @@ def base_ref(project):
     return "HEAD"
 
 
-def list_worktrees(project):
-    result = git(["worktree", "list", "--porcelain"], project)
+def list_worktrees(project, runner=git, nul=False):
+    result = runner(["worktree", "list", "--porcelain", *(["-z"] if nul else [])], project)
     if result.returncode != 0:
         return []
     items, current = [], {}
-    for line in result.stdout.splitlines() + [""]:
+    for line in (result.stdout.split("\0") if nul else result.stdout.splitlines()) + [""]:
         if not line.strip():
             if current:
                 items.append(current)
@@ -87,7 +88,7 @@ def list_worktrees(project):
     return items
 
 
-def judge_worktree(item, project, base, main_path):
+def judge_worktree(item, project, base, main_path, runner=git, measure_size=True):
     path = item.get("path")
     reasons = []
     if not path or Path(path).resolve() == Path(main_path).resolve():
@@ -101,22 +102,22 @@ def judge_worktree(item, project, base, main_path):
     if not Path(path).is_dir():
         reasons.append("目录不存在（可用 git worktree prune）")
         return {"path": path, "branch": item.get("branch"), "action": "skip", "reasons": reasons, "bytes": 0}
-    status = git(["status", "--porcelain", "--untracked-files=all"], path)
+    status = runner(["status", "--porcelain", "--untracked-files=all"], path)
     if status.returncode != 0:
         reasons.append("读不到状态")
     elif status.stdout.strip():
         reasons.append("有未提交改动或未跟踪文件")
     branch = item.get("branch")
     if branch:
-        merged = git(["merge-base", "--is-ancestor", branch, base], project)
+        merged = runner(["merge-base", "--is-ancestor", branch, base], project)
         if merged.returncode != 0:
             reasons.append(f"分支没合进 {base}")
-        upstream = git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", f"{branch}@{{upstream}}"], project)
+        upstream = runner(["rev-parse", "--abbrev-ref", "--symbolic-full-name", f"{branch}@{{upstream}}"], project)
         if upstream.returncode == 0 and upstream.stdout.strip():
-            ahead = git(["rev-list", "--count", f"{upstream.stdout.strip()}..{branch}"], project)
+            ahead = runner(["rev-list", "--count", f"{upstream.stdout.strip()}..{branch}"], project)
             if ahead.returncode == 0 and ahead.stdout.strip() not in ("", "0"):
                 reasons.append(f"有 {ahead.stdout.strip()} 个未推送提交")
-    size = du(path)
+    size = du(path) if measure_size else 0
     return {"path": path, "branch": branch, "action": "skip" if reasons else "remove", "reasons": reasons, "bytes": size}
 
 
@@ -153,15 +154,114 @@ def remove_worktree(project, item):
         git(["branch", "-D", item["branch"]], project)
 
 
+def check_git(args, cwd, check=True):
+    """Read-only Git: even status must not refresh an index on disk."""
+    result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True,
+                            env={**os.environ, "GIT_OPTIONAL_LOCKS": "0"})
+    if check and result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "读不到 Git 状态")
+    return result
+
+
+def close_check(project, base, plan_dirs, as_json):
+    resolved = check_git(["rev-parse", "--verify", "--end-of-options", base + "^{commit}"],
+                         project, check=False)
+    if resolved.returncode:
+        raise RuntimeError(f"找不到基准分支：{base}")
+    base_oid = resolved.stdout.strip()
+    worktrees = list_worktrees(project, runner=check_git, nul=True)
+    main_path = worktrees[0]["path"] if worktrees else str(project)
+    unmerged, tasks, uncleared, acceptance = [], [], [], []
+    for item in worktrees:
+        path, branch = item.get("path"), item.get("branch")
+        if not path or Path(path).resolve() == Path(main_path).resolve() or item.get("bare"):
+            continue
+        if branch:
+            ref = "refs/heads/" + branch
+            count = int(check_git(["rev-list", "--count", base_oid + ".." + ref, "--"], project).stdout)
+            if count:
+                unmerged.append({"kind": "unmerged", "path": path, "branch": branch, "commits": count,
+                                 "detail": f"没合并：工作副本 {path}（分支 {branch}，领先 {count} 个提交）"})
+                continue
+        # Keep dry-run's dirty / locked / detached / unpushed exclusions.
+        judged = judge_worktree(item, project, base_oid, main_path,
+                                runner=lambda a, c: check_git(a, c, check=False), measure_size=False)
+        if judged and judged["action"] == "remove":
+            uncleared.append({"kind": "merged_not_cleaned", "path": path, "branch": branch,
+                              "detail": f"已合并没清：{path}"})
+    branches = check_git(["for-each-ref", "--format=%(refname)", "refs/heads/"], project)
+    for ref in branches.stdout.splitlines():
+        branch = ref.removeprefix("refs/heads/")
+        # Git parses trailers exactly as guard.py does; body lookalikes do not count.
+        records = check_git(["log", "--format=%H%x00%(trailers:key=Roadstar-Task,valueonly)%x00",
+                             base_oid + ".." + ref, "--"], project).stdout.split("\0")
+        counts = {}
+        for i in range(0, len(records) - 1, 2):
+            values = set()
+            for value in records[i + 1].splitlines():
+                plan, sep, task = value.strip().rpartition("/")
+                if sep and plan and not Path(plan).is_absolute() and re.fullmatch(r"T[0-9]+[a-z]?", task):
+                    values.add((plan, task))
+            for key in values:
+                counts[key] = counts.get(key, 0) + 1
+        for (plan, task), count in sorted(counts.items()):
+            tasks.append({"kind": "unmerged_task", "plan_dir": plan, "task": task,
+                          "branch": branch, "commits": count,
+                          "detail": f"没合并：{task}（{plan}）在分支 {branch} 上，{count} 个提交"})
+    for plan in dict.fromkeys(p.expanduser().resolve() for p in plan_dirs):
+        try:
+            label = str(plan.relative_to(project))
+        except ValueError:
+            label = str(plan)
+        rounds = plan / "rounds"
+        if not rounds.is_dir():
+            continue
+        for reply in sorted(rounds.iterdir()):
+            match = re.fullmatch(r"exec-(T[0-9]+[a-z]?)\.md", reply.name)
+            if not match or not reply.is_file():
+                continue
+            task = match[1]
+            record = rounds / f"check-{task}.md"
+            if not record.is_file() or not record.read_bytes().strip():
+                acceptance.append({"kind": "no_acceptance", "plan_dir": label, "task": task,
+                                   "detail": f"没验收：{task}（{label}）"})
+    items = unmerged + tasks + uncleared + acceptance
+    report = {"clean": not items, "items": items}
+    if as_json:
+        print(json.dumps(report, ensure_ascii=False))
+        if not plan_dirs:
+            print("没给场次目录，验收记录这项没查", file=sys.stderr)
+    else:
+        print(f"收工检查：还有 {len(items)} 项没收完" if items else "收工检查：都收完了")
+        for item in items:
+            print(item["detail"])
+        if not plan_dirs:
+            print("没给场次目录，验收记录这项没查")
+    return 1 if items else 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="场内垃圾清理第一档：已合并且干净的 worktree、rounds/ 里超期的中间产物；默认只列不删")
     parser.add_argument("--project", type=Path, default=Path.cwd(), help="项目根（主工作区）")
-    parser.add_argument("--plan-dir", type=Path, action="append", default=[], help="场次目录，可多个；不给就扫 <项目>/docs/roadstar/*")
+    parser.add_argument("--plan-dir", type=Path, action="append", default=[], help="场次目录，可多个；不给时清理扫 <项目>/docs/roadstar/*，--check 跳过验收记录")
     parser.add_argument("--days", type=int, default=7, help="rounds/ 中间产物保留天数")
     parser.add_argument("--base", help="判「已合并」的基准分支，默认 origin/HEAD、origin/main、main、master 里第一个存在的")
     parser.add_argument("--apply", action="store_true", help="真删；不给就是 dry-run")
+    parser.add_argument("--check", action="store_true", help="收工检查：只查不删，没收完退出 1")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
+    if args.check and args.apply:
+        print("--check 只查不删，不能和 --apply 一起用", file=sys.stderr)
+        return 2
+    if args.check:
+        try:
+            project = args.project.expanduser().resolve()
+            if check_git(["rev-parse", "--show-toplevel"], project, check=False).returncode:
+                raise RuntimeError(f"不是 git 仓库：{project}")
+            return close_check(project, args.base or base_ref(project), args.plan_dir, args.json)
+        except (OSError, RuntimeError, ValueError) as error:
+            print(f"收工检查没查完：{error}", file=sys.stderr)
+            return 2
     project = args.project.expanduser().resolve()
     if git(["rev-parse", "--show-toplevel"], project).returncode != 0:
         print(f"不是 git 仓库：{project}", file=sys.stderr)

@@ -1471,3 +1471,5 @@ source "$TEST_DIR/panel-113.sh"
 source "$TEST_DIR/grok-113.sh"
 
 printf 'PASS %d checks\n' "$COUNT"
+bash "$TEST_DIR/guard-tests.sh"
+bash "$TEST_DIR/close-check-tests.sh"
