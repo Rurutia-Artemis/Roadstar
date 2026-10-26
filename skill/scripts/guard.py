@@ -108,7 +108,12 @@ def task_parts(value):
 def mark(root, plan, task):
     if not TASK.fullmatch(task):
         raise Block("任务号写法不对", "怎么办：用 T1、T2 这样的任务号。")
-    relative = os.path.relpath(Path(plan).resolve(), root)
+    target = Path(plan).resolve()
+    main = git_dir(root, common=True).parent.resolve()
+    # 工位（另一个 worktree）派活时场次目录常在主工作区：按主工作区记相对路径，
+    # 合并时查验收记录、提交时找任务书都从主工作区解析，工位目录深浅不同也一致。
+    base = main if target.is_relative_to(main) and not target.is_relative_to(root.resolve()) else root
+    relative = os.path.relpath(target, base)
     if any(c in relative for c in "\r\n"):
         raise Block("场次路径里有换行", "怎么办：改成不带换行的目录名后重试。")
     value = {"plan_dir": relative, "task": task,
@@ -188,6 +193,9 @@ def commit_message(root, filename):
     for value in dict.fromkeys(values.get("roadstar-task", [])):
         plan, task = task_parts(value)
         request = root / plan / "rounds" / ("exec-" + task + "-request.md")
+        if not request.is_file():
+            shared = git_dir(root, common=True).parent / plan / "rounds" / request.name
+            request = shared if shared.is_file() else request
         if not request.is_file():
             raise Block("找不到这件活的任务书", "期望路径：" + str(request),
                         "怎么办：把任务书放回这个路径，或修正 Roadstar-Task 后重提。")

@@ -551,6 +551,25 @@ def c10_broken(root):
     assert p.stderr.count("警告：Roadstar 任务标记失败") == 1 and len(p.stderr.splitlines()) == 1
     assert (root.parent / "dispatch/called").exists()
 
+@test("C13", "工位在更深的目录、场次在主工作区：标记按主工作区记，提交找得到任务书，合并认主工作区记录")
+def c12_slots(root):
+    install(root)
+    slot = root.parent / "slots" / "s1"
+    slot.parent.mkdir()
+    git(root, "worktree", "add", "-qb", "lane/s1-T1", slot)
+    call(slot, "mark", root / plan, "T1")
+    data = json.loads((Path(git(slot, "rev-parse", "--path-format=absolute", "--git-dir").stdout.strip()) / "roadstar-task").read_text())
+    assert data["plan_dir"] == plan, data
+    stage(slot, "src/a/body.py", "slot change\n")
+    git(slot, "commit", "-qm", "slot commit")
+    assert "Roadstar-Task: " + task_value in git(slot, "log", "-1", "--format=%B").stdout
+    integ = root.parent / "slots" / "int"
+    git(root, "worktree", "add", "-qb", "integration", integ, "main")
+    p = call(integ, "check-merge", "lane/s1-T1", expected=1)
+    assert str(root / plan / "rounds/check-T1.md") in p.stderr, p.stderr
+    record(root)
+    call(integ, "check-merge", "lane/s1-T1")
+
 @test("C11", "坏标记、坏 trailer 和未知分支都给中文补救，无堆栈")
 def c11(root):
     write(root, ".git/roadstar-task", "{bad")
