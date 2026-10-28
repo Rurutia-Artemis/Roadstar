@@ -206,6 +206,7 @@ Claude 子代理（Haiku 常驻活、Sonnet 复核、Claude 梯子的实现、�
 | 派发脚本的提交说明写成 `git commit -m "$MSG（Codex $MODEL $EFFORT）"`，会话重启后环境变成 `LANG=zh_CN.UTF-8`，macOS 自带 /bin/bash 3.2 把全角括号的首字节当成变量名的一部分，`$MSG` 和 `$EFFORT` 都变成空，提交说明成了乱码；C locale 下又一切正常，所以以前没出过事（Mia 10-20 T164o） | shell 脚本里变量后面紧跟中文或全角标点，一律写成 `${VAR}`；改完用 `env -i LC_ALL=zh_CN.UTF-8 /bin/bash -c` 跑一遍，看输出对不对 |
 | 锁屏 10 小时后重启微信链路，自动登录按设计停在等待解锁，但 3 分钟的首页等待把锁屏时间也算进去了，超时放弃，解锁后也不补（Mia 10-20 T164k）；同一天还在锁屏时装了新版本，小号离线 10 小时，最后要主人扫码 | 会重启对外链路的安装，先查 `CGSSessionScreenIsLocked`，锁着就不装；凡是「等待用户可见状态」的计时，都要扣掉锁屏和屏保的时间 |
 | 2026-10-28 主会话自己在后台跑 Swift 全量测试，没设上限，另起的等待循环也只等进程退出；测试卡在一项上挂了九个半小时，开着几十个黑窗口挡主席桌面，四天前另一场留下的 xctest 也一直没人收 | **主会话自己起的长命令同样要上限**：后台跑测试、构建、e2e 一律用独立进程组加硬超时（例：`perl -e '$p=fork;if(!$p){setpgrp(0,0);exec @ARGV}$SIG{ALRM}=sub{kill "-KILL",$p};alarm 4500;waitpid($p,0)' swift test …`），上限按基线耗时的两倍；跑完或超时后 `pkill` 掉同 scratch 路径的 xctest；会开窗口的测试跑完确认窗口已关；收工前查一遍有没有父进程已退出（ppid=1）的 xctest、模拟器、开发服务，有就关 |
+| 2026-10-28 任务书让 Codex 在 worktree 里「先提交 WIP 再 git merge main」，沙箱写不了主仓 `.git/worktrees/<名>/index.lock`，整轮空转 | **git 写操作（commit、merge、rebase、worktree add）一律 Argo 在沙箱外做**；要合主线就 Argo 先 WIP 提交并 merge，把冲突留在文件里，任务书只让 Codex 改文件解冲突 |
 
 ## 16 项目常驻边界文件 `docs/roadstar/_common.md`
 
