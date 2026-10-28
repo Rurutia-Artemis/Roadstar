@@ -216,6 +216,14 @@ if [[ -z "$ROOT" ]]; then
 fi
 [[ -d "$ROOT" ]] || usage_error "root 不存在：$ROOT"
 ROOT="$(cd "$ROOT" && pwd)"
+# 工作副本规矩（主人 2026-10-28 定）：派活的 root 只能是项目主目录或 slots.json 里的固定副本，不往临时副本派。
+# 检查脚本在 RuruAgent 的 ws-guard 里；这台机器上没有它就跳过。WS_GUARD_DIR 可换位置，WS_GUARD_OK=理由 放行并记日志。
+WS_GUARD_DIR="${WS_GUARD_DIR:-$HOME/Documents/RuruCode/RuruAgent/tools/ws-guard}"
+if [[ -f "$WS_GUARD_DIR/check_root.py" ]]; then
+  WS_GUARD_RC=0
+  python3 "$WS_GUARD_DIR/check_root.py" "$ROOT" || WS_GUARD_RC=$?
+  [[ "$WS_GUARD_RC" -ne 2 ]] || exit 2
+fi
 for value in "$PLAN_DIR" "$MODEL" "$EFFORT" "$ROOT" "$RESUME"; do
   [[ "$value" != *$'\n'* && "$value" != *$'\r'* ]] || usage_error 'meta 字段不能包含换行'
 done
