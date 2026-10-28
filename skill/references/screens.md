@@ -112,7 +112,7 @@ python3 scripts/schedule.py --plan plan.md --strategy auto --probe rounds/probe.
 
 ```bash
 python3 scripts/dispatch-stats.py --calibrate
-python3 scripts/cleanup.py --project <项目根>          # 默认只列不删
+python3 scripts/cleanup.py --project <项目根>          # 默认只列不动；--apply 时可再生目录直接删，其余进废纸篓
 python3 scripts/telemetry.py send
 ```
 

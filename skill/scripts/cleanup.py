@@ -2,7 +2,14 @@
 """Tier-1 cleanup after a run: merged, clean worktrees and stale rounds/ intermediates.
 
 Default is dry-run: it prints what would go and how much space that frees.
-``--apply`` deletes; ``--check`` only reports unfinished work (exit 0/1).
+``--apply`` acts; ``--check`` only reports unfinished work (exit 0/1).
+Two kinds of disposal (owner's rule, 2026-10-28):
+  * regenerable build output is deleted outright: directories whose *name* is in
+    REGENERABLE (node_modules, .build, DerivedData, .codex-build, dist, .next,
+    __pycache__, .venv). Inside a worktree only the outermost such directories go,
+    never inside .git, never through a symlink, never one that holds a Git-tracked file;
+  * everything else (the worktree's remaining source, screenshots, logs, patches)
+    is moved to the Trash, never deleted, and the Trash is never emptied.
 Rules that never bend:
   * a worktree with uncommitted changes (including untracked files), a locked
     worktree, a branch not merged into the base, or a branch with unpushed
@@ -23,6 +30,9 @@ import shutil
 import subprocess
 import sys
 import time
+
+# Names that can be regenerated from source; matched on the directory name only.
+REGENERABLE = frozenset({"node_modules", ".build", "DerivedData", ".codex-build", "dist", ".next", "__pycache__", ".venv"})
 
 
 INTERMEDIATE_SUFFIXES = (".log", ".patch", ".diff.orig", ".png", ".jpg", ".jpeg", ".gif", ".mov", ".mp4", ".webm", ".xcresult", ".zip")
@@ -118,7 +128,10 @@ def judge_worktree(item, project, base, main_path, runner=git, measure_size=True
             if ahead.returncode == 0 and ahead.stdout.strip() not in ("", "0"):
                 reasons.append(f"有 {ahead.stdout.strip()} 个未推送提交")
     size = du(path) if measure_size else 0
-    return {"path": path, "branch": branch, "action": "skip" if reasons else "remove", "reasons": reasons, "bytes": size}
+    result = {"path": path, "branch": branch, "action": "skip" if reasons else "remove", "reasons": reasons, "bytes": size}
+    if measure_size and not reasons:
+        result["purge"] = [{"path": entry, "bytes": du(entry)} for entry in regenerable_dirs(path)]
+    return result
 
 
 def rounds_candidates(plan_dirs, days, now):
@@ -144,12 +157,69 @@ def rounds_candidates(plan_dirs, days, now):
             if mtime > cutoff:
                 continue
             found.append({"path": str(entry), "kind": "dir" if is_dir else "file",
+                          "disposal": "delete" if is_dir and name in REGENERABLE else "trash",
                           "age_days": int((now - mtime) // 86400), "bytes": du(entry) if is_dir else entry.stat().st_size})
     return found
 
 
+def tracked_inside(path):
+    """True when Git tracks anything at ``path`` (or Git cannot say); False outside a repository."""
+    parent, name = os.path.split(str(path).rstrip("/"))
+    result = subprocess.run(["git", "ls-files", "-z", "--", ":(literal)" + name], cwd=parent, capture_output=True, text=True,
+                            env={**os.environ, "GIT_OPTIONAL_LOCKS": "0"})
+    if result.returncode == 0:
+        return bool(result.stdout)
+    return "not a git repository" not in result.stderr
+
+
+def regenerable_dirs(root):
+    """Outermost whitelisted build directories under ``root``: no .git, no symlinks, nothing Git tracks."""
+    found = []
+    for current, dirs, _files in os.walk(root, followlinks=False):
+        keep = []
+        for name in sorted(dirs):
+            full = os.path.join(current, name)
+            if name == ".git" or os.path.islink(full):
+                continue
+            if name in REGENERABLE:
+                if not tracked_inside(full):
+                    found.append(full)
+                continue
+            keep.append(name)
+        dirs[:] = keep
+    return found
+
+
+def move_to_trash(path):
+    """Move to the Trash (never delete). ROADSTAR_TRASH_DIR redirects it for tests."""
+    override = os.environ.get("ROADSTAR_TRASH_DIR")
+    if not override and os.path.exists("/usr/bin/trash"):
+        result = subprocess.run(["/usr/bin/trash", str(path)], capture_output=True, text=True)
+        if result.returncode == 0:
+            return
+    box = Path(override) if override else Path.home() / ".Trash"
+    box.mkdir(parents=True, exist_ok=True)
+    target = box / Path(path).name
+    if target.exists() or target.is_symlink():
+        target = box / f"{Path(path).name}-{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}"
+    os.rename(path, target)
+
+
+def purge_dir(path):
+    """The only direct-delete entry; callers have already checked the name against REGENERABLE."""
+    if os.path.islink(path) or Path(path).name not in REGENERABLE:
+        raise OSError(f"拒绝直接删除：{path}")
+    shutil.rmtree(path)
+
+
 def remove_worktree(project, item):
-    git(["worktree", "remove", "--force", item["path"]], project, check=True)
+    """Delete its regenerable build directories, move the rest to the Trash, then drop the registration and the merged branch."""
+    path = item["path"]
+    for entry in item.get("purge", []):
+        if os.path.isdir(entry["path"]) and not tracked_inside(entry["path"]):
+            purge_dir(entry["path"])
+    move_to_trash(path)
+    git(["worktree", "prune"], project, check=True)
     if item.get("branch"):
         git(["branch", "-D", item["branch"]], project)
 
@@ -275,9 +345,13 @@ def main(argv=None):
     removable = [w for w in worktrees if w["action"] == "remove"]
     kept = [w for w in worktrees if w["action"] == "skip"]
     total = sum(w["bytes"] for w in removable) + sum(i["bytes"] for i in intermediates)
+    purge_bytes = sum(e["bytes"] for w in removable for e in w.get("purge", [])) + \
+        sum(i["bytes"] for i in intermediates if i["disposal"] == "delete")
     report = {"mode": "apply" if args.apply else "dry-run", "project": str(project), "base": base, "days": args.days,
               "worktrees_remove": removable, "worktrees_keep": kept, "intermediates": intermediates,
-              "bytes": total, "bytes_text": human(total), "errors": []}
+              "bytes": total, "bytes_text": human(total),
+              "bytes_purge": purge_bytes, "bytes_purge_text": human(purge_bytes),
+              "bytes_trash": total - purge_bytes, "bytes_trash_text": human(total - purge_bytes), "errors": []}
     if args.apply:
         for item in removable:
             try:
@@ -287,22 +361,26 @@ def main(argv=None):
                 report["errors"].append(f"{item['path']}：{error}")
         for item in intermediates:
             try:
-                if item["kind"] == "dir":
-                    shutil.rmtree(item["path"])
+                if item["disposal"] == "delete":
+                    purge_dir(item["path"])
                 else:
-                    os.unlink(item["path"])
+                    move_to_trash(item["path"])
                 item["done"] = True
             except OSError as error:
                 report["errors"].append(f"{item['path']}：{error}")
     if args.json:
         print(json.dumps(report, ensure_ascii=False))
     else:
-        verb = "删了" if args.apply else "会删"
-        print(f"清理（{'已执行' if args.apply else '只列不删，加 --apply 才删'}）：{verb} {len(removable)} 个 worktree、{len(intermediates)} 个中间产物，释放约 {report['bytes_text']}；基准 {base}")
+        done, will = ("已", "") if args.apply else ("", "会")
+        print(f"清理（{'已执行' if args.apply else '只列不删，加 --apply 才动手'}）：{will}处理 {len(removable)} 个 worktree、{len(intermediates)} 个中间产物；"
+              f"{done}{will}直接删除可再生产物约 {report['bytes_purge_text']}，{done}{will}移进废纸篓约 {report['bytes_trash_text']}；基准 {base}")
         for item in removable:
-            print(f"  {verb} worktree {item['path']}（分支 {item['branch']}，{human(item['bytes'])}）" + ("" if item.get("done", not args.apply) else " 失败"))
+            purge = item.get("purge", [])
+            detail = f"，先直接删除可再生目录 {len(purge)} 个（{human(sum(e['bytes'] for e in purge))}），剩下移进废纸篓" if purge else "，移进废纸篓"
+            print(f"  {will}处理 worktree {item['path']}（分支 {item['branch']}，{human(item['bytes'])}{detail}）" + ("" if item.get("done", not args.apply) else " 失败"))
         for item in intermediates:
-            print(f"  {verb} {item['path']}（{item['age_days']} 天前，{human(item['bytes'])}）")
+            how = "直接删除" if item["disposal"] == "delete" else "移进废纸篓"
+            print(f"  {will}{how} {item['path']}（{item['age_days']} 天前，{human(item['bytes'])}）" + ("" if item.get("done", not args.apply) else " 失败"))
         for item in kept:
             print(f"  不动 {item['path']}：{'；'.join(item['reasons'])}")
         for error in report["errors"]:

@@ -193,7 +193,7 @@ Dex 的「同意」不算数：PASS 必须清单逐项打勾且零阻塞项；�
 
 ### 10 完工报告
 
-全部通过后：在 plan 追加执行记录；给每条线的 `.meta` 补齐 class、outcome、done_items、minutes、quota_delta（est_minutes 和 strategy 派时已写）；跑 `scripts/dispatch-stats.py --calibrate`（只改本机预估）；跑 `scripts/cleanup.py --project <项目根>`（默认只列不删，列出来的 worktree 和中间产物在报告里给主席看，主席点头一次后同一类可加 `--apply`）；再跑收工检查 `scripts/cleanup.py --project <项目根> --plan-dir <场次目录> --check`：还有没合并的任务分支或工作副本、已合并没清的工作副本、有执行回复没有验收记录的活，退出码 1，这时不报「做完了」，完工报告第一行写「还没收完：」并逐条列出，主席说留着的写进「留着的」一栏（主席 10-22 定）；跑 `scripts/telemetry.py send`（关闭或没问过时什么都不做）；写共享记忆；交完工报告（配方见 minutes-template 末尾）：做完了 / 做了一半；做了什么；怎么验的；预估对账（每件预估、实际、偏差，整场合计，最准和最偏的各一件，样本不到 5 条就说默认值先不动）；额度（两边读数从几到几，和排活表预计的比）；清理（删了什么、释放多少、哪些没动和原因）；没做完的；你要做的；记录在哪，回传了几条。
+全部通过后：在 plan 追加执行记录；给每条线的 `.meta` 补齐 class、outcome、done_items、minutes、quota_delta（est_minutes 和 strategy 派时已写）；跑 `scripts/dispatch-stats.py --calibrate`（只改本机预估）；跑 `scripts/cleanup.py --project <项目根>`（默认只列不删，列出来的 worktree 和中间产物在报告里给主席看，主席点头一次后同一类可加 `--apply`；`--apply` 时 node_modules、.build、DerivedData、.codex-build、dist 等可再生目录直接删，worktree 剩下的源码、截图、日志移进废纸篓，主席 10-28 定）；再跑收工检查 `scripts/cleanup.py --project <项目根> --plan-dir <场次目录> --check`：还有没合并的任务分支或工作副本、已合并没清的工作副本、有执行回复没有验收记录的活，退出码 1，这时不报「做完了」，完工报告第一行写「还没收完：」并逐条列出，主席说留着的写进「留着的」一栏（主席 10-22 定）；跑 `scripts/telemetry.py send`（关闭或没问过时什么都不做）；写共享记忆；交完工报告（配方见 minutes-template 末尾）：做完了 / 做了一半；做了什么；怎么验的；预估对账（每件预估、实际、偏差，整场合计，最准和最偏的各一件，样本不到 5 条就说默认值先不动）；额度（两边读数从几到几，和排活表预计的比）；清理（删了什么、释放多少、哪些没动和原因）；没做完的；你要做的；记录在哪，回传了几条。
 
 ## 纪律
 

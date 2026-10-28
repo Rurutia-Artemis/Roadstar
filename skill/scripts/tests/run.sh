@@ -1407,8 +1407,10 @@ json_check "$CAL/out.json" 'd["cells"] == {} and d["providers"]["codex"]["calibr
 pass 'dispatch-stats: estimate bias column rounded to 5%, old metas without est_minutes fine, --calibrate writes P50/P80/tokens only for cells with enough samples and learns tokens per point'
 
 # cleanup.py: dirty, unmerged, unpushed and locked worktrees are never touched; dry-run changes nothing; protected rounds files stay.
+# Regenerable build dirs are deleted outright, everything else goes to the (test-redirected) Trash.
 CL="$TMP/cleanup"
 mkdir -p "$CL"
+export ROADSTAR_TRASH_DIR="$CL/trash"
 python3 - "$CL" <<'PY'
 import os, subprocess, sys, time
 from pathlib import Path
@@ -1417,12 +1419,20 @@ def git(*args, cwd):
     subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, env={**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@x", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@x", "HOME": str(root)})
 remote = root / "remote.git"; git("init", "--bare", "-q", str(remote), cwd=root)
 main = root / "main"; git("init", "-q", "-b", "main", str(main), cwd=root)
-(main / "a.txt").write_text("a\n"); git("add", "a.txt", cwd=main); git("commit", "-q", "-m", "init", cwd=main)
+(main / "a.txt").write_text("a\n"); (main / ".gitignore").write_text("node_modules/\n.build/\ndist/\n.venv\n")
+git("add", "a.txt", ".gitignore", cwd=main); git("commit", "-q", "-m", "init", cwd=main)
+(root / "outside").mkdir(); (root / "outside" / "keep.txt").write_text("keep")
 git("remote", "add", "origin", str(remote), cwd=main); git("push", "-q", "-u", "origin", "main", cwd=main)
-def lane(name, *, commit=True, merge=False, dirty=False, push_upstream=False, lock=False):
+def lane(name, *, commit=True, merge=False, dirty=False, push_upstream=False, lock=False, regen=False):
     path = root / f"wt-{name}"
     git("worktree", "add", "-q", "-b", name, str(path), "main", cwd=main)
     (path / "big.bin").write_bytes(b"0" * 4096)
+    if regen:
+        for rel in ("node_modules/pkg/i.js", "node_modules/pkg/node_modules/n/x.js", ".build/o", "web/dist/b.js"):
+            (path / rel).parent.mkdir(parents=True, exist_ok=True); (path / rel).write_text("x" * 1000)
+        (path / "docs/dist").mkdir(parents=True); (path / "docs/dist/keep.md").write_text("tracked")
+        git("add", "-f", "docs/dist/keep.md", cwd=path)
+        (path / ".venv").symlink_to(root / "outside")
     if commit:
         (path / f"{name}.txt").write_text(name); git("add", ".", cwd=path); git("commit", "-q", "-m", name, cwd=path)
     if push_upstream:
@@ -1434,7 +1444,7 @@ def lane(name, *, commit=True, merge=False, dirty=False, push_upstream=False, lo
         (path / "scratch.txt").write_text("unsaved")
     if lock:
         git("worktree", "lock", str(path), cwd=main)
-lane("merged-clean", merge=True)
+lane("merged-clean", merge=True, regen=True)
 lane("merged-dirty", merge=True, dirty=True)
 lane("unmerged")
 lane("merged-unpushed", merge=True, push_upstream=True)
@@ -1445,6 +1455,7 @@ old = time.time() - 10 * 86400
 for name in ("exec-T1.meta", "exec-T1-request.md", "exec-T1.md", "check-T1.md", "exec-T1.progress", "r1-plan.md", "r1-dex-review.json", "exec-T1-stdout.log", "old.patch"):
     (rounds / name).write_text("x"); os.utime(rounds / name, (old, old))
 (rounds / "T1-shots").mkdir(); (rounds / "T1-shots" / "a.png").write_bytes(b"0" * 2048); os.utime(rounds / "T1-shots", (old, old))
+(rounds / "DerivedData").mkdir(); (rounds / "DerivedData" / "c").write_bytes(b"0" * 1024); os.utime(rounds / "DerivedData", (old, old))
 (rounds / "exec-T2-stdout.log").write_text("fresh")
 PY
 MAIN="$CL/main"
@@ -1452,12 +1463,16 @@ tree_before="$(cd "$MAIN" && find . -not -path './.git*' -print0 | sort -z | xar
 python3 "$SCRIPTS/cleanup.py" --project "$MAIN" --json > "$CL/dry.json"
 tree_after="$(cd "$MAIN" && find . -not -path './.git*' -print0 | sort -z | xargs -0 stat -f '%N %z' | shasum)"
 [[ "$tree_before" == "$tree_after" ]]
-json_check "$CL/dry.json" 'd["mode"] == "dry-run" and [w["branch"] for w in d["worktrees_remove"]] == ["merged-clean"] and {w["branch"]: w["reasons"] for w in d["worktrees_keep"]}.keys() == {"merged-dirty", "unmerged", "merged-unpushed", "slot"} and any("未提交" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "merged-dirty")) and any("没合进" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "unmerged")) and any("未推送" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "merged-unpushed")) and any("锁定" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "slot")) and sorted(p["path"].rsplit("/", 1)[1] for p in d["intermediates"]) == ["T1-shots", "exec-T1-stdout.log", "old.patch"] and d["bytes"] > 4096'
+json_check "$CL/dry.json" 'd["mode"] == "dry-run" and [w["branch"] for w in d["worktrees_remove"]] == ["merged-clean"] and {w["branch"]: w["reasons"] for w in d["worktrees_keep"]}.keys() == {"merged-dirty", "unmerged", "merged-unpushed", "slot"} and any("未提交" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "merged-dirty")) and any("没合进" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "unmerged")) and any("未推送" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "merged-unpushed")) and any("锁定" in r for r in next(w["reasons"] for w in d["worktrees_keep"] if w["branch"] == "slot")) and sorted(p["path"].rsplit("/", 1)[1] for p in d["intermediates"]) == ["DerivedData", "T1-shots", "exec-T1-stdout.log", "old.patch"] and d["bytes"] > 4096 and {i["path"].rsplit("/", 1)[1]: i["disposal"] for i in d["intermediates"]} == {"DerivedData": "delete", "T1-shots": "trash", "exec-T1-stdout.log": "trash", "old.patch": "trash"} and sorted(e["path"].split("wt-merged-clean/")[1] for e in d["worktrees_remove"][0]["purge"]) == [".build", "node_modules", "web/dist"] and d["bytes_purge"] > 0 and d["bytes_purge"] + d["bytes_trash"] == d["bytes"]'
 [[ -d "$CL/wt-merged-clean" && -f "$MAIN/docs/roadstar/2026-10-01-x/rounds/exec-T1-stdout.log" ]]
 python3 "$SCRIPTS/cleanup.py" --project "$MAIN" > "$CL/dry.txt"
-grep -q '只列不删' "$CL/dry.txt" && grep -q '不动 .*merged-dirty' "$CL/dry.txt"
+grep -q '只列不删' "$CL/dry.txt" && grep -q '不动 .*merged-dirty' "$CL/dry.txt" && grep -q '直接删除可再生产物' "$CL/dry.txt" && grep -q '移进废纸篓' "$CL/dry.txt"
+[[ ! -e "$CL/trash" ]]
 python3 "$SCRIPTS/cleanup.py" --project "$MAIN" --apply --json > "$CL/apply.json"
 json_check "$CL/apply.json" 'd["mode"] == "apply" and d["errors"] == [] and all(w.get("done") for w in d["worktrees_remove"]) and all(i.get("done") for i in d["intermediates"])'
+T="$CL/trash/wt-merged-clean"
+[[ -f "$T/big.bin" && -f "$T/docs/dist/keep.md" && ! -e "$T/node_modules" && ! -e "$T/.build" && ! -e "$T/web/dist" && -f "$CL/outside/keep.txt" && -L "$T/.venv" ]]
+[[ -f "$CL/trash/T1-shots/a.png" && -f "$CL/trash/exec-T1-stdout.log" && -f "$CL/trash/old.patch" && ! -e "$CL/trash/DerivedData" ]]
 [[ ! -d "$CL/wt-merged-clean" && -d "$CL/wt-merged-dirty" && -d "$CL/wt-unmerged" && -d "$CL/wt-merged-unpushed" && -d "$CL/wt-slot" ]]
 ! git -C "$MAIN" rev-parse --verify --quiet merged-clean > /dev/null
 git -C "$MAIN" rev-parse --verify --quiet unmerged > /dev/null
@@ -1465,7 +1480,7 @@ R="$MAIN/docs/roadstar/2026-10-01-x/rounds"
 [[ -f "$R/exec-T1.meta" && -f "$R/exec-T1-request.md" && -f "$R/exec-T1.md" && -f "$R/check-T1.md" && -f "$R/exec-T1.progress" && -f "$R/r1-plan.md" && -f "$R/r1-dex-review.json" && -f "$R/exec-T2-stdout.log" ]]
 [[ ! -f "$R/exec-T1-stdout.log" && ! -f "$R/old.patch" && ! -d "$R/T1-shots" ]]
 expect_exit 2 python3 "$SCRIPTS/cleanup.py" --project "$TMP"
-pass 'cleanup: dry-run leaves the tree byte-identical, dirty/unmerged/unpushed/locked worktrees untouched on apply, merged clean worktree and stale intermediates removed, protected rounds files kept, non-repo exits 2'
+pass 'cleanup: dry-run leaves the tree byte-identical, dirty/unmerged/unpushed/locked worktrees untouched on apply, merged clean worktree loses only its outermost untracked regenerable dirs (tracked dist, symlinked .venv kept) before moving to the Trash, stale intermediates deleted (DerivedData) or trashed, protected rounds files kept, non-repo exits 2'
 
 source "$TEST_DIR/panel-113.sh"
 source "$TEST_DIR/grok-113.sh"
