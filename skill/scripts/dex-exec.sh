@@ -211,6 +211,13 @@ fi
 [[ -n "$EFFORT" ]] || usage_error '缺 --effort'
 [[ -n "$BRIEF" && -f "$BRIEF" ]] || usage_error "brief 文件不存在：$BRIEF"
 BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
+# 任务书六栏校验（主席 2026-11-03 定：缺栏派不出去；急事 BRIEF_CHECK=0 跳过并记下）
+BRIEF_CHECK_PY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/brief-check.py"
+if [[ -f "$BRIEF_CHECK_PY" ]]; then
+  python3 "$BRIEF_CHECK_PY" "$BRIEF" || usage_error "任务书没过六栏校验，先补齐再派（见上面列出的缺项）"
+else
+  echo "警告：找不到 brief-check.py（${BRIEF_CHECK_PY}），这次没做六栏校验" >&2
+fi
 if [[ -z "$ROOT" ]]; then
   ROOT="$(git -C "$PLAN_DIR" rev-parse --show-toplevel 2>/dev/null || dirname "$PLAN_DIR")"
 fi

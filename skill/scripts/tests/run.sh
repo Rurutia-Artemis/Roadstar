@@ -15,11 +15,14 @@ unset ROADSTAR_PROJECTS
 PLAN="$TMP/plan dir"
 mkdir -p "$PLAN"
 BRIEF="$PLAN/brief.md"
-printf '%s\n' '# Offline task' '保留原文与换行。' > "$BRIEF"
+printf '%s\n' '# T1 · Offline task' '' '## 目标与做完的样子' '保留原文与换行。完成线：stub 返回 ok。' '' '## 涉及模块' 'tests' '' '## 不许动什么' '仓库外' '' '## 执行环境' 'stub' '' '## 验收命令与期望输出' '`true` 期望退出 0' '' '## 资源上限与止损' '预计 5 分钟，上限 10 分钟' > "$BRIEF"
 printf '%s\n' '# Plan' 'Do the assigned task.' > "$PLAN/plan.md"
 printf '%s\n' '# Ledger' '| # | 题目 | 来源 | 级别 | 处置 | 状态 |' > "$PLAN/ledger.md"
 COUNT=0
 pass() { COUNT=$((COUNT + 1)); printf 'ok %d - %s\n' "$COUNT" "$1"; }
+python3 "$SCRIPTS/brief-check.py" "$BRIEF" && pass "brief-check 放行六栏齐全的任务书"
+if python3 "$SCRIPTS/brief-check.py" "$SCRIPTS/../references/task-brief-template.md" >/dev/null 2>&1; then echo 'FAIL: 模板占位应被 brief-check 拦下' >&2; exit 1; fi
+pass "brief-check 拦下只有占位的模板"
 json_check() {
   python3 - "$1" "$2" <<'PY'
 import json, sys
