@@ -1,2 +1,18 @@
 __pycache__/
 .DS_Store
+
+# 评审截图、录屏、Codex 运行日志不进 git（2026-11-03 接入清账）：留在磁盘，验收记录引用路径即可
+docs/roadstar/**/*.png
+docs/roadstar/**/*.jpg
+docs/roadstar/**/*.jpeg
+docs/roadstar/**/*.webp
+docs/roadstar/**/*.gif
+docs/roadstar/**/*.mp4
+docs/roadstar/**/*.mov
+docs/roadstar/**/exec-*-stdout.log
+docs/roadstar/**/*.pid
+docs/third-eye/**/*.png
+docs/third-eye/**/*.jpg
+docs/design/**/*.png
+docs/design/**/*.jpg
+docs/design/**/*.mp4
