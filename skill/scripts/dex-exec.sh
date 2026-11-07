@@ -215,7 +215,7 @@ BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
 BRIEF_CHECK_PY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/brief-check.py"
 if [[ -f "$BRIEF_CHECK_PY" ]]; then
   python3 "$BRIEF_CHECK_PY" "$BRIEF" || usage_error "任务书没过六栏校验，先补齐再派（见上面列出的缺项）"
-  # 场次的 plan.md 目标是新建 / 新系统 / 大改版时要有同类方案一节（主席 2026-11-07 定）
+  # 场次的 plan.md 目标是新系统 / 大改版这类整体性的活时要有同类方案一节（主席 2026-11-07 定）
   if [[ -f "$PLAN_DIR/plan.md" ]]; then
     python3 "$BRIEF_CHECK_PY" --plan "$PLAN_DIR/plan.md" || usage_error "plan.md 缺同类方案，先补齐再派（见上面列出的缺项）"
   fi

@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-11-07 · 同类方案只在整体性的活触发（不升版本）
+
+起因：上一条上线后实战误拦，任务书目标里写「新建的测试文件」「新建 `quota.py`」也被要求补同类方案。主席交办收窄。
+
+- `skill/scripts/brief-check.py`。旧：目标里出现 新建／新项目／新系统／新模块／大改版／重做 任一个就要同类方案。新：只认整体性说法 新系统／新项目／新产品／新服务／大改版／重做／立项；「新模块」要同一目标里还有「系统」「服务」「App」之一才触发（提示写「新模块」+「服务」）；单独的「新建」「新增」「新模块」不触发。
+- 触发条件的写法同步到 `task-brief-template.md`、`plan-template.md` §3b、`SKILL.md` 第 2 步、`dex-review-prompt.md`、`dex-exec.sh` 注释、`docs/模块地图.md`。RuruAgent `roadstar-铁律.md` 原文是「新系统先查同类方案」，和新条件一致，没改。
+- 测试（`run.sh`）新增 6 条：「新建的测试文件」「新建 quota.py」「单独的新模块」不拦，「新系统」「大改版」「新模块 + 服务」拦并说触发词；原有两条用「新建记忆系统」当目标的改成「新系统：本机记忆服务」。
+- 验证：`bash skill/scripts/tests/run.sh` 退出 0，主文件 110 条 ok、guard-tests 44 条、close-check-tests 13 条全部通过；`brief-check.py --plan` 对 plan 模板退出 0；`./install.sh` 退出 0。跑测试追加到 `exec-T2.progress` 的行已还原。未验证：「重做」仍在词表里，「重做按钮样式」这类小活会被要求写同类方案，遇到再收。
+
 ## 2026-11-07 · 新东西先查同类方案，brief-check 卡（不升版本）
 
 起因：大脑和记忆系统一开始没查同类开源方案就自己造，后来才发现 claude-mem、Hindsight 等早有更好的做法（RuruAgent `docs/roadstar/2026-11-07-brain-prior-art.md`）。主席授权直接改。

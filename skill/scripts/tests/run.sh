@@ -56,7 +56,7 @@ wait_done() {
 run_task() {
   bash "$SCRIPTS/dex-exec.sh" "$PLAN" "$1" --model gpt-6-astra --effort high --brief "$BRIEF" "${@:2}"
 }
-# 同类方案（主席 11-07 定）：目标里有 新建/新系统/大改版… 时，缺节或带链接条目少于 3 条就拦。
+# 同类方案（主席 11-07 定，当天收窄）：目标里有 新系统/大改版/立项… 时，缺节或带链接条目少于 3 条就拦。
 prior_brief() {  # $1 目标一句；$2 同类方案节正文（空 = 不写这一节）
   printf '%s\n' '# T2 · prior art' '' '## 目标与做完的样子' "$1 完成线：测试通过。" '' '## 涉及模块' 'tests' '' '## 不许动什么' '仓库外' '' '## 执行环境' 'stub' '' '## 验收命令与期望输出' '`true` 期望退出 0' '' '## 资源上限与止损' '预计 5 分钟，上限 10 分钟'
   [[ -z "$2" ]] || printf '\n## 同类方案\n%s\n' "$2"
@@ -66,14 +66,14 @@ PA_ROWS='| 项目 | 它怎么做 | 取 | 不取 | 许可证 | 链接 |
 | Hindsight | 小模型分诊 | 分诊 | 整套替换 | MIT | https://github.com/vectorize-io/hindsight |
 | mem0 | 向量+BM25 | 重排 | 托管 | Apache-2.0 | https://github.com/mem0ai/mem0 |'
 PA_THIRD='| claude-mem | 会话压缩 | 开场短索引 | 插件形态 | AGPL-3.0 | https://github.com/thedotmack/claude-mem |'
-prior_brief '新建记忆系统。' "$PA_ROWS
+prior_brief '新系统：本机记忆服务。' "$PA_ROWS
 $PA_THIRD" > "$TMP/pa-ok.md"
 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-ok.md"
-pass "brief-check 放行目标是新建、同类方案 3 条带链接的任务书"
-prior_brief '新建记忆系统。' '' > "$TMP/pa-missing.md"
+pass "brief-check 放行目标是新系统、同类方案 3 条带链接的任务书"
+prior_brief '新系统：本机记忆服务。' '' > "$TMP/pa-missing.md"
 expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-missing.md"
-grep -q '目标里有「新建」，缺「同类方案」一节' "$TMP/last-output"
-pass "brief-check 拦下目标是新建却缺同类方案一节的任务书，并说缺什么"
+grep -q '目标里有「新系统」，缺「同类方案」一节' "$TMP/last-output"
+pass "brief-check 拦下目标是新系统却缺同类方案一节的任务书，并说缺什么"
 prior_brief '记忆模块大改版。' "$PA_ROWS
 | Letta | 记忆块 | 字数上限 | 全套 | Apache-2.0 | 链接待补 |" > "$TMP/pa-two.md"
 expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-two.md"
@@ -82,6 +82,28 @@ pass "brief-check 拦下同类方案少于 3 条带链接的任务书（没链�
 prior_brief '修复登录页按钮点击两次才响应的 bug。' '' > "$TMP/pa-bugfix.md"
 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-bugfix.md"
 pass "brief-check 普通修 bug 不要求同类方案"
+# 11-07 收窄：单独的 新建 / 新增 / 新模块 不触发，整体性说法才拦。
+prior_brief '补上新建的测试文件，覆盖导出失败分支。' '' > "$TMP/pa-newfile.md"
+python3 "$SCRIPTS/brief-check.py" "$TMP/pa-newfile.md"
+pass "brief-check 目标是「新建的测试文件」不要求同类方案"
+prior_brief '新建 `quota.py`，读额度探针输出。' '' > "$TMP/pa-newpy.md"
+python3 "$SCRIPTS/brief-check.py" "$TMP/pa-newpy.md"
+pass "brief-check 目标是「新建 quota.py」不要求同类方案"
+prior_brief '加一个新模块，把导出拆出来。' '' > "$TMP/pa-newmod.md"
+python3 "$SCRIPTS/brief-check.py" "$TMP/pa-newmod.md"
+pass "brief-check 单独的「新模块」不要求同类方案"
+prior_brief '记忆检索新系统。' '' > "$TMP/pa-newsys.md"
+expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-newsys.md"
+grep -q '目标里有「新系统」，缺「同类方案」一节' "$TMP/last-output"
+pass "brief-check 目标是「新系统」缺同类方案就拦"
+prior_brief '设置页大改版。' '' > "$TMP/pa-revamp.md"
+expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-revamp.md"
+grep -q '目标里有「大改版」' "$TMP/last-output"
+pass "brief-check 目标是「大改版」缺同类方案就拦"
+prior_brief '加一个新模块，做成常驻的同步服务。' '' > "$TMP/pa-modsvc.md"
+expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-modsvc.md"
+grep -q '目标里有「新模块」+「服务」' "$TMP/last-output"
+pass "brief-check 目标是「新模块」又有「服务」缺同类方案就拦"
 prior_brief '新系统：本机语音备忘。' '查过：voice memo open source、本地语音转写 备忘（GitHub、wigolo search），无' > "$TMP/pa-none.md"
 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-none.md"
 pass "brief-check 同类方案写「查过：关键词…，无」放行"
