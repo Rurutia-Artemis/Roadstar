@@ -1,5 +1,22 @@
 # Roadstar · 更新日志
 
+## 2026-11-07 · 新东西先查同类方案，brief-check 卡（不升版本）
+
+起因：大脑和记忆系统一开始没查同类开源方案就自己造，后来才发现 claude-mem、Hindsight 等早有更好的做法（RuruAgent `docs/roadstar/2026-11-07-brain-prior-art.md`）。主席授权直接改。
+
+- `skill/references/plan-template.md`。旧：§3 现状与约束之后直接是 §4 方案，没有要求看别人怎么做过。新：插一节「3b 同类方案」（不重编号，§10 拆分表等引用不变），目标里有 新建／新项目／新系统／新模块／大改版／重做 时必填，其余写「跳过：理由」；至少 3 个同类开源项目或产品，表格六列：项目、它怎么做、我们取什么、不取什么（为什么）、许可证、链接；查不到写「查过：关键词…，无」；许可证不兼容的只借做法不拷代码，取了的在 §4 关键决定里写来源。末尾规矩加第 4 条「§3b 写满了才写 §4」并写明起因。
+- `skill/references/task-brief-template.md`。旧：六栏加背景等槽位，没有同类方案。新：「背景」后加「同类方案（只在新建模块 / 新系统时写）」，占位里写清触发条件（目标栏出现上面六个词之一），修 bug、改已有功能、调样式整节删掉；plan 里已有的照抄过来。
+- `skill/references/dex-review-prompt.md` 清单加 `prior_art` 一项（plan-template 要求增删槽位时同步改它）。
+- `skill/scripts/brief-check.py`。旧：只查任务书六栏。新：「目标」栏（任务书的「目标与做完的样子」，或 plan 的「1 目标与非目标」里除「非目标」以外的行，`<…>` 占位不算）出现上面六个词之一时，缺标题含「同类方案」的一节、或带真实链接的条目（列表项、表格行、### 小标题各算一条）少于 3 条，退出 2 并说缺什么、差几条；「查过：关键词…，无」放行。新参数 `--plan <plan.md>` 只查同类方案不查六栏；没有「目标与做完的样子」而有「数字 目标…」一节时自动按 plan 查。
+- `skill/scripts/dex-exec.sh`：任务书过了六栏后，场次目录有 `plan.md` 就再跑一次 `brief-check.py --plan`，不过退出 2 不派。`SKILL.md` 第 2 步加一句，`docs/模块地图.md`「任务执行与验收」入口一行同步。
+- 测试（`skill/scripts/tests/run.sh`）：新增 7 条。brief-check 四例按交办：有（新建 + 3 条带链接）放行、缺节拦并说「缺同类方案一节」、2 条带链接加 1 条没链接拦并说「只有 2 条」、普通修 bug 不要求；另加「查过…，无」放行、plan 认得出（「非目标：不做大改版」不触发，plan 模板本身放行，重做却只有 2 条拦）、dex-exec 遇到缺同类方案的 plan.md 退出 2 且不建 rounds。
+- 顺手修了 4 处既有测试问题，全是测试写死了旧状态，脚本行为没改。原来 `run.sh` 在第 1166 行就停，后面的检查从 2.0.0 起一直没跑到，这次修通才露出后三处。
+  1. quota-estimate 断言 `skill_version` 以 1.13 开头，面板断言首行是「Roadstar 1.13 · 接了」：改成从 `SKILL.md` 读当前版本（现在 2.0.0／2.0），开头再断言版本号是 x.y.z 格式。
+  2. quota-estimate 断言 Codex 重置日含「10-19」：桩按真实当前时间 +3 天生成重置时刻，改成从探针 JSON 读期望值换算成 JST 再比。
+  3. strategies.json 对表那条去 `SKILL.md` 找「### 8」：2.0.0 把 §8 派活表搬到了 `references/dispatch-table.md`，改读那份。
+  4. `guard-tests.sh` C10 三条失败：测试把 `dex-exec.sh` 拷进临时目录时没带 `brief-check.py`（2.0.0 起多出一行警告），又会撞上本机 RuruAgent 的 ws-guard（10-28 起拒绝临时工作副本）。改成在临时目录放一个直接放行的 brief-check 桩、`WS_GUARD_DIR` 指向不存在的目录，C10 只测任务标记。HEAD 干净副本里跑 `guard-tests.sh` 同样是这 3 条失败（3/40），属既有问题。
+- 验证：`bash skill/scripts/tests/run.sh` 退出 0，主文件 104 条 ok、guard-tests 44 条、close-check-tests 13 条全部通过（改前停在第 79 条后）。`brief-check.py` 对任务书模板仍退出 2、对 plan 模板 `--plan` 退出 0。`./install.sh` 退出 0，三处软链指向本仓库 `skill/`。guard-tests 每跑一次会往已提交的 `docs/roadstar/2026-10-25-guards/rounds/exec-T2.progress` 追加几十行，这次跑完已还原，没提交进来。未验证：真实项目里还没有一份新系统 plan 按 §3b 写过、被 dex-exec 拦过；「新建」这个词在普通任务书里也可能出现（如「新建一个测试文件」），会被误要求写同类方案，遇到时可改写目标措辞或 `BRIEF_CHECK=0`，误拦多了再收窄词表。
+
 ## 2026-11-07 · 任务书模板：「根因」类活的完成线（不升版本）
 
 吸收 mattpocock/skills 的 `diagnosing-bugs`（https://github.com/mattpocock/skills ，`skills/engineering/diagnosing-bugs/SKILL.md`，MIT，Copyright 2026 Matt Pocock），依据 RuruAgent `docs/roadstar/2026-11-07-github-trending-1104-review.md` 第五节与落地表第 4 条。只借做法，没有拷贝原文。

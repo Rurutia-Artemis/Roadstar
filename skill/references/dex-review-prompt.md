@@ -24,6 +24,7 @@
 - goals_nongoals：目标与非目标
 - acceptance：验收标准（每条可判定）
 - context_constraints：现状与约束（引用了具体文件或数据）
+- prior_art：同类方案（目标是新建 / 新系统 / 大改版时至少 3 个，每个写了怎么做、取什么、不取什么、许可证和链接，或写明查过的关键词；取的部分在方案里有落点；其余写了跳过理由）
 - approach_alternatives：方案与备选（备选至少一个，写了为什么不选）
 - key_decisions：关键决定（每条有代价）
 - impact：影响面（数据 / 接口 / 依赖）

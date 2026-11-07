@@ -19,7 +19,7 @@ metadata:
 ## 六步
 
 1. **判难度。** 小活（一小时内、只动一个模块）直接干，不写任务书。中活一份任务书、一个执行方、换会话验收，任务书不给主席过目。大活先拆成几份任务书（一份一个目标、两小时内、按文件归属切线、共享中枢只归一条线、要模拟器的最多两条并行），列一张派活表给主席看一眼再动。判法看「做错了要付多少」：返工超过一天的先开圆桌。
-2. **任务书六栏**（`references/task-brief-template.md`）：目标与做完的样子（有一条能判对错的完成线）、涉及模块（地图里的名字）、不许动什么、执行环境、验收命令与期望输出（只用它验，不许执行方自己发明验法）、资源上限与止损（预计用时抄经验表，上限是预计的两倍，不许直接套 120 分钟）。有界面的活写明从 `docs/design.md` 取哪几节，没有的样子先回来问；项目没有 `docs/design.md` 就不许改界面代码（ui-guard 会拦）。`dex-exec.sh` 派活前自动跑 `brief-check.py`，缺一栏派不出去。
+2. **任务书六栏**（`references/task-brief-template.md`）：目标与做完的样子（有一条能判对错的完成线）、涉及模块（地图里的名字）、不许动什么、执行环境、验收命令与期望输出（只用它验，不许执行方自己发明验法）、资源上限与止损（预计用时抄经验表，上限是预计的两倍，不许直接套 120 分钟）。有界面的活写明从 `docs/design.md` 取哪几节，没有的样子先回来问；项目没有 `docs/design.md` 就不许改界面代码（ui-guard 会拦）。`dex-exec.sh` 派活前自动跑 `brief-check.py`，缺一栏派不出去。目标里有新建、新系统、新模块、大改版、重做这类字的，任务书和 plan 都要先写「同类方案」一节（至少 3 个同类开源项目或产品，带链接，写取什么不取什么和许可证），brief-check 一起查。
 3. **派活。** 执行方和型号按 `references/dispatch-table.md`（规格清楚的实现给 Codex 6.1 Sol，根因不明给 Astra 或 Opus，取证和机械活给 Haiku，复核跨家）。Codex 走 `scripts/dex-exec.sh <plan-dir> T<n> --model … --effort … --class … --est-minutes … --brief … --max-minutes …`，默认只读，改文件加 `--write`；Claude 子代理用 Agent 工具，同一份任务书当提示，回复存 `rounds/exec-T<n>.md`，`.meta` 手写。每条线在自己的固定工作副本里（ws-guard）。额度紧先停下来问主席，不自己降型号（主席 10-22 定）。
 4. **验收换会话。** 干净会话只拿任务书、改动和测试结果，复跑验收命令；有界面的按 vela 的 `references/ui-acceptance.md` 截图对照；Codex 写的 Claude 验，Claude 写的 Codex 验（`scripts/dex-review.sh`）。写成 `rounds/check-T<n>.md`。没有它，`guard.py` 不让合并进主干（`git merge --no-ff`）；改了模块入口没改地图，提交会被拦。
 5. **收尾。** `.meta` 补齐实耗 → `scripts/dispatch-stats.py --calibrate` → `scripts/cleanup.py --project <根>` 和 `--check`（退出 1 就不算做完）→ 提交。会话结束时钩子扫 `docs/roadstar/*/`，有任务书没有验收记录的活自动变成记忆服务里的待办，到点冒出来，不靠记性。

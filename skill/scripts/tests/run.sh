@@ -20,6 +20,9 @@ printf '%s\n' '# Plan' 'Do the assigned task.' > "$PLAN/plan.md"
 printf '%s\n' '# Ledger' '| # | 题目 | 来源 | 级别 | 处置 | 状态 |' > "$PLAN/ledger.md"
 COUNT=0
 pass() { COUNT=$((COUNT + 1)); printf 'ok %d - %s\n' "$COUNT" "$1"; }
+# 当前版本号从 SKILL.md 读，断言不写死（2.0.0 起写死的 1.13 断言一直失败）
+SKILL_VERSION="$(sed -nE 's/^[[:space:]]*version:[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/p' "$SCRIPTS/../SKILL.md" | head -n 1)"
+[[ "$SKILL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 python3 "$SCRIPTS/brief-check.py" "$BRIEF" && pass "brief-check 放行六栏齐全的任务书"
 if python3 "$SCRIPTS/brief-check.py" "$SCRIPTS/../references/task-brief-template.md" >/dev/null 2>&1; then echo 'FAIL: 模板占位应被 brief-check 拦下' >&2; exit 1; fi
 pass "brief-check 拦下只有占位的模板"
@@ -53,6 +56,49 @@ wait_done() {
 run_task() {
   bash "$SCRIPTS/dex-exec.sh" "$PLAN" "$1" --model gpt-6-astra --effort high --brief "$BRIEF" "${@:2}"
 }
+# 同类方案（主席 11-07 定）：目标里有 新建/新系统/大改版… 时，缺节或带链接条目少于 3 条就拦。
+prior_brief() {  # $1 目标一句；$2 同类方案节正文（空 = 不写这一节）
+  printf '%s\n' '# T2 · prior art' '' '## 目标与做完的样子' "$1 完成线：测试通过。" '' '## 涉及模块' 'tests' '' '## 不许动什么' '仓库外' '' '## 执行环境' 'stub' '' '## 验收命令与期望输出' '`true` 期望退出 0' '' '## 资源上限与止损' '预计 5 分钟，上限 10 分钟'
+  [[ -z "$2" ]] || printf '\n## 同类方案\n%s\n' "$2"
+}
+PA_ROWS='| 项目 | 它怎么做 | 取 | 不取 | 许可证 | 链接 |
+|---|---|---|---|---|---|
+| Hindsight | 小模型分诊 | 分诊 | 整套替换 | MIT | https://github.com/vectorize-io/hindsight |
+| mem0 | 向量+BM25 | 重排 | 托管 | Apache-2.0 | https://github.com/mem0ai/mem0 |'
+PA_THIRD='| claude-mem | 会话压缩 | 开场短索引 | 插件形态 | AGPL-3.0 | https://github.com/thedotmack/claude-mem |'
+prior_brief '新建记忆系统。' "$PA_ROWS
+$PA_THIRD" > "$TMP/pa-ok.md"
+python3 "$SCRIPTS/brief-check.py" "$TMP/pa-ok.md"
+pass "brief-check 放行目标是新建、同类方案 3 条带链接的任务书"
+prior_brief '新建记忆系统。' '' > "$TMP/pa-missing.md"
+expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-missing.md"
+grep -q '目标里有「新建」，缺「同类方案」一节' "$TMP/last-output"
+pass "brief-check 拦下目标是新建却缺同类方案一节的任务书，并说缺什么"
+prior_brief '记忆模块大改版。' "$PA_ROWS
+| Letta | 记忆块 | 字数上限 | 全套 | Apache-2.0 | 链接待补 |" > "$TMP/pa-two.md"
+expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-two.md"
+grep -q '「同类方案」只有 2 条带链接的条目，要至少 3 条' "$TMP/last-output"
+pass "brief-check 拦下同类方案少于 3 条带链接的任务书（没链接的那条不算）"
+prior_brief '修复登录页按钮点击两次才响应的 bug。' '' > "$TMP/pa-bugfix.md"
+python3 "$SCRIPTS/brief-check.py" "$TMP/pa-bugfix.md"
+pass "brief-check 普通修 bug 不要求同类方案"
+prior_brief '新系统：本机语音备忘。' '查过：voice memo open source、本地语音转写 备忘（GitHub、wigolo search），无' > "$TMP/pa-none.md"
+python3 "$SCRIPTS/brief-check.py" "$TMP/pa-none.md"
+pass "brief-check 同类方案写「查过：关键词…，无」放行"
+printf '%s\n' '# Plan' '## 1 目标与非目标' '- 目标：修好导出。' '- 非目标：不做大改版。' > "$TMP/plan-ok.md"
+printf '%s\n' '# Plan' '## 1 目标与非目标' '- 目标：重做记忆服务。' '- 非目标：不换数据库。' '## 3b 同类方案' "$PA_ROWS" > "$TMP/plan-two.md"
+python3 "$SCRIPTS/brief-check.py" "$TMP/plan-ok.md"
+python3 "$SCRIPTS/brief-check.py" --plan "$SCRIPTS/../references/plan-template.md"
+expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/plan-two.md"
+grep -q '^plan不合格' "$TMP/last-output"
+grep -q '只有 2 条' "$TMP/last-output"
+pass "brief-check 认出 plan：只查同类方案，「非目标」行不触发，plan 模板本身放行"
+mkdir -p "$TMP/pa plan"
+printf '%s\n' '# Plan' '## 1 目标与非目标' '- 目标：重做记忆服务。' > "$TMP/pa plan/plan.md"
+expect_exit 2 bash "$SCRIPTS/dex-exec.sh" "$TMP/pa plan" T1 --model gpt-6-astra --effort high --brief "$BRIEF" --max-minutes 10 --dry-run
+grep -q 'plan.md 缺同类方案' "$TMP/last-output"
+[[ ! -e "$TMP/pa plan/rounds" ]]
+pass "dex-exec 派活前查场次 plan.md：目标是重做却缺同类方案，退出 2 不派"
 
 python3 "$SCRIPTS/quota-status.py" > "$TMP/quota.txt"
 python3 - "$TMP/quota.txt" <<'PY'
@@ -1163,14 +1209,19 @@ EST="$TMP/estimate"
 mkdir -p "$EST"
 FAKE_CLAUDE_USED=97 FAKE_CLAUDE_FABLE=19 FAKE_CODEX_USED=8 FAKE_CODEX_CARDS=1 python3 "$SCRIPTS/quota-status.py" --json > "$EST/probe-a.json"
 ROADSTAR_CONFIG_DIR="$EST/nocfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-a.json" --session 探讨 --now 2026-10-16T06:00:00Z > "$EST/a.json"
-json_check "$EST/a.json" 'd["providers"]["codex"]["available_points"] == 82 and d["providers"]["codex"]["calibrated"] is False and d["providers"]["codex"]["units_text"].startswith("约 ") and d["providers"]["codex"]["confidence"] == "低" and d["providers"]["codex"]["unlockable_units"] is not None and d["providers"]["codex"]["units"] == int(82 / 0.3) and d["providers"]["claude"]["tier"] == "空" and d["providers"]["claude"]["units"] is None and d["providers"]["claude"]["available_points"] == 0 and d["total"]["included"] == ["codex"] and d["total"]["units"] == d["providers"]["codex"]["units"] and d["total"]["confidence"] == "低" and d["strategy"] == "auto" and d["strategy_from"] == "默认" and d["config_exists"] is False and d["session"]["rounds"] == 3 and d["session"]["feature_map_calls"] == 2 and d["session"]["codex_points"] > 0 and d["session"]["enough"] is True and d["connected_count"] == 3 and d["connected_text"].startswith("接了 3 家") and d["grace"]["role"] == "调研协作方" and d["skill_version"].startswith("1.13")'
-python3 - "$EST/a.json" <<'PY'
+json_check "$EST/a.json" 'd["providers"]["codex"]["available_points"] == 82 and d["providers"]["codex"]["calibrated"] is False and d["providers"]["codex"]["units_text"].startswith("约 ") and d["providers"]["codex"]["confidence"] == "低" and d["providers"]["codex"]["unlockable_units"] is not None and d["providers"]["codex"]["units"] == int(82 / 0.3) and d["providers"]["claude"]["tier"] == "空" and d["providers"]["claude"]["units"] is None and d["providers"]["claude"]["available_points"] == 0 and d["total"]["included"] == ["codex"] and d["total"]["units"] == d["providers"]["codex"]["units"] and d["total"]["confidence"] == "低" and d["strategy"] == "auto" and d["strategy_from"] == "默认" and d["config_exists"] is False and d["session"]["rounds"] == 3 and d["session"]["feature_map_calls"] == 2 and d["session"]["codex_points"] > 0 and d["session"]["enough"] is True and d["connected_count"] == 3 and d["connected_text"].startswith("接了 3 家") and d["grace"]["role"] == "调研协作方" and d["skill_version"] == "'"$SKILL_VERSION"'"'
+python3 - "$EST/a.json" "$EST/probe-a.json" <<'PY'
 import json, sys
+from datetime import datetime, timedelta, timezone
 d = json.load(open(sys.argv[1], encoding="utf-8"))
+probe = json.load(open(sys.argv[2], encoding="utf-8"))
 c = d["providers"]["codex"]
 assert c["unlockable_points"] == 90 and c["unlockable_units"] == int(90 / 0.3), c
 assert c["units"] + c["unlockable_units"] > c["units"] and d["total"]["unlockable_units"] == c["unlockable_units"]
-assert "10-19" in c["reset_jst"] and d["providers"]["claude"]["reset_jst"]
+# 桩的重置时刻按真实当前时间 +3 天生成，期望值从探针读，不写死日期
+reset = datetime.fromisoformat(probe["codex"]["weekly"]["resets_at"].replace("Z", "+00:00")).astimezone(timezone(timedelta(hours=9)))
+assert c["reset_jst"] == reset.strftime("%m-%d %H:%M"), (c["reset_jst"], reset)
+assert d["providers"]["claude"]["reset_jst"]
 assert d["providers"]["grok"]["connected"] and d["providers"]["grok"]["units"] is None and d["providers"]["grok"]["confidence"] == "无"
 PY
 # Unreadable Claude: not in the total, note carried from the probe, tier text says 按紧处理.
@@ -1218,6 +1269,7 @@ def render(estimate, *extra):
     assert out.returncode == 0, out.stderr
     return json.loads(out.stdout)
 numbers = re.compile(r"\d+(?:[.:]\d+)*")
+SKILL_MAJOR_MINOR = re.search(r'version:\s*"(\d+\.\d+)\.\d+"', (Path(panel).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")).group(1)
 model_names = re.compile(r"6\.1 Sol|grok-4\.\d(?:-build-fast)?")  # model names carry digits that are labels, not readings
 def traceable(lines, source):
     blob = json.dumps(json.load(open(source, encoding="utf-8")), ensure_ascii=False)
@@ -1230,7 +1282,7 @@ for name, extra in (("a", ["--usage", "探讨", "--title", "记账 App"]), ("b",
         lines = blocks["panel"]
         assert 10 <= len(lines) <= 14, (name, strategy, len(lines))
         assert max(width(l) for l in lines) <= 80, (name, strategy, [width(l) for l in lines])
-        assert lines[0].startswith("Roadstar 1.13 · 接了") and lines[-1].endswith("不改我就跑。")
+        assert lines[0].startswith(f"Roadstar {SKILL_MAJOR_MINOR} · 接了") and lines[-1].endswith("不改我就跑。")
         assert any("策略：" in l for l in lines) and any("这周合计" in l for l in lines)
         traceable(lines, est / f"{name}.json")
         assert blocks["preview"][0].endswith({"auto": "自动分配", "quality": "质量优先", "thrift": "省着用", "rush": "赶时间"}[strategy])
@@ -1287,14 +1339,14 @@ PY
 expect_exit 2 python3 "$SCRIPTS/panel.py" --estimate "$EST/nope.json"
 pass 'panel: ≤14 lines and ≤80 columns for four strategies × four readings, every number traceable to the input JSON, unreadable Claude, Codex empty goes to the Claude ladder, both wide prefers Opus for hard work, single mode, compact two lines'
 
-# strategies.json / strategies.md consistency with SKILL §8.
-python3 - "$SCRIPTS/../SKILL.md" "$SCRIPTS/../references/strategies.json" "$SCRIPTS/../references/strategies.md" <<'PY'
+# strategies.json / strategies.md consistency with the §8 dispatch table (moved to references/dispatch-table.md in 2.0.0).
+python3 - "$SCRIPTS/../references/dispatch-table.md" "$SCRIPTS/../references/strategies.json" "$SCRIPTS/../references/strategies.md" <<'PY'
 import json, re, sys
 skill = open(sys.argv[1], encoding="utf-8").read()
 data = json.load(open(sys.argv[2], encoding="utf-8"))
 md = open(sys.argv[3], encoding="utf-8").read()
 section = skill[skill.index("### 8 "):]
-section = section[:section.index("\n### 9 ")]
+section = section.split("\n### 9 ")[0]
 rows = {}
 for line in section.splitlines():
     if line.startswith("|") and not line.startswith("|---") and not line.startswith("| 活"):
@@ -1321,7 +1373,7 @@ assert checked >= 10, checked
 for strategy, spec in data["strategies"].items():
     assert spec["label"] in md and set(spec["parallel"]) == {"codex", "claude", "simulator"}
 PY
-pass 'strategies.json auto column equals SKILL §8 row by row; four columns filled without 同左; strategies.md lists every class and strategy'
+pass 'strategies.json auto column equals the §8 dispatch table row by row; four columns filled without 同左; strategies.md lists every class and strategy'
 
 # schedule.py: cycles, Argo serial lane, weekly-reset gating, folding, JSON input.
 SCH="$TMP/schedule"

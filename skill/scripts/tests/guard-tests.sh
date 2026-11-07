@@ -500,6 +500,7 @@ def dispatch(root, write_flag=True, dry=False, nonrepo=False, broken=False):
     if broken:
         (directory / "guard.py").write_text("raise SystemExit(1)\n")
     write(directory, "quota-status.py", 'print(\'{"codex":{"tier":"宽"}}\')\n')
+    write(directory, "brief-check.py", "raise SystemExit(0)\n")  # 六栏和同类方案校验由 run.sh 测，这里只测任务标记
     codex = write(directory, "bin/codex", '#!/bin/bash\nif [ -n "$FAKE_EXPECT_MARK" ]; then [ -s "$FAKE_EXPECT_MARK" ] || exit 9; fi\nprintf "called\\n" >> "$FAKE_CALLED"\n')
     codex.chmod(0o755)
     target = root
@@ -514,7 +515,7 @@ def dispatch(root, write_flag=True, dry=False, nonrepo=False, broken=False):
     mark = ""
     if write_flag and not nonrepo and not broken:
         mark = str(Path(git(root, "rev-parse", "--path-format=absolute", "--git-dir").stdout.strip()) / "roadstar-task")
-    return run(root, *args, extra={"PATH": str(directory / "bin") + ":" + env["PATH"], "ROADSTAR_CONFIG_DIR": str(directory / "config"), "FAKE_CALLED": str(directory / "called"), "FAKE_EXPECT_MARK": mark})
+    return run(root, *args, extra={"PATH": str(directory / "bin") + ":" + env["PATH"], "ROADSTAR_CONFIG_DIR": str(directory / "config"), "WS_GUARD_DIR": str(directory / "no-ws-guard"), "FAKE_CALLED": str(directory / "called"), "FAKE_EXPECT_MARK": mark})
 
 @test("C10", "write 实际派活前在 root 留下任务标记，使用离线 codex 桩")
 def c10_write(root):
