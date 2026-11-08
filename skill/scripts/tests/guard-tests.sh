@@ -114,6 +114,131 @@ def pretool(root, command, expected=0, **kwargs):
         assert p.stdout == p.stderr == "", (p.stdout, p.stderr)
     return p
 
+MIA_MAP = """# Mia 样式地图
+`Core`=`wrong/outside`
+## 模块一览
+`Core`=`app/Workstation/Sources/WorkstationCore`，`Kit`=`app/Workstation/Sources/WorkbenchKit/`、`Term`=`app/Workstation/Sources/MiaTerminal`。
+| 模块 | 管什么 | 目录 |
+|---|---|---|
+| 主机 Web 与鉴权 | HTTP | `agent/src/web/` |
+| App 终端工作台 | 终端 | `Core/Views/Terminal/、Core/Models/` |
+| App 首页 H3 与额度 | 首页 | `Core/Views/Home/` |
+| 共享组件 | 客户端 | `Kit/`、`Term/`、`CoreExtra/`、`Late/` |
+`Late`=`wrong/after-table`
+## App 终端工作台
+- 入口：`Core/Views/Terminal/TerminalStage.swift`
+`Term`=`wrong/after-section`
+"""
+
+def listed_modules(root, cwd=None):
+    p = call(cwd or root, "modules", root)
+    assert p.stderr == "", p.stderr
+    return {name: directories.split(", ") if directories else []
+            for name, directories in (line.split("\t", 1) for line in p.stdout.splitlines())}
+
+def replace_map(root, text):
+    stage(root, map_path, text)
+    git(root, "commit", "-qm", "fixture map")
+
+@test("C1-table", "模块表：三种名称列、路径列别名与第一列优先；RuruAgent 样式读出 22 个模块")
+def table_headers(root):
+    rows = ["| 记忆服务（M1） | 共用记忆 | `tools/memory/` |"]
+    rows += ["| 工具 %02d | 职责 | `tools/tool-%02d/` |" % (i, i) for i in range(21)]
+    for name_column in ("模块", "名称", "工具"):
+        for path_column in ("目录", "目录／正本", "目录/正本", "源码路径", "位置", "正本"):
+            text = "## 模块一览\n| %s | 管什么 | %s |\n|---|---|---|\n" % (name_column, path_column)
+            write(root, map_path, text + "\n".join(rows))
+            modules = listed_modules(root)
+            assert len(modules) == 22, modules
+            assert modules["记忆服务（M1）"] == ["tools/memory/"], modules
+    write(root, map_path, "## 模块一览\n| 源码位置 | 工具 | 目录／正本 |\n|---|---|---|\n| `first/` | 甲 | `second/` |\n")
+    assert listed_modules(root) == {"甲": ["first/"]}
+
+@test("C2-table", "模块表：表前多组缩写按前缀展开，终端提交放行、Web 越界归属明确")
+def table_abbreviations(root):
+    replace_map(root, MIA_MAP)
+    modules = listed_modules(root)
+    assert modules["App 终端工作台"] == [
+        "app/Workstation/Sources/WorkstationCore/Views/Terminal/",
+        "app/Workstation/Sources/WorkstationCore/Models/"]
+    assert modules["共享组件"] == ["app/Workstation/Sources/WorkbenchKit/",
+                               "app/Workstation/Sources/MiaTerminal/", "CoreExtra/", "Late/"]
+    request(root, "App 终端工作台")
+    stage(root, "app/Workstation/Sources/WorkstationCore/Views/Terminal/TerminalStage.swift")
+    call(root, "hook", "commit-msg", message(root))
+    stage(root, "agent/src/web/x.ts")
+    p = call(root, "hook", "commit-msg", message(root), expected=1)
+    assert "agent/src/web/x.ts → 主机 Web 与鉴权" in p.stderr, p.stderr
+
+@test("C3-table", "模块表：只取反引号路径，丢说明和外部地址，保留文件、空格路径与通配")
+def table_path_notes(root):
+    text = """## 模块一览
+| 模块 | 管什么 | 目录 |
+|---|---|---|
+| 中文写作、声线与语料 | 写作 | 相关 `skills/`、`Puppis/` |
+| 社区回传 | 回传 | `skill/scripts/telemetry.py`、`docs/社区数据回传.md`；数据仓库 github.com/Rurutia-Artemis/roadstar-data、`github.com/Rurutia-Artemis/roadstar-data`、`https://example.org/repo`、`git://example.org/repo`、`example.org/repo`、`说明 文字` |
+| 标准路径 | 原有格式 | `./src/a/`、`existing`、`root.txt`、`extra/*.py`、`path with spaces/`、`file with spaces.py` |
+"""
+    replace_map(root, text)
+    modules = listed_modules(root)
+    assert modules["中文写作、声线与语料"] == ["skills/", "Puppis/"]
+    assert modules["社区回传"] == ["skill/scripts/telemetry.py", "docs/社区数据回传.md"]
+    assert modules["标准路径"] == ["src/a/", "existing", "root.txt", "extra/*.py",
+                                 "path with spaces/", "file with spaces.py"]
+    request(root, "中文写作、声线与语料")
+    stage(root, "Puppis/article.md")
+    call(root, "hook", "commit-msg", message(root))
+    request(root, "社区回传")
+    stage(root, "github.com/Rurutia-Artemis/roadstar-data/file.txt")
+    p = call(root, "hook", "commit-msg", message(root), expected=1)
+    assert "github.com/Rurutia-Artemis/roadstar-data/file.txt → 地图里没有" in p.stderr
+
+@test("C4-table", "模块表：中英文括号说明回退；本名带括号先精确匹配；未知模块仍拦")
+def table_requested_names(root):
+    # 同时有不带括号的近似名称，证明完整本名不会被截短。
+    text = MIA_MAP.replace("## App 终端工作台", """| Mia 资料收录 | 近似名 | `other/` |
+| Mia 资料收录（原公众号文章收录） | 收录 | `tools/wechat-article-ingest/` |
+| English (legacy) | 英文括号本名 | `legacy/` |
+## App 终端工作台""")
+    replace_map(root, text)
+    for body in ("App 首页 H3 与额度（`Core/Views/Home/`）",
+                 "App 首页 H3 与额度 (`Core/Views/Home/`)",
+                 "- App 首页 H3 与额度（说明）"):
+        request(root, body)
+        stage(root, "app/Workstation/Sources/WorkstationCore/Views/Home/Home.swift")
+        call(root, "hook", "commit-msg", message(root))
+    request(root, "App 首页 H3 与额度（说明）、Mia 资料收录（原公众号文章收录）、English (legacy)")
+    stage(root, "tools/wechat-article-ingest/new.py")
+    stage(root, "legacy/file.py")
+    call(root, "hook", "commit-msg", message(root))
+    request(root, "App 首页 H3 与额度（说明）、未知模块（说明）")
+    p = call(root, "hook", "commit-msg", message(root), expected=1)
+    assert "模块：未知模块（说明）" in p.stderr
+
+@test("C5-table", "模块表：入口行仍只按原字面路径检查，不展开缩写或把表路径当入口")
+def table_entrances_unchanged(root):
+    replace_map(root, MIA_MAP)
+    stage(root, "app/Workstation/Sources/WorkstationCore/Views/Terminal/TerminalStage.swift")
+    call(root, "hook", "commit-msg", message(root, False))
+    stage(root, "Core/Views/Terminal/TerminalStage.swift")
+    p = call(root, "hook", "commit-msg", message(root, False), expected=1)
+    assert "App 终端工作台：Core/Views/Terminal/TerminalStage.swift" in p.stderr
+
+@test("C6-table", "模块表：modules 从非仓库 cwd 读取指定工作树，制表符输出，不改文件或 Git 状态")
+def table_command_readonly(root):
+    write(root, map_path, MIA_MAP)
+    stage(root, "src/a/body.py")
+    before_status = git(root, "status", "--porcelain=v1", "-z").stdout
+    before_files = {str(p.relative_to(root)): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+    modules = listed_modules(root, cwd=root.parent)
+    assert len(modules) == 4 and "App 终端工作台" in modules, modules
+    assert {str(p.relative_to(root)): p.read_bytes() for p in root.rglob("*") if p.is_file()} == before_files
+    assert git(root, "status", "--porcelain=v1", "-z").stdout == before_status
+    empty = root.parent / "no-map"
+    empty.mkdir()
+    p = call(root.parent, "modules", empty)
+    assert p.stdout == p.stderr == ""
+
 @test("C1", "标记含相对路径、任务号、分支和时间；unmark 幂等")
 def c1(root):
     call(root, "mark", root / plan, "T1")

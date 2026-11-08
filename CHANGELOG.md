@@ -1,5 +1,12 @@
 # Roadstar · 更新日志
 
+## 2026-11-07 · guard 识别各项目模块表（不升版本）
+
+- `skill/scripts/guard.py`：旧版模块表只认「模块 + 目录」，缩写路径按字面匹配；新版名称列支持「模块／名称／工具」，路径列取首个含「目录／路径／位置／正本」的列，展开「模块一览」表前的 `X`=`路径`；目录格只取反引号路径并过滤说明和外部地址。任务书先匹配完整模块名，再尝试去掉末尾中英文括号说明，保留本名中的括号。
+- 新增只读命令 `python3 skill/scripts/guard.py modules <仓库根>`，每行输出 `模块名\t路径1, 路径2`，读工作树地图，不修改 Git 状态。入口行检查、无地图跳过提示及 `Roadstar-Scope`／`Roadstar-Map` 放行规则保持原样。
+- `guard-tests.sh` 新增模块表 C1–C6 桩；`project-map.md` 补表头与缩写写法，`docs/模块地图.md` 同步新命令与测试范围。
+- 验证：`bash skill/scripts/tests/guard-tests.sh` 退出 0、`PASS 50`（原 44 条及新增 6 条）；`bash skill/scripts/tests/run.sh` 退出 0，主套件 `PASS 110 checks`、guard `PASS 50`、close-check `PASS 13`。只读对账 Mia 37、RuruAgent 23、RUVO 23、Roadstar 8 个模块，Mia 终端路径展开到 `app/Workstation/Sources/WorkstationCore/`；旧 `exec-T2.progress` 已恢复。未验证：真实项目挂钩提交；按任务边界不安装、不提交、不推送。
+
 ## 2026-11-07 · 同类方案只在整体性的活触发（不升版本）
 
 起因：上一条上线后实战误拦，任务书目标里写「新建的测试文件」「新建 `quota.py`」也被要求补同类方案。主席交办收窄。
