@@ -65,19 +65,44 @@ def map_text(root):
     return path.read_text(encoding="utf-8") if path.is_file() else None
 
 
+def _abbreviations(section_text):
+    abbreviations = {}
+    for line in section_text.splitlines():
+        if line.lstrip().startswith("|"):
+            break
+        for name, path in re.findall(r"`([^`]+)`\s*=\s*`([^`]+)`", line):
+            abbreviations[name.strip()] = path.strip().removeprefix("./").rstrip("/")
+    return abbreviations
+
+
 def modules_from(text):
     modules = {}
     columns = None
-    for line in section(text, "模块一览").splitlines():
+    overview = section(text, "模块一览")
+    abbreviations = _abbreviations(overview)
+    for line in overview.splitlines():
         if not line.strip().startswith("|"):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if "模块" in cells and "目录" in cells:
-            columns = (cells.index("模块"), cells.index("目录"))
+        name_column = next((i for i, c in enumerate(cells) if c in ("模块", "名称", "工具")), None)
+        path_column = next((i for i, c in enumerate(cells)
+                            if any(word in c for word in ("目录", "路径", "位置", "正本"))), None)
+        if name_column is not None and path_column is not None:
+            columns = (name_column, path_column)
         elif columns and len(cells) > max(columns):
             name = cells[columns[0]].strip("` *")
             if name and not re.fullmatch(r"[: -]+", name):
-                modules[name] = paths(cells[columns[1]])
+                directories = []
+                for path in paths(cells[columns[1]]):
+                    # 只清洗模块表的路径；入口行继续沿用 paths() 的原有行为。
+                    if (re.search(r"\s", path) and "/" not in path and "." not in path
+                            or re.match(r"(?:[a-z][a-z0-9+.-]*://|//|(?:[\w-]+\.)+[a-z]{2,}/)", path, re.I)):
+                        continue
+                    prefix, slash, rest = path.partition("/")
+                    if slash and prefix in abbreviations:
+                        path = abbreviations[prefix] + "/" + rest
+                    directories.append(path)
+                modules[name] = directories
     return modules
 
 
@@ -152,6 +177,9 @@ def requested_modules(body, modules, request):
         line = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)?", "", line).strip()
         if not line:
             continue
+        if line.strip(" `*「」『』。\t") in modules:
+            selected.append(line.strip(" `*「」『』。\t"))
+            continue
         named = re.findall(r"[「`『]([^」`』]+)[」`』]", line)
         found = [name for name in named if name in modules]
         # 任务书可以用整句介绍模块；单纯的模块列表仍逐项核对，错别字不漏过。
@@ -162,6 +190,10 @@ def requested_modules(body, modules, request):
             clean = item.strip(" `*「」『』。\t")
             if clean in modules:
                 selected.append(clean)
+                continue
+            without_note = re.sub(r"\s*(?:（[^（）]*）|\([^()]*\))$", "", clean).strip(" `*「」『』\t")
+            if without_note in modules:
+                selected.append(without_note)
                 continue
             raise Block("任务书里的模块在地图中找不到", "任务书：" + str(request),
                         "模块：" + clean, "怎么办：按模块一览的名字补齐涉及模块后重提。")
@@ -390,6 +422,12 @@ def main(args):
         if claude:
             claude_pretool()
             return 0
+        if len(args) == 2 and args[0] == "modules":
+            path = Path(args[1]) / MAP
+            text = path.read_text(encoding="utf-8") if path.is_file() else ""
+            for name, directories in modules_from(text).items():
+                print(name + "\t" + ", ".join(directories))
+            return 0
         root = root_at(Path.cwd())
         if len(args) == 3 and args[0] == "mark":
             mark(root, args[1], args[2])
@@ -404,7 +442,7 @@ def main(args):
         elif len(args) == 2 and args[0] == "check-merge":
             check_records(root, merge_tasks(root, [args[1]]))
         else:
-            raise Block("命令参数不对", "怎么办：使用 mark <场次目录> T<n>、unmark、hook <钩子名>、claude-pretool 或 check-merge <分支>。")
+            raise Block("命令参数不对", "怎么办：使用 mark <场次目录> T<n>、unmark、hook <钩子名>、claude-pretool、check-merge <分支> 或 modules <仓库根>。")
         return 0
     except Block as exc:
         print(str(exc), file=sys.stderr)
