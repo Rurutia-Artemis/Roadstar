@@ -1,5 +1,16 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · 任务书前加一页设计：设计页模板、design_page.py、brief-check 查设计页与钩子记的主人点头（不升版本）
+
+起因：总管 11-10 派活书 P3。任务书之前没有「为什么做、不做什么、什么算失败」的程序检查；plan.md 写没写、主人点没点头没人查。superpowers 的 brainstorming 要求设计获批前不开工，但它没有程序拦截；这里做成 brief-check 的一项。总管修正：只有大活、新项目和「只有主人能答的问题」不为空的中活要主人点头，点头记录只认会话钩子从主人原话里记的（RuruAgent dispatch-gate，另一件活）。场次 `docs/roadstar/2026-11-10-flow-gaps/`，裁定见 ledger.md 第 7、14、15、19 条。
+
+- 新增 `skill/references/design-template.md`：大小、为什么做、做完的样子、这次不做什么、哪种情况技术上跑通也算失败、两三种做法和选的那种、同类方案、模块表（模块｜职责｜依赖谁｜先后顺序）、只有主人能答的问题（每题带推荐答案，主人回「好」即全接受）、小事自己定的清单、主人点头（钩子记，不手写）。取自 obra/superpowers brainstorming 与 addyosmani/agent-skills spec-driven-development Phase 0，均 MIT。
+- 新增 `skill/scripts/design_page.py`（可 import，以后的阶段记录也用）：`requires_design`、`find_design_page`、`size_of`、`design_problems`、`needs_approval`、`approvals`；同类方案规则从 brief-check 搬进来共用。
+- `skill/scripts/brief-check.py`：新参数 `--class --est-minutes --write --plan-dir`，不给时与旧行为一致；写模式、非取证 / 复核 / 审方案 / 补全、且不是 ≤60 分钟的批量或窄回归时要 `设计页：<路径>`；老场次走 `baselines.py` 的 `design-exempt` 清单（`--init-design-baseline`）；`ROADSTAR_DESIGN_CHECK=0` 只跳设计页并记账，`BRIEF_CHECK=0` 也记进 skip-log。
+- `skill/scripts/dex-exec.sh` 只改 brief-check 调用一行，把类别、预计、写模式、场次目录传进去。`SKILL.md` 六步前加「第 0 步 · 一页设计」（净增 6 行），第 2 步补半句；`task-brief-template.md` 加 `设计页：` 一行。
+- 测试：新 `tests/brief-tests.sh` `PASS 67 checks`（含从 run.sh 原样搬出的 15 条旧断言），run.sh 1624 → 1548 行，全套 PASS。Opus 换会话验收发现 `str | None` 在系统 Python 3.9 上 import 失败，Argo 补 `from __future__ import annotations` 后复验通过（`check-T2.md`）。
+- 上线：写入 73 个老场次豁免；大脑线三个场次最近 12 份任务书按各自参数试跑全部通过。未验证：真实主人回话 → 钩子写记录 → brief-check 放行的整条链路要等 RuruAgent 那边的写入端合并后再跑一次。
+
 ## 2026-11-10 · 本机基线与豁免清单的共用小模块（不升版本）
 
 起因：流程补洞的存量上限要「只降不升」的基线，设计页检查要「老场次豁免」清单，降标准五查要「上线时刻」；总管要求这些做成以后阶段记录（stage.py）也能复用的形式，不各写一份。
