@@ -10,6 +10,10 @@ TRACE
 fi
 if [[ "${1:-}" == -p ]]; then
   sleep "${FAKE_GROK_DELAY:-0}"
+  # FAKE_GROK_REPORT：执行方先自己写一份 40 行报告（真实运行里它用工具写）。
+  if [[ -n "${FAKE_GROK_REPORT:-}" ]]; then
+    { echo '# full report'; for i in $(seq 0 39); do echo "detail line $i"; done; } > "$FAKE_GROK_REPORT"
+  fi
   if [[ "${FAKE_GROK_EXIT:-0}" != 0 ]]; then echo 'stub Grok failure' >&2; exit "$FAKE_GROK_EXIT"; fi
   printf '%s' "$2"
   exit 0

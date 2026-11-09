@@ -92,6 +92,17 @@ grep -q '^7$' "$GROK_PLAN/rounds/exec-T1.exit"
 [[ ! -e "$GROK_PLAN/rounds/exec-T1.md" ]]
 grep -q 'stub Grok failure' "$GROK_PLAN/rounds/exec-T1-stdout.log"
 pass 'Grok failure: nonzero status retained, stale success removed, log available'
+FAKE_GROK_REPORT="$GROK_PLAN/rounds/exec-T5.md" grok_task T5 > /dev/null
+GR="$GROK_PLAN/rounds/exec-T5.md"
+head -n 1 "$GR" | grep -qx '# full report'
+[[ "$(grep -c '^detail line' "$GR")" == 40 && "$(grep -c '^## 最终回复$' "$GR")" == 1 ]]
+[[ "$(sed -n '41,44p' "$GR")" == $'detail line 39\n\n## 最终回复\n' ]]
+sed -n '45,$p' "$GR" | grep -qx '# 只读取证'
+grep -q '^exit=0$' "$GROK_PLAN/rounds/exec-T5.meta"
+printf '%s\n' 'stale report' > "$GROK_PLAN/rounds/exec-T6.md"
+grok_task T6 > /dev/null
+cmp "$GROK_PLAN/rounds/exec-T6-stdout.log" "$GROK_PLAN/rounds/exec-T6.md"
+pass 'Grok 收尾：执行方写了 exec-T<n>.md 就保留全文、日志追加成「## 最终回复」；没写（含上次旧报告）才用日志生成'
 
 PYTHONDONTWRITEBYTECODE=1 python3 - "$SCRIPTS" "$GROK_PLAN/rounds/exec-T3.meta" <<'PYTEST'
 import importlib.util, json, sys

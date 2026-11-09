@@ -51,6 +51,17 @@ write_meta() {
   mv -f "$tmp" "$META"
 }
 
+finalize_report() {
+  # 11-10 踩坑（同 dex-exec）：成功时整份 stdout 日志覆盖了执行方自己写的 exec-T<n>.md。
+  # 执行方本次写过报告（非空，且不早于本次请求副本）就把日志追加成末尾「## 最终回复」一节；没写才用日志生成。
+  if [[ -s "$OUT" && ! "$REQ" -nt "$OUT" ]]; then
+    if [[ -n "$(tail -c 1 "$OUT")" ]]; then printf '\n' >> "$OUT"; fi
+    { printf '\n## 最终回复\n\n'; cat "$LOG"; } >> "$OUT"
+  else
+    cp "$LOG" "$OUT"
+  fi
+}
+
 show_failure() {
   printf 'grok 退出码 %s；日志：%s\n' "$1" "$LOG" >&2
   if [[ -f "$LOG" ]]; then tail -n 20 "$LOG" >&2; fi
@@ -95,7 +106,7 @@ run_job() {
   FINISHED="$(timestamp)"
   # Plain 输出没有稳定的 session / token 字段，保留空值。
   SESSION_ID=""; TOKENS_USED=""
-  if [[ "$rc" -eq 0 ]]; then cp "$LOG" "$OUT"; fi
+  if [[ "$rc" -eq 0 ]]; then finalize_report; fi
   write_meta
   # .exit 是完成标记，保证 --status 看见它时完整 meta 已经可读。
   printf '%s\n' "$rc" > "$EXIT_FILE.tmp.$$"

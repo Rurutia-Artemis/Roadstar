@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · grok-exec 收尾同样不覆盖执行方的报告（不升版本）
+
+起因：上一条修 `dex-exec.sh` 时查到 `grok-exec.sh` 有同一类问题。它在成功时执行 `cp "$LOG" "$OUT"`，执行方自己写的 `exec-T<n>.md` 会被整份 stdout 日志盖掉。协调方交办按同样规则修。
+
+- `skill/scripts/grok-exec.sh`。旧：退出码 0 时把 `exec-T<n>-stdout.log` 整份复制成 `exec-T<n>.md`。新：退出码 0 时，`exec-T<n>.md` 非空且不早于本次请求副本，就把 stdout 日志追加成末尾「## 最终回复」一节；否则照旧复制日志。Grok 用 plain 输出，没有单独的最后回复文件，所以追加的是整份日志。失败和到点停掉时不碰报告，执行方已写的内容原样保留。meta、exit、退出码不变。
+- `skill/scripts/tests/bin/grok` 桩加 `FAKE_GROK_REPORT=<路径>`，在输出前先写一份 40 行报告。`skill/scripts/tests/grok-113.sh` 新增 1 条（T5、T6）：执行方写了报告时全文保留，末尾只有一节「## 最终回复」，后面接日志，meta exit=0；没写（含上次留下的旧报告）时报告与日志逐字节相同。
+- `docs/模块地图.md` 的 Grok 接口行补了收尾规则；`division-of-labor.md` 第 15 节 11-10 那一行补一句 grok-exec 同样修好。
+- 验证：旧脚本跑新 `run.sh` 停在新增断言（grok-113.sh 第 97 行）。`bash skill/scripts/tests/run.sh` 退出 0：主套件 `PASS 115 checks`（上一条 114 加 1），guard `PASS 50`，close-check `PASS 13`；guard-tests 追加到 `exec-T2.progress` 的行已还原。未验证：没用真 grok CLI 跑一单；Grok 现在是 `--sandbox read-only`，实际能不能自己写 `exec-T<n>.md` 取决于任务书和 CLI 沙箱，没实测。
+
 ## 2026-11-10 · dex-exec 收尾不再覆盖执行方的报告（不升版本）
 
 起因：今天两条线都踩到，`dex-exec.sh` 把 `codex exec -o` 直接指向 `rounds/exec-T<n>.md`，执行方写好的完整报告在收尾时被 Codex 最后一句短回复覆盖，验收方只能从 `exec-T<n>-stdout.log` 恢复。
