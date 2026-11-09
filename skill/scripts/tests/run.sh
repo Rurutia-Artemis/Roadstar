@@ -1501,19 +1501,7 @@ json_check "$SCH/cal.json" 'd["confidence"] == "高" and all(r["est_minutes"] ==
 expect_exit 2 python3 "$SCRIPTS/schedule.py" --plan "$PLAN/plan.md"
 pass 'schedule: seven columns and four total lines, dependencies respected, Argo serial lane bounds the finish, strategy caps parallel lanes, empty weekly window gates lanes to the reset, cycle exit 2 with names, explicit estimates and folding beyond eight, calibrated P80'
 
-# dex-exec.sh --est-minutes / --strategy land in meta, including the detached worker.
-run_task T30 --class 页面实现 --est-minutes 25 --strategy quality > "$TMP/est.txt"
-grep -q '^est_minutes=25$' "$PLAN/rounds/exec-T30.meta" && grep -q '^strategy=quality$' "$PLAN/rounds/exec-T30.meta"
-! grep -q '^est_minutes=' "$PLAN/rounds/exec-T20.meta"
-expect_exit 2 run_task T31 --est-minutes 0
-expect_exit 2 run_task T31 --est-minutes abc
-expect_exit 2 run_task T31 --strategy fastest
-[[ ! -f "$PLAN/rounds/exec-T31.meta" ]]
-run_task T32 --detach --est-minutes 40 --strategy rush > /dev/null
-wait_done "$PLAN/rounds/exec-T32.exit"
-grep -q '^est_minutes=40$' "$PLAN/rounds/exec-T32.meta" && grep -q '^strategy=rush$' "$PLAN/rounds/exec-T32.meta"
-bash "$SCRIPTS/dex-exec.sh" --help | grep -q -- '--est-minutes'
-pass 'exec --est-minutes and --strategy write meta (foreground and detached), reject bad values before dispatch, documented in help'
+source "$TEST_DIR/entry-tests.sh" --legacy-exec
 
 # dispatch-stats: 预估偏差 column and --calibrate.
 CAL="$TMP/calibrate"
@@ -1622,3 +1610,4 @@ source "$TEST_DIR/grok-113.sh"
 printf 'PASS %d checks\n' "$COUNT"
 bash "$TEST_DIR/guard-tests.sh"
 bash "$TEST_DIR/close-check-tests.sh"
+bash "$TEST_DIR/entry-tests.sh"

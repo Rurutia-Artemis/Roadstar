@@ -106,6 +106,8 @@ scripts/dex-exec.sh <plan-dir> T3 --model gpt-6.1-sol --effort medium --brief <�
 ```
 
 - 默认 `-s read-only`；要改文件加 `--write`（换成 `-s workspace-write`）。`--root` 不给时取 plan-dir 所在的 git 根。
+- 接入卡：派写活（含续接、dry-run）先读 project-shell 的 `structural_gaps`，缺口未补齐退出 3；按 `split-and-frame` 补齐后再派，急事 `ROADSTAR_PROJECT_CHECK=0` 跳过并记账。RuruCode 外及 `AI任务/` 下跳过，检查器缺失或缺字段警告放行。
+- 存量卡：主目录未验收任务扣除近期在跑的，超过 `max(open-tasks 基线, 5)` 拒派；未提交文件（不含 `docs/roadstar/`）超过 `max(uncommitted 基线, 10)` 也拒派，两份基线共用 `baselines.py` 且只降不升。`ROADSTAR_OPEN_CHECK=0` / `ROADSTAR_DIRTY_CHECK=0` 分别跳过并记账；`entry-check.py baseline-init [--dry-run]` 按登记表初始化。
 - `--max-minutes` 是止损，写拆分表里的上限（常规 120、难活 240、窄回归 60）：到点脚本停掉 codex，退出码 124，meta 记 `timed_out=1`，`--status` 会提示「到时间上限被停止」。停掉的线不自动重派，Argo 先看进度文件和日志诊断（第 15 节），再决定收下、换环境判还是缩窄重派。
 - 常规实现、机械批量、只读取证用 `gpt-6.1-sol`（low / medium / high 按活选），难活用 `gpt-6-astra`（high / xhigh）。脚本显式传 `-s`、`-m`、`-c model_reasoning_effort=`、`--disable fast_mode`；返工续接按现有 CLI 写法用 `-c` 覆盖型号和沙箱。
 - 长任务加 `--detach`，脚本立即返回；`--status` 查运行中还是已结束、退出码和 meta。

@@ -626,6 +626,7 @@ def dispatch(root, write_flag=True, dry=False, nonrepo=False, broken=False):
         (directory / "guard.py").write_text("raise SystemExit(1)\n")
     write(directory, "quota-status.py", 'print(\'{"codex":{"tier":"宽"}}\')\n')
     write(directory, "brief-check.py", "raise SystemExit(0)\n")  # 六栏和同类方案校验由 run.sh 测，这里只测任务标记
+    write(directory, "entry-check.py", "raise SystemExit(0)\n")  # 接入与存量卡由 entry-tests.sh 测
     codex = write(directory, "bin/codex", '#!/bin/bash\nif [ -n "$FAKE_EXPECT_MARK" ]; then [ -s "$FAKE_EXPECT_MARK" ] || exit 9; fi\nprintf "called\\n" >> "$FAKE_CALLED"\n')
     codex.chmod(0o755)
     target = root

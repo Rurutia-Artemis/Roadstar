@@ -207,6 +207,15 @@ def collect(roots):
         if identity in seen:
             continue
         seen.add(identity)
+        # 历史误算：首份任务书已在标准路径，旧派发器把同一内容复制成 r2。
+        if record.get("attempt") == "2":
+            request = path.with_name(path.stem + "-request.md")
+            repeat = path.with_name(path.stem + "-request-r2.md")
+            try:
+                if request.read_bytes() == repeat.read_bytes():
+                    record["attempt"] = "1"
+            except OSError:
+                pass  # 缺快照不能证明误算，保留原始 attempt。
         records.append(record)
     return records
 
@@ -225,6 +234,8 @@ def summarize(records, min_samples):
         completed = outcomes.count("done") / len(outcomes) if outcomes else None
         stalled = outcomes.count("stalled") / len(outcomes) if outcomes else None
         escalated = sum(bool(row.get("escalated_to")) for row in rows) / count
+        rework = sum(str(row.get("attempt", "1")).isdigit() and
+                     int(row.get("attempt", "1")) > 1 for row in rows)
         durations = [value for row in rows if (value := duration(row)) is not None]
         estimate_bias, bias_count = bias(rows)
         if count < min_samples:
@@ -241,6 +252,7 @@ def summarize(records, min_samples):
                        "count": count, "outcome_count": len(outcomes),
                        "completion_rate": completed, "stall_rate": stalled,
                        "escalation_rate": escalated,
+                       "rework_count": rework, "rework_rate": rework / count,
                        "average_minutes": sum(durations) / len(durations) if durations else None,
                        "estimate_bias": estimate_bias, "estimate_count": bias_count,
                        "recommendation": recommendation})
