@@ -19,7 +19,7 @@ scripts = Path(sys.argv[1])
 base = Path(sys.argv[2])
 guard = scripts / "guard.py"
 installer = scripts / "install-guard.sh"
-progress = scripts.parents[1] / "docs/roadstar/2026-10-25-guards/rounds/exec-T2.progress"
+progress = Path(os.environ["ROADSTAR_GUARD_PROGRESS"]) if os.environ.get("ROADSTAR_GUARD_PROGRESS") else None  # 不设就不写进度（总管 11-10）
 plan = "docs/roadstar/测试场次"
 task_value = plan + "/T1"
 map_path = "docs/模块地图.md"
@@ -714,7 +714,7 @@ def c12(root):
 failed = 0
 count = 0
 streak = {}
-if progress.exists():
+if progress and progress.exists():
     for line in progress.read_text().splitlines():
         parts = line.split("\t", 3)
         if len(parts) == 4:
@@ -740,9 +740,9 @@ for number, description, fn in tests:
             shutil.rmtree(root.parent)
     count += 1
     print(status.upper() + " " + number + " " + evidence, flush=True)
-    progress.parent.mkdir(parents=True, exist_ok=True)
-    with progress.open("a", encoding="utf-8") as f:
-        f.write(datetime.datetime.now(datetime.timezone.utc).isoformat() + "\t" + number + "\t" + status + "\t" + evidence + "\n")
+    if progress:
+        progress.parent.mkdir(parents=True, exist_ok=True)
+        with progress.open("a", encoding="utf-8") as f: f.write(datetime.datetime.now(datetime.timezone.utc).isoformat() + "\t" + number + "\t" + status + "\t" + evidence + "\n")
     streak[number] = streak.get(number, 0) + 1 if status == "fail" else 0
     if streak[number] >= 3:
         break

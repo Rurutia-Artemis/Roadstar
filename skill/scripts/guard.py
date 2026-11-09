@@ -11,6 +11,8 @@ import shlex
 import subprocess
 import sys
 
+sys.dont_write_bytecode = True
+
 
 MAP = "docs/模块地图.md"
 ALLOW = (MAP, "docs/MODULES.md", "docs/roadstar/", "CHANGELOG.md", "CHANGELOG*")
@@ -263,6 +265,8 @@ def commit_message(root, filename):
         raise Block("提交还没满足范围或地图要求", *failures, *dict.fromkeys(notices))
     for notice in dict.fromkeys(notices):
         print(notice)
+    import guard_rules
+    guard_rules.commit_checks(root, message, Block)
 
 
 def merge_tasks(root, refs):
@@ -279,7 +283,7 @@ def merge_tasks(root, refs):
     return list(dict.fromkeys(tasks))
 
 
-def check_records(root, tasks):
+def check_records(root, tasks, refs):
     main = git_dir(root, common=True).parent
     missing = []
     for value in tasks:
@@ -290,6 +294,9 @@ def check_records(root, tasks):
     if missing:
         raise Block("这些任务还没有验收记录，不能合并", *missing,
                     "怎么办：先验收，再在上面的主工作区路径写下非空验收记录，然后重试 git merge --no-ff。")
+
+    import guard_rules
+    guard_rules.merge_checks(root, refs, tasks, main, Block)
 
 
 def pending_merge_refs(root):
@@ -409,7 +416,7 @@ def claude_pretool():
         if tasks and not no_ff:
             raise Block("带任务号的提交必须用 --no-ff 合并", "分支：" + "、".join(refs),
                         "怎么办：在 git merge 中加 --no-ff；快进合并不会触发验收钩子。")
-        check_records(root, tasks)
+        check_records(root, tasks, refs)
 
 
 def main(args):
@@ -438,18 +445,22 @@ def main(args):
         elif len(args) == 3 and args[:2] == ["hook", "commit-msg"]:
             commit_message(root, args[2])
         elif args == ["hook", "pre-merge-commit"]:
-            check_records(root, merge_tasks(root, pending_merge_refs(root)))
+            refs = pending_merge_refs(root)
+            check_records(root, merge_tasks(root, refs), refs)
         elif len(args) == 2 and args[0] == "check-merge":
-            check_records(root, merge_tasks(root, [args[1]]))
+            check_records(root, merge_tasks(root, [args[1]]), [args[1]])
+        elif len(args) == 2 and args[0] == "audit":
+            import guard_rules
+            guard_rules.audit(root, args[1])
         else:
-            raise Block("命令参数不对", "怎么办：使用 mark <场次目录> T<n>、unmark、hook <钩子名>、claude-pretool、check-merge <分支> 或 modules <仓库根>。")
+            raise Block("命令参数不对", "怎么办：使用 mark <场次目录> T<n>、unmark、hook <钩子名>、claude-pretool、check-merge <分支>、audit <ref> 或 modules <仓库根>。")
         return 0
     except Block as exc:
         print(str(exc), file=sys.stderr)
     except (OSError, ValueError, TypeError, UnicodeError) as exc:
         print("拦下了：检查所需的文件读写失败\n原因：" + str(exc) +
               "\n怎么办：确认文件内容、路径和读写权限后重试。", file=sys.stderr)
-    return 2 if claude else 1
+    return 0 if args[:1] == ["audit"] else (2 if claude else 1)
 
 
 if __name__ == "__main__":

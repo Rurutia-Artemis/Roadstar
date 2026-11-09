@@ -338,38 +338,7 @@ FAKE_CODEX_REPORT="$R/exec-T53.md" FAKE_CODEX_EXIT=5 expect_exit 5 run_task T53
 grep -q '^exit=5$' "$R/exec-T53.meta"
 pass 'dex-exec 中途失败：执行方已写的报告原样保留，不追加最终回复，退出码照传'
 
-# ws-guard：--root 是临时 git 工作副本时拒派（退出码 2），项目主目录和 slots.json 允许的固定副本放行，WS_GUARD_OK=理由 放行并记日志。
-WSG_SRC="${WS_GUARD_DIR:-$HOME/Documents/RuruCode/RuruAgent/tools/ws-guard}"
-if [[ -f "$WSG_SRC/check_root.py" && -f "$WSG_SRC/wsconf.py" ]]; then
-  WSG="$TMP/ws-guard"; RC="$TMP/rc"
-  mkdir -p "$WSG" "$RC/Demo" "$RC/Demo-slots"
-  cp "$WSG_SRC/check_root.py" "$WSG_SRC/wsconf.py" "$WSG/"
-  python3 - "$WSG/slots.json" "$RC" <<'PY'
-import json, sys
-import os
-json.dump({"root": os.path.realpath(sys.argv[2]), "limits": {"max_slots": 3, "max_gb_per_slot": 30},
-           "fixed": ["^{root}/[^/]+-slots/s[1-3]$"], "extra": [], "legacy": [], "containers": [], "projects": {}},
-          open(sys.argv[1], "w", encoding="utf-8"))
-PY
-  git -C "$RC/Demo" init -q
-  git -C "$RC/Demo" -c user.email=t@t -c user.name=t -c commit.gpgsign=false commit --allow-empty -qm init
-  git -C "$RC/Demo" worktree add -q "$RC/Demo-slots/s1" -b slot-s1
-  git -C "$RC/Demo" worktree add -q "$RC/stray" -b stray
-  (
-    export WS_GUARD_DIR="$WSG" WS_GUARD_LOG="$TMP/wsg.log"
-    expect_exit 2 run_task T40 --dry-run --root "$RC/stray"
-    grep -q '拒绝派活' "$TMP/last-output" && grep -q 'WS_GUARD_OK' "$TMP/last-output"
-    expect_exit 0 run_task T40 --dry-run --root "$RC/Demo"
-    expect_exit 0 run_task T40 --dry-run --root "$RC/Demo-slots/s1"
-    [[ ! -e "$TMP/wsg.log" ]]
-    (export WS_GUARD_OK='测试放行'; expect_exit 0 run_task T40 --dry-run --root "$RC/stray")
-    grep -q '理由=测试放行' "$TMP/wsg.log"
-  )
-  [[ ! -f "$PLAN/rounds/exec-T40.meta" ]]
-  pass 'ws-guard: temporary git worktree as --root is refused with exit 2, main checkout and fixed slot pass, WS_GUARD_OK logs the override'
-else
-  pass 'ws-guard: check_root.py not installed on this machine, root check skipped'
-fi
+source "$TEST_DIR/guard-rules-tests.sh" --legacy
 
 REVIEW="$TMP/review dir"
 mkdir -p "$REVIEW"
@@ -1535,3 +1504,4 @@ printf 'PASS %d checks\n' "$COUNT"
 bash "$TEST_DIR/guard-tests.sh"
 bash "$TEST_DIR/close-check-tests.sh"
 bash "$TEST_DIR/entry-tests.sh"
+bash "$TEST_DIR/guard-rules-tests.sh"
