@@ -4,7 +4,7 @@ set -euo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS="$(cd "$TEST_DIR/.." && pwd)"
 export PATH="$TEST_DIR/bin:$PATH"
-unset FAKE_CODEX_USED FAKE_CODEX_CARDS FAKE_CODEX_FIVE_HOUR FAKE_CODEX_DELAY FAKE_CODEX_EXIT
+unset FAKE_CODEX_USED FAKE_CODEX_CARDS FAKE_CODEX_FIVE_HOUR FAKE_CODEX_DELAY FAKE_CODEX_EXIT FAKE_CODEX_REPORT FAKE_CODEX_REPLY
 unset FAKE_CLAUDE_USED FAKE_CLAUDE_FABLE FAKE_CLAUDE_NO_FABLE
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/roadstar-tests.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
@@ -389,6 +389,30 @@ bash "$TMP/failed probe/dex-exec.sh" "$PLAN" T16 --model gpt-6-astra --effort hi
 grep -q '警告' "$TMP/probe-warning.txt"
 cmp "$BRIEF" "$PLAN/rounds/exec-T16.md"
 pass 'quota probe failure warns without blocking execution'
+
+# 11-10 踩坑：codex -o 直接写 exec-T<n>.md，执行方写好的完整报告被最后一句短回复覆盖。
+R="$PLAN/rounds"
+FAKE_CODEX_REPORT="$R/exec-T50.md" FAKE_CODEX_REPLY='done, see report' run_task T50 > /dev/null
+[[ "$(grep -c '^detail line' "$R/exec-T50.md")" == 40 ]]
+head -n 1 "$R/exec-T50.md" | grep -qx '# full report'
+[[ "$(tail -n 4 "$R/exec-T50.md")" == $'detail line 39\n\n## 最终回复\n\ndone, see report' ]]
+[[ "$(grep -c '^## 最终回复$' "$R/exec-T50.md")" == 1 && ! -e "$R/.exec-T50.md.last-reply" ]]
+grep -q '^exit=0$' "$R/exec-T50.meta" && grep -q '^tokens_used=1234$' "$R/exec-T50.meta"
+grep -q -- '-o .*/rounds/\.exec-T50\.md\.last-reply ' <(python3 -c 'import json,sys; [print(" ".join(json.loads(l)["args"])) for l in open(sys.argv[1])]' "$FAKE_TRACE_FILE")
+pass 'dex-exec 收尾：执行方写了 exec-T<n>.md 就保留全文，最后回复追加成「## 最终回复」一节，meta 照旧'
+printf '%s\n' 'stale report from an earlier dispatch' > "$R/exec-T51.md"
+FAKE_CODEX_REPLY='only reply' run_task T51 > /dev/null
+[[ "$(cat "$R/exec-T51.md")" == 'only reply' && ! -e "$R/.exec-T51.md.last-reply" ]]
+pass 'dex-exec 收尾：执行方没写报告时用最后回复生成，上一次派活留下的旧报告不算本次'
+FAKE_CODEX_REPORT="$R/exec-T52.md" FAKE_CODEX_REPLY='detached reply' run_task T52 --detach > /dev/null
+wait_done "$R/exec-T52.exit"
+[[ "$(grep -c '^detail line' "$R/exec-T52.md")" == 40 && "$(tail -n 1 "$R/exec-T52.md")" == 'detached reply' ]]
+grep -q '^## 最终回复$' "$R/exec-T52.md" && grep -q '^exit=0$' "$R/exec-T52.meta"
+pass 'dex-exec --detach 收尾同样保留执行方报告并追加最终回复'
+FAKE_CODEX_REPORT="$R/exec-T53.md" FAKE_CODEX_EXIT=5 expect_exit 5 run_task T53
+[[ "$(grep -c '^detail line' "$R/exec-T53.md")" == 40 ]] && ! grep -q '最终回复' "$R/exec-T53.md"
+grep -q '^exit=5$' "$R/exec-T53.meta"
+pass 'dex-exec 中途失败：执行方已写的报告原样保留，不追加最终回复，退出码照传'
 
 # ws-guard：--root 是临时 git 工作副本时拒派（退出码 2），项目主目录和 slots.json 允许的固定副本放行，WS_GUARD_OK=理由 放行并记日志。
 WSG_SRC="${WS_GUARD_DIR:-$HOME/Documents/RuruCode/RuruAgent/tools/ws-guard}"

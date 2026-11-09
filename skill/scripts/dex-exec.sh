@@ -46,6 +46,22 @@ write_meta() {
   mv -f "$tmp" "$META"
 }
 
+# codex 的 -o 只收最后一条回复，单独落到隐藏文件；收尾再决定怎么并进报告。
+last_reply_path() { printf '%s/.%s.last-reply' "$(dirname "$1")" "$(basename "$1")"; }
+
+finalize_report() {
+  # 11-10 踩坑：-o 直接指向 exec-T<n>.md，执行方写的完整报告被最后一句短回复覆盖。
+  # 执行方本次写过报告（非空，且不早于本次请求副本）就把最后回复追加成末尾一节；没写才用最后回复生成。
+  [[ -f "$LAST_REPLY" ]] || return 0
+  if [[ -s "$OUT" && ! "$REQ" -nt "$OUT" ]]; then
+    if [[ -n "$(tail -c 1 "$OUT")" ]]; then printf '\n' >> "$OUT"; fi
+    { printf '\n## 最终回复\n\n'; cat "$LAST_REPLY"; } >> "$OUT"
+    rm -f "$LAST_REPLY"
+  else
+    mv -f "$LAST_REPLY" "$OUT"
+  fi
+}
+
 show_failure() {
   printf 'codex 退出码 %s；日志：%s\n' "$1" "$LOG" >&2
   if [[ -f "$LOG" ]]; then tail -n 20 "$LOG" >&2; fi
@@ -86,6 +102,7 @@ run_job() {
   fi
   wait "$pid" || rc=$?
   [[ "$TIMED_OUT" -eq 0 ]] || rc=124
+  finalize_report
   RESULT="$rc"
   FINISHED="$(timestamp)"
   SESSION_ID="$(log_header 'session id')"
@@ -121,6 +138,7 @@ if [[ "${1:-}" == --_worker ]]; then
   [[ "${1:-}" == -- ]] || usage_error '后台 worker 缺命令分隔符'
   shift
   CMD=("$@")
+  LAST_REPLY="$(last_reply_path "$OUT")"
   FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""; TIMED_OUT=0
   LOCK_OWNED=1
   trap release_lock EXIT
@@ -181,6 +199,7 @@ ROUNDS="$PLAN_DIR/rounds"
 OUT="$ROUNDS/exec-$TASK.md"; LOG="$ROUNDS/exec-$TASK-stdout.log"
 META="$ROUNDS/exec-$TASK.meta"; PID_FILE="$ROUNDS/exec-$TASK.pid"
 EXIT_FILE="$ROUNDS/exec-$TASK.exit"; LOCK="$ROUNDS/.exec-$TASK.lock"
+LAST_REPLY="$(last_reply_path "$OUT")"
 
 if [[ "$STATUS" -eq 1 ]]; then
   if [[ -f "$EXIT_FILE" ]]; then
@@ -251,9 +270,9 @@ CAP_TEXT=无
 if [[ -n "$RESUME" ]]; then
   # codex exec resume 不接 -m/-s/-C，而且不沿用原会话的模型（实测 2026-10-04：不传就用 config 默认，当时默认的 gpt-6.1-sol 直接 400）。
   # 所以模型、沙箱用 -c 覆盖，工作目录靠在 ROOT 里启动（见 run_codex）。
-  CMD=(codex exec resume "$RESUME" --skip-git-repo-check -c "model=\"$MODEL\"" -c "sandbox_mode=\"$SANDBOX\"" -c "model_reasoning_effort=$EFFORT" ${NET_ARGS[@]+"${NET_ARGS[@]}"} --disable fast_mode -o "$OUT" -)
+  CMD=(codex exec resume "$RESUME" --skip-git-repo-check -c "model=\"$MODEL\"" -c "sandbox_mode=\"$SANDBOX\"" -c "model_reasoning_effort=$EFFORT" ${NET_ARGS[@]+"${NET_ARGS[@]}"} --disable fast_mode -o "$LAST_REPLY" -)
 else
-  CMD=(codex exec --skip-git-repo-check -C "$ROOT" -s "$SANDBOX" -m "$MODEL" -c "model_reasoning_effort=$EFFORT" ${NET_ARGS[@]+"${NET_ARGS[@]}"} --disable fast_mode -o "$OUT" -)
+  CMD=(codex exec --skip-git-repo-check -C "$ROOT" -s "$SANDBOX" -m "$MODEL" -c "model_reasoning_effort=$EFFORT" ${NET_ARGS[@]+"${NET_ARGS[@]}"} --disable fast_mode -o "$LAST_REPLY" -)
 fi
 
 choose_request() {
@@ -305,7 +324,7 @@ fi
 choose_request
 cp "$BRIEF" "$REQ"
 # 最新结果只对应本次派活，失败时不把上一次的回复留作本次结果。
-rm -f "$OUT" "$PID_FILE" "$EXIT_FILE"
+rm -f "$OUT" "$LAST_REPLY" "$PID_FILE" "$EXIT_FILE"
 STARTED="$(timestamp)"; FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""
 META_MODEL="$MODEL"; META_SANDBOX="$SANDBOX"; META_ROOT="$ROOT"
 write_meta

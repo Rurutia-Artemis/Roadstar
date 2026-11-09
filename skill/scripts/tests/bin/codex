@@ -76,11 +76,20 @@ if resumed:
 print("--------")
 prompt = sys.stdin.read()
 time.sleep(float(os.environ.get("FAKE_CODEX_DELAY", "0")))
+# FAKE_CODEX_REPORT: the executor writes its own full report there first
+# (as a real run does via its tools); FAKE_CODEX_REPLY: the short final reply.
+report = os.environ.get("FAKE_CODEX_REPORT")
+if report:
+    with open(report, "w", encoding="utf-8") as out:
+        out.write("# full report\n" + "".join("detail line %d\n" % i for i in range(40)))
 status = int(os.environ.get("FAKE_CODEX_EXIT", "0"))
 if status:
     for i in range(25):
         print("stub failure line " + str(i))
     sys.exit(status)
+reply = os.environ.get("FAKE_CODEX_REPLY")
+if reply is not None:
+    print(reply)
 with open(output, "w", encoding="utf-8") as out:
     if schema:
         data = {"verdict": "PASS", "checklist": [], "new_issues": [], "open_issue_verdicts": [],
@@ -89,6 +98,8 @@ with open(output, "w", encoding="utf-8") as out:
         assert set(data) == set(definition["required"])
         json.dump(data, out)
         out.write("\n")
+    elif reply is not None:
+        out.write(reply + "\n")
     else:
         out.write(prompt)
 print("tokens used")

@@ -1,5 +1,15 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · dex-exec 收尾不再覆盖执行方的报告（不升版本）
+
+起因：今天两条线都踩到，`dex-exec.sh` 把 `codex exec -o` 直接指向 `rounds/exec-T<n>.md`，执行方写好的完整报告在收尾时被 Codex 最后一句短回复覆盖，验收方只能从 `exec-T<n>-stdout.log` 恢复。
+
+- `skill/scripts/dex-exec.sh`。旧：`-o "$OUT"`，Codex 退出时用最后回复整份覆盖 `exec-T<n>.md`。新：`-o` 写到同目录隐藏文件 `.exec-T<n>.md.last-reply`（新派、`--resume`、`--detach` 的 worker 三条路径一致），codex 退出后先并报告再写 meta：`exec-T<n>.md` 非空且不早于本次请求副本，就在末尾追加「## 最终回复」一节；否则用最后回复生成。派活前照旧删掉上一次的报告和残留的回复文件。`.meta`、`.exit`、退出码不变。
+- `skill/scripts/tests/bin/codex` 桩加两个开关：`FAKE_CODEX_REPORT=<路径>` 模拟执行方先写 40 行报告（在失败分支之前，便于测中途失败），`FAKE_CODEX_REPLY=<文本>` 作为最后一条回复写进 `-o` 并打到 stdout。
+- `skill/scripts/tests/run.sh` 新增 4 条（T50–T53）：执行方写了报告时全文保留且末尾只有一节「## 最终回复」、隐藏文件已删、meta 的 exit 和 tokens 照旧、`-o` 指向隐藏文件；没写时由最后回复生成，上一次留下的旧报告不算；`--detach` 同样保留并追加；codex 中途失败时已写的报告原样保留、不追加、退出码照传。
+- `skill/references/division-of-labor.md` 第 15 节表格加一行「11-10 踩坑：收尾覆盖报告」；`docs/模块地图.md`「任务执行与验收」对外接口补报告的收尾规则。RuruAgent `docs/模块地图.md` 只引用 `check_root.py`，没写这块行为，未改。
+- 验证：先用假 codex（往 `exec-T1.md` 写 40 行报告、最后回复一句话）跑旧脚本，`exec-T1.md` 只剩 1 行；修后 45 行（40 行报告加最终回复一节），`/bin/bash` 3.2 + `LC_ALL=zh_CN.UTF-8` 下同样结果。旧脚本跑新 `run.sh` 停在 T50 第一条断言。`bash skill/scripts/tests/run.sh` 退出 0：主套件 `PASS 114 checks`（原 110 加 4）、guard `PASS 50`、close-check `PASS 13`；guard-tests 追加到 `docs/roadstar/2026-10-25-guards/rounds/exec-T2.progress` 的行已还原。未验证：没用真 codex CLI 跑一单；`grok-exec.sh` 成功时 `cp "$LOG" "$OUT"` 也会覆盖执行方自己写的报告，这次没改。
+
 ## 2026-11-07 · guard 识别各项目模块表（不升版本）
 
 - `skill/scripts/guard.py`：旧版模块表只认「模块 + 目录」，缩写路径按字面匹配；新版名称列支持「模块／名称／工具」，路径列取首个含「目录／路径／位置／正本」的列，展开「模块一览」表前的 `X`=`路径`；目录格只取反引号路径并过滤说明和外部地址。任务书先匹配完整模块名，再尝试去掉末尾中英文括号说明，保留本名中的括号。
