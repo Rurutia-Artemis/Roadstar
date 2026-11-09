@@ -7,6 +7,7 @@
 #   --strategy S     本场策略 auto / quality / thrift / rush，写入 meta 的 strategy。
 #   --root    默认 plan-dir 所在 git 根，找不到用 plan-dir 的上级。
 #   --write   使用 workspace-write；默认 read-only。
+#             派写活（含 resume/dry-run）先查项目接入、未验收存量和未提交基线；超限退出 3。
 #   --network 联网（只配合 --write，且只给 --class 取证 的调研活；主席 2026-10-24 定）：加 -c sandbox_workspace_write.network_access=true。
 #   --max-minutes N  止损：到 N 分钟还没结束就停掉 codex，退出码 124，meta 记 timed_out=1（常规 120、难活 240）。
 #   --resume  续接会话；resume 不接 -m/-s/-C，脚本改用 -c model= / sandbox_mode= 覆盖并在 root 里启动（不传模型会退回 config 默认）。
@@ -184,7 +185,7 @@ while [[ $# -gt 0 ]]; do
     --status) STATUS=1; shift ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
     --) shift; while [[ $# -gt 0 ]]; do POSITIONAL+=("$1"); shift; done ;;
     -*) usage_error "未知选项：$1" ;;
     *) POSITIONAL+=("$1"); shift ;;
@@ -254,6 +255,16 @@ if [[ -f "$WS_GUARD_DIR/check_root.py" ]]; then
   python3 "$WS_GUARD_DIR/check_root.py" "$ROOT" || WS_GUARD_RC=$?
   [[ "$WS_GUARD_RC" -ne 2 ]] || exit 2
 fi
+if [[ "$WRITE" -eq 1 ]]; then
+  ENTRY_ARGS=(gate "$ROOT")
+  [[ "$DRY" -eq 0 ]] || ENTRY_ARGS+=(--dry-run)
+  ENTRY_RC=0
+  python3 "$SCRIPT_DIR/entry-check.py" "${ENTRY_ARGS[@]}" || ENTRY_RC=$?
+  [[ "$ENTRY_RC" -ne 3 ]] || exit 3
+  if [[ "$ENTRY_RC" -ne 0 ]]; then
+    printf '警告：项目入口检查退出 %s，继续派活。\n' "$ENTRY_RC" >&2
+  fi
+fi
 for value in "$PLAN_DIR" "$MODEL" "$EFFORT" "$ROOT" "$RESUME"; do
   [[ "$value" != *$'\n'* && "$value" != *$'\r'* ]] || usage_error 'meta 字段不能包含换行'
 done
@@ -278,6 +289,14 @@ fi
 choose_request() {
   ATTEMPT=1
   REQ="$ROUNDS/exec-$TASK-request.md"
+  # Argo 已按模板把首份任务书写到标准位置时，首次派发直接复用。
+  if [[ ! -e "$META" ]] && python3 - "$BRIEF" "$REQ" <<'PY'
+import os, sys
+sys.exit(0 if os.path.realpath(sys.argv[1]) == os.path.realpath(sys.argv[2]) else 1)
+PY
+  then
+    return 0
+  fi
   while [[ -e "$REQ" || -L "$REQ" ]]; do
     ATTEMPT=$((ATTEMPT + 1))
     REQ="$ROUNDS/exec-$TASK-request-r$ATTEMPT.md"
@@ -322,7 +341,7 @@ else
 fi
 
 choose_request
-cp "$BRIEF" "$REQ"
+if [[ ! "$BRIEF" -ef "$REQ" ]]; then cp "$BRIEF" "$REQ"; fi
 # 最新结果只对应本次派活，失败时不把上一次的回复留作本次结果。
 rm -f "$OUT" "$LAST_REPLY" "$PID_FILE" "$EXIT_FILE"
 STARTED="$(timestamp)"; FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""

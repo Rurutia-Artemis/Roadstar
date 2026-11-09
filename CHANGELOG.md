@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · dex-exec 派写活前查项目接入、没验收的存量和主目录未提交；首次派发不再误算返工（不升版本）
+
+起因：总管 11-10 派活书 P2、P5 与修正第 4、5 条。project-shell 的钩子只在 Claude 会话改文件时拦没地图的项目，Codex 经 dex-exec 改文件不经过它，RuruBrain 的活就这样一次都没被拦；没验收的活越积越多（cardestiny mobile 130 多件）；按模板先存成 exec-T<n>-request.md 再派会被另存成 r2、算成返工。场次 `docs/roadstar/2026-11-10-flow-gaps/`，裁定见 ledger.md 第 3–6、17、18 条。
+
+- 新增 `skill/scripts/entry-check.py`（210 行）：`gate <root>` 读 RuruAgent `check.py --json` 的 `structural_gaps`，接入没齐退出 3；`open_tasks` 去掉在跑的（无 .exit 且 24 小时内）后超过 max(基线, 5) 退出 3 并列最久的 10 件；主目录未提交（不含 docs/roadstar/）超过 max(基线, 10) 退出 3。基线用 `baselines.py` 的 `open-tasks`、`uncommitted`，只降不升；`baseline-init` 按登记表记现状，`show` 打印。RuruCode 外、AI任务 下跳过；check.py 缺失、超时、旧版没有字段时警告放行。跳过开关 `ROADSTAR_PROJECT_CHECK=0`、`ROADSTAR_OPEN_CHECK=0`、`ROADSTAR_DIRTY_CHECK=0`，经 skiplog 记账。
+- `skill/scripts/dex-exec.sh`：写模式（含 resume）在 ws-guard 之后、dry-run 之前调 `entry-check.py gate`，退出 3 拒派；`choose_request` 在任务书就是 exec-T<n>-request.md 且没有旧 meta 时按第一次派、不另存。`dispatch-stats.py`：历史上 request 与 r2 逐字节相同的按第一次算。
+- 测试：新 `tests/entry-tests.sh` `PASS 29 checks`（含从 run.sh 原样搬出的旧测试），run.sh 1624 → 1613；guard-tests.sh 派活夹具补一行 entry-check.py 桩（Argo）；全套 PASS。Opus 换会话验收通过（`check-T1.md`），按建议把 entry-tests 的进度写入改成只在设了 `ROADSTAR_ENTRY_PROGRESS` 时写。
+- 上线：`baseline-init` 记下 13 个项目的现状（如 cardestiny mobile 131 件、Selene 8、Mia 10、RuruAgent 6 件与未提交 32 个）。
+
 ## 2026-11-10 · 任务书前加一页设计：设计页模板、design_page.py、brief-check 查设计页与钩子记的主人点头（不升版本）
 
 起因：总管 11-10 派活书 P3。任务书之前没有「为什么做、不做什么、什么算失败」的程序检查；plan.md 写没写、主人点没点头没人查。superpowers 的 brainstorming 要求设计获批前不开工，但它没有程序拦截；这里做成 brief-check 的一项。总管修正：只有大活、新项目和「只有主人能答的问题」不为空的中活要主人点头，点头记录只认会话钩子从主人原话里记的（RuruAgent dispatch-gate，另一件活）。场次 `docs/roadstar/2026-11-10-flow-gaps/`，裁定见 ledger.md 第 7、14、15、19 条。
