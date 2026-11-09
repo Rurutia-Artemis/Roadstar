@@ -90,7 +90,7 @@
 
 执行方与审查人的速查表在 SKILL.md 第 8 节；审查人和执行方型号不同。
 
-证据写进 plan §11 和 `rounds/check-T<n>.md`：具体命令与输出摘要，不写「通过」两个字了事。
+证据写进 plan §11 和 `rounds/check-T<n>.md`：具体命令与输出摘要，不写「通过」两个字了事。格式照 references/check-template.md，降标准五查一节必填。
 
 ## 9 怎么派
 

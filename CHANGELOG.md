@@ -1,5 +1,15 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · guard 合并时查降标准、提交时查文件行数、接设计线的两条检查命令（不升版本）
+
+起因：总管 11-10 派活书 P4、P6 与设计线接口。验收不查偷降标准（跳过测试、关检查、留桩）；文件越写越长没人拦。guard.py 由各项目钩子按 Roadstar 主目录绝对路径调用，合并即全部项目生效。场次 `docs/roadstar/2026-11-10-flow-gaps/`，裁定见 ledger.md 第 8、9、20 条。
+
+- 新增 `skill/scripts/guard_rules.py`（298 行）：行数卡（提交时，新代码文件 > 800 行拦；已有文件超过 800 行的只许不变长，按 HEAD 行数比，改名按原路径；vendor、third_party、node_modules、dist、build、Pods、生成文件与 `.roadstar/guard.json` 的 length_exempt 豁免；`Roadstar-Length: 理由` 放行并打印）；降标准卡（合并时扫 HEAD...分支，五类：下调门槛、跳过或删测试、关掉检查、留桩、改检查配置；命中文件要在 `check-T<n>.md` 的「## 降标准五查」里点名；只扫上线后派出的任务，上线时刻存在 `baselines.py` 的 `lowering-scan`）；设计线接口（`.roadstar/guard.json` 里 `design_lint: true` 才跑 `design-lint check --project <根> --staged` 和合并动界面文件时的 `design-audit verify --check <验收记录>`，退出 1 拦，命令没装好不误拦并记一行）。
+- `skill/scripts/guard.py` 只加 import 与调用，新增只读子命令 `audit <ref>`（列命中，退出码恒 0）。跳过开关 `ROADSTAR_LENGTH_CHECK=0`、`ROADSTAR_LOWERING_CHECK=0`、`ROADSTAR_DESIGN_GATE=0`，经 skiplog 记账。
+- 新增 `skill/references/check-template.md`（验收记录模板，「降标准五查」必填）；`division-of-labor.md` 第 8 节指过去。
+- 测试：新 `tests/guard-rules-tests.sh` `PASS 41 checks`，原 guard `PASS 50`；按总管要求 guard-tests 与 guard-rules-tests 只在设了 `ROADSTAR_GUARD_PROGRESS` 时写进度。Opus 换会话验收通过（`check-T3.md`）；回放 RuruAgent 已合并的两条记忆线，若放在今天会被三处 `# noqa: E402` 拦，点名即过。
+- 上线：先记上线时刻再合并，之前派出的任务合并时不扫。未验证：五类关键词偏宽（例如注释里的 TODO 也算），先看一周命中再收窄。
+
 ## 2026-11-10 · 本机基线与豁免清单的共用小模块（不升版本）
 
 起因：流程补洞的存量上限要「只降不升」的基线，设计页检查要「老场次豁免」清单，降标准五查要「上线时刻」；总管要求这些做成以后阶段记录（stage.py）也能复用的形式，不各写一份。
