@@ -104,7 +104,15 @@ def dirty(root):
             names.append(next(entries))
         if not all(name.startswith('docs/roadstar/') for name in names):
             paths.append(path)
-    return paths
+    # 只算积压：24 小时内动过的文件是正在干的活，不计（删掉的文件读不到时间，照算）。
+    cutoff = time.time() - float(os.environ.get('ROADSTAR_DIRTY_STALE_HOURS', '24')) * 3600
+
+    def stale(path):
+        try:
+            return os.stat(Path(root) / path.rstrip('/')).st_mtime < cutoff
+        except OSError:
+            return True
+    return [path for path in paths if stale(path)]
 
 
 def baseline(name, root, count):
@@ -145,7 +153,7 @@ def gate(root, dry_run):
             count = len(paths)
             limit = max(baseline('uncommitted', root, count), 10)
             if count > limit:
-                print(f'拒派：{root.name} 主目录有 {count} 个没提交的文件（上限 {limit}，不含 docs/roadstar/）。'
+                print(f'拒派：{root.name} 主目录有 {count} 个没提交的文件（上限 {limit}，不含 docs/roadstar/，只算 24 小时没动过的）。'
                       f'先提交或清掉再派新活。最先的几个：{"；".join(paths[:10])}', file=sys.stderr)
                 return 3
             counts.append(('uncommitted', count))

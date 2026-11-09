@@ -32,6 +32,7 @@ export WS_GUARD_DIR="$TMP/no-ws-guard"
 export FAKE_TRACE_FILE="$TMP/trace.jsonl"
 unset FAKE_CODEX_USED FAKE_CODEX_DELAY FAKE_CODEX_EXIT FAKE_CODEX_REPORT FAKE_CODEX_REPLY
 unset ROADSTAR_PROJECT_CHECK ROADSTAR_OPEN_CHECK ROADSTAR_DIRTY_CHECK
+export ROADSTAR_DIRTY_STALE_HOURS=0  # 旧用例按「立刻算积压」写；24 小时口径单测见末尾
 PLAN="$TMP/legacy-plan"
 mkdir -p "$PLAN"
 BRIEF="$PLAN/brief.md"
@@ -249,7 +250,7 @@ with Check('C1 未提交超过十件拒派并最多列十个路径'):
         (root / f'f{i:02}.txt').write_text('dirty')
     set_baseline('uncommitted', root, 0)
     out = dispatch(root, code=3)
-    assert '主目录有 12 个没提交的文件（上限 10，不含 docs/roadstar/）' in out.stderr
+    assert '主目录有 12 个没提交的文件（上限 10，不含 docs/roadstar/，只算 24 小时没动过的）' in out.stderr
     assert 'f09.txt' in out.stderr and 'f10.txt' not in out.stderr
 with Check('C1 ROADSTAR_DIRTY_CHECK=0 放行且记账'):
     dispatch(root, extra={'ROADSTAR_DIRTY_CHECK': '0'})
@@ -288,6 +289,20 @@ with Check('C2 只读派活三卡都不跑（真实桩派发）'):
     dispatch(root, flags=())
     assert check_trace.read_bytes() == before
     assert (root / 'docs/roadstar/new/rounds/exec-T1.meta').exists()
+with Check('C1 未提交只算 24 小时没动过的：新改的不计、旧的计'):
+    root = fixture('dirty-stale', repo=True)
+    for i in range(12):
+        (root / f'n{i:02}.txt').write_text('dirty')
+    os.environ['ROADSTAR_DIRTY_STALE_HOURS'] = '24'
+    try:
+        assert len(entry.dirty(root)) == 0
+        old = time.time() - 25 * 3600
+        for i in range(3):
+            os.utime(root / f'n{i:02}.txt', (old, old))
+        assert len(entry.dirty(root)) == 3
+    finally:
+        os.environ['ROADSTAR_DIRTY_STALE_HOURS'] = '0'
+
 with Check('C1 worktree 一律读取主目录接入/存量/未提交'):
     root = fixture('main-root', repo=True)
     git(root, 'commit', '--allow-empty', '-qm', 'fixture')
