@@ -16,97 +16,24 @@
 「新增」「新模块」不触发，「新建的测试文件」「新建 quota.py」这类不拦），里面至少 3 条带链接的条目（列表项、表格行或 ### 小标题各算一条）；查不到写「查过：关键词…，无」也放行。
 plan 用 `brief-check.py --plan <plan.md>` 查，只查同类方案，不查六栏；文件里没有「目标与做完的样子」而有
 「<数字> 目标…」一节时自动按 plan 查。dex-exec.sh 派活前对场次目录的 plan.md 也跑一遍。
+可选 --class / --est-minutes / --write / --plan-dir：写活检查引用的设计页与钩子点头记录；不传则保持原六栏检查。
+--init-design-baseline [--dry-run] 初始化老场次 design-exempt；ROADSTAR_DESIGN_CHECK=0 只跳过设计检查并记账。
 退出码：0 合格；2 不合格并列出缺什么。环境变量 BRIEF_CHECK=0 跳过（记一行到 stderr，给真正的急事）。
 """
-import os
+import argparse
+import subprocess
 import re
 import sys
 from pathlib import Path
 
+from design_page import (sections, find, prior_art_problems, approvals, approval_time,
+                         requires_design, find_design_page, design_problems, needs_approval, init_baseline)
+import baselines
+import skiplog
+
 SECTIONS = ['目标与做完的样子', '涉及模块', '不许动什么', '执行环境', '验收命令与期望输出', '资源上限与止损']
 PLACEHOLDER = re.compile(r'<[^>\n]{1,40}>|TODO|待填|TBD', re.I)
 MIN_CHARS = {'涉及模块': 2, '不许动什么': 2, '执行环境': 2}  # 这三栏一个词就够
-PRIOR_ART_TRIGGER = re.compile(r'新系统|新项目|新产品|新服务|大改版|重做|立项')
-NEW_MODULE = re.compile(r'新模块')
-MODULE_SCOPE = re.compile(r'系统|服务|(?<![A-Za-z])app(?![A-Za-z])', re.I)  # 新模块要配上其一才算整体性
-PRIOR_ART_MIN = 3
-PRIOR_ART_HOW = '至少 3 个同类开源项目或产品，每个写它怎么做、我们取什么、不取什么、许可证，附链接；查不到写「查过：关键词…，无」'
-REAL_LINK = re.compile(r'https?://[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}')
-ITEM_START = re.compile(r'^ ?(?:[-*+]|\d+[.)、])\s+|^\|(?!\s*:?-{2,})|^###\s')
-CHECKED_NONE = re.compile(r'查过[:：][^\n]*?\S[^\n]*?[，,；;]\s*无')
-
-
-def sections(text):
-    out, current = {}, None
-    for line in text.splitlines():
-        m = re.match(r'^##\s+(.+?)\s*$', line)
-        if m:
-            current = m.group(1).strip()
-            out[current] = []
-        elif current is not None:
-            out[current].append(line)
-    return {k: '\n'.join(v).strip() for k, v in out.items()}
-
-
-def find(secs, title):
-    for k, v in secs.items():
-        if k.startswith(title):
-            return v
-    return None
-
-
-def strip_placeholders(text):
-    """去掉 <…> 占位（可跨行、可嵌套），模板说明里的字不算目标或条目。"""
-    while True:
-        new = re.sub(r'<[^<>]*>', '', text)
-        if new == text:
-            return new
-        text = new
-
-
-def goal_text(secs):
-    for k, v in secs.items():
-        if re.match(r'^(?:\d+\s*)?目标', k):
-            return '\n'.join(l for l in strip_placeholders(v).splitlines() if '非目标' not in l)
-    return ''
-
-
-def prior_art_items(body):
-    items, current = [], None
-    for line in body.splitlines():
-        if ITEM_START.match(line):
-            current = [line]
-            items.append(current)
-        elif current is not None and line.strip():
-            current.append(line)
-    return [i for i in items if REAL_LINK.search('\n'.join(i))]
-
-
-def prior_art_trigger(goal):
-    """返回触发同类方案的词；单独的 新建 / 新增 / 新模块 不算。"""
-    m = PRIOR_ART_TRIGGER.search(goal)
-    if m:
-        return m.group(0)
-    m, scope = NEW_MODULE.search(goal), MODULE_SCOPE.search(goal)
-    if m and scope:
-        return f'{m.group(0)}」+「{scope.group(0)}'
-    return None
-
-
-def prior_art_problems(secs):
-    word = prior_art_trigger(goal_text(secs))
-    if not word:
-        return []
-    body = next((v for k, v in secs.items() if '同类方案' in k), None)
-    if body is None:
-        return [f'目标里有「{word}」，缺「同类方案」一节：{PRIOR_ART_HOW}']
-    body = strip_placeholders(body)
-    if CHECKED_NONE.search(body):
-        return []
-    n = len(prior_art_items(body))
-    if n < PRIOR_ART_MIN:
-        return [f'目标里有「{word}」，「同类方案」只有 {n} 条带链接的条目，要至少 {PRIOR_ART_MIN} 条：{PRIOR_ART_HOW}']
-    return []
 
 
 def is_plan(secs):
@@ -136,23 +63,69 @@ def problems(text, plan=False):
     return bad + prior_art_problems(secs)
 
 
+def check_design(text, brief, plan_dir):
+    bases = [brief.parent, plan_dir]
+    try:
+        run = subprocess.run(['git', '-C', str(plan_dir), 'rev-parse', '--show-toplevel'],
+                             capture_output=True, text=True, timeout=10)
+        if run.returncode == 0:
+            bases.append(Path(run.stdout.strip()))
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    bases.append(Path.cwd())
+    design = find_design_page(text, bases)
+    if design is None:
+        return ['缺设计页：中活以上的写活先按 references/design-template.md 写一页设计，在任务书里写 `设计页：<路径>`']
+    modules = find(sections(text), '涉及模块') or ''
+    count = len([m for m in re.split(r'[,，、\n]', modules) if m.strip()])
+    bad = design_problems(design, count)
+    try:
+        design_text = design.read_text(encoding='utf-8')
+        rows = approvals(design)
+        if needs_approval(design_text) and not rows:
+            bad.append('缺主人点头记录：把设计页（大活 / 新项目，或中活里只有主人能答的问题）给主人看，主人当轮回话后钩子会自动记下；不能手写')
+        if rows and design.stat().st_mtime > approval_time(rows[-1]):
+            print('警告：设计页在主人点头后改过', file=sys.stderr)
+    except (OSError, UnicodeError):
+        pass  # design_problems 已报告读取错误
+    return bad
+
+
 def main():
-    args = sys.argv[1:]
-    plan = '--plan' in args
-    args = [a for a in args if a != '--plan']
-    if len(args) != 1:
-        print(__doc__, file=sys.stderr)
-        return 2
-    if os.environ.get('BRIEF_CHECK') == '0':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('brief', nargs='?')
+    parser.add_argument('--plan', action='store_true')
+    parser.add_argument('--class', dest='cls')
+    parser.add_argument('--est-minutes', type=int)
+    parser.add_argument('--write', action='store_true')
+    parser.add_argument('--plan-dir', type=Path)
+    parser.add_argument('--init-design-baseline', action='store_true')
+    parser.add_argument('--dry-run', action='store_true')
+    args = parser.parse_args()
+    if args.init_design_baseline:
+        init_baseline(args.dry_run)
+        return 0
+    if not args.brief or args.dry_run:
+        parser.error('需要一份任务书；--dry-run 只用于 --init-design-baseline')
+    plan = args.plan
+    path = Path(args.brief)
+    plan_dir = args.plan_dir or path.parent
+    if skiplog.skipped('任务书检查', 'BRIEF_CHECK', plan_dir):
         print('brief-check：BRIEF_CHECK=0，跳过校验（记下：这份任务书没过六栏检查）', file=sys.stderr)
         return 0
-    path = Path(args[0])
     try:
         text = path.read_text(encoding='utf-8')
     except OSError as e:
         print(f'brief-check：读不到任务书 {path}：{e}', file=sys.stderr)
         return 2
     bad = problems(text, plan)
+    if not plan and not is_plan(sections(text)) and requires_design(args.cls, args.est_minutes, args.write):
+        if skiplog.skipped('设计页检查', 'ROADSTAR_DESIGN_CHECK', plan_dir):
+            pass
+        elif baselines.listed('design-exempt', plan_dir):
+            print('老场次（上线前已有），设计页豁免', file=sys.stderr)
+        else:
+            bad += check_design(text, path, plan_dir)
     if bad:
         kind = 'plan' if plan or is_plan(sections(text)) else '任务书'
         print(f'{kind}不合格，派不出去：', file=sys.stderr)

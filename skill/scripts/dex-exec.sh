@@ -233,7 +233,7 @@ BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
 # 任务书六栏校验（主席 2026-11-03 定：缺栏派不出去；急事 BRIEF_CHECK=0 跳过并记下）
 BRIEF_CHECK_PY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/brief-check.py"
 if [[ -f "$BRIEF_CHECK_PY" ]]; then
-  python3 "$BRIEF_CHECK_PY" "$BRIEF" || usage_error "任务书没过六栏校验，先补齐再派（见上面列出的缺项）"
+  python3 "$BRIEF_CHECK_PY" "$BRIEF" ${CLASS:+--class "$CLASS"} ${EST_MINUTES:+--est-minutes "$EST_MINUTES"} $([[ "$WRITE" -eq 1 ]] && printf %s --write) --plan-dir "$PLAN_DIR" || usage_error "任务书没过六栏校验，先补齐再派（见上面列出的缺项）"
   # 场次的 plan.md 目标是新系统 / 大改版这类整体性的活时要有同类方案一节（主席 2026-11-07 定）
   if [[ -f "$PLAN_DIR/plan.md" ]]; then
     python3 "$BRIEF_CHECK_PY" --plan "$PLAN_DIR/plan.md" || usage_error "plan.md 缺同类方案，先补齐再派（见上面列出的缺项）"
