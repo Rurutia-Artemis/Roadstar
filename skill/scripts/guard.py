@@ -126,24 +126,52 @@ def trailers(root, message):
 
 def task_parts(value):
     plan, sep, task = value.rpartition("/")
-    if not sep or not plan or Path(plan).is_absolute() or not TASK.fullmatch(task):
+    if (not sep or not plan or not TASK.fullmatch(task)
+            or Path(plan).is_absolute() and Path(plan).resolve() == Path("/")):
         raise Block("Roadstar-Task 写法不对", "收到：" + value,
-                    "怎么办：写成 Roadstar-Task: <场次相对路径>/T<n>。")
+                    "怎么办：写成 Roadstar-Task: <场次路径>/T<n>。")
     return plan, task
+
+
+def resolve_task(root, value, require_dir=True):
+    plan, task = task_parts(value)
+    main = git_dir(root, common=True).parent.resolve()
+    worktrees = git(root, "worktree", "list", "--porcelain", "-z")
+    roots = [Path(item[9:]).resolve() for item in worktrees.split("\0") if item.startswith("worktree ")]
+    def canonical(path):
+        target = path.resolve()
+        for lane in sorted(roots, key=lambda p: len(p.parts), reverse=True):
+            if lane != main and target.is_relative_to(lane):
+                target = (main / target.relative_to(lane)).resolve()
+                break
+        task_parts(str(target / task))
+        return target
+    if Path(plan).is_absolute():
+        target = canonical(Path(plan))
+        if require_dir and not target.is_dir():
+            raise Block("计划目录不存在：" + str(target), "怎么办：恢复场次目录或修正 Roadstar-Task。")
+        return target, task
+    primary = canonical(main / plan)
+    if primary.is_dir():
+        return primary, task
+    # 多个副本可能拼出同一场次；只有不同的实际目录才算歧义。
+    candidates = list(dict.fromkeys(canonical(base / plan) for base in [main] + roots))
+    existing = [path for path in candidates if path.is_dir()]
+    if len(existing) != 1:
+        tried = "、".join(str(path) + ("（存在）" if path in existing else "（不存在）") for path in candidates)
+        raise Block("场次目录解析不出来：" + value + "；试过：" + tried,
+                    "怎么办：恢复唯一的场次目录，或把 Roadstar-Task 改成明确的绝对路径。")
+    return existing[0], task
 
 
 def mark(root, plan, task):
     if not TASK.fullmatch(task):
         raise Block("任务号写法不对", "怎么办：用 T1、T2 这样的任务号。")
     target = Path(plan).resolve()
-    main = git_dir(root, common=True).parent.resolve()
-    # 工位（另一个 worktree）派活时场次目录常在主工作区：按主工作区记相对路径，
-    # 合并时查验收记录、提交时找任务书都从主工作区解析，工位目录深浅不同也一致。
-    base = main if target.is_relative_to(main) and not target.is_relative_to(root.resolve()) else root
-    relative = os.path.relpath(target, base)
-    if any(c in relative for c in "\r\n"):
+    if any(c in str(target) for c in "\r\n"):
         raise Block("场次路径里有换行", "怎么办：改成不带换行的目录名后重试。")
-    value = {"plan_dir": relative, "task": task,
+    target, _ = resolve_task(root, str(target / task), require_dir=False)
+    value = {"plan_dir": str(target), "task": task,
              "branch": git(root, "symbolic-ref", "--quiet", "--short", "HEAD").strip(),
              "time": datetime.datetime.now(datetime.timezone.utc).isoformat()}
     destination = git_dir(root) / "roadstar-task"
@@ -165,7 +193,8 @@ def prepare(root, filename):
         if not branch or value.get("branch") != branch.strip():
             return
         trailer = value["plan_dir"] + "/" + value["task"]
-        task_parts(trailer)
+        plan, task = resolve_task(root, trailer)
+        trailer = str(plan / task)
     except (ValueError, KeyError, TypeError, AttributeError):
         raise Block("任务标记读不懂", "文件：" + str(path),
                     "怎么办：重新运行 guard.py mark <场次目录> T<n>，或用 unmark 清掉标记。")
@@ -225,11 +254,8 @@ def commit_message(root, filename):
     failures = []
     notices = []
     for value in dict.fromkeys(values.get("roadstar-task", [])):
-        plan, task = task_parts(value)
-        request = root / plan / "rounds" / ("exec-" + task + "-request.md")
-        if not request.is_file():
-            shared = git_dir(root, common=True).parent / plan / "rounds" / request.name
-            request = shared if shared.is_file() else request
+        plan, task = resolve_task(root, value)
+        request = plan / "rounds" / ("exec-" + task + "-request.md")
         if not request.is_file():
             raise Block("找不到这件活的任务书", "期望路径：" + str(request),
                         "怎么办：把任务书放回这个路径，或修正 Roadstar-Task 后重提。")
@@ -286,17 +312,19 @@ def merge_tasks(root, refs):
 def check_records(root, tasks, refs):
     main = git_dir(root, common=True).parent
     missing = []
+    resolved = []
     for value in tasks:
-        plan, task = task_parts(value)
-        record = main / plan / "rounds" / ("check-" + task + ".md")
+        plan, task = resolve_task(root, value)
+        resolved.append(str(plan / task))
+        record = plan / "rounds" / ("check-" + task + ".md")
         if not record.is_file() or not record.read_bytes().strip():
             missing.append("- " + value + "：" + str(record))
     if missing:
         raise Block("这些任务还没有验收记录，不能合并", *missing,
-                    "怎么办：先验收，再在上面的主工作区路径写下非空验收记录，然后重试 git merge --no-ff。")
+                    "怎么办：先验收，再在上面的路径写下非空验收记录，然后重试 git merge --no-ff。")
 
     import guard_rules
-    guard_rules.merge_checks(root, refs, tasks, main, Block)
+    guard_rules.merge_checks(root, refs, resolved, main, Block)
 
 
 def pending_merge_refs(root):

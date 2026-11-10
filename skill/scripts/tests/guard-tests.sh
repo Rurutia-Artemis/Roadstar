@@ -239,11 +239,11 @@ def table_command_readonly(root):
     p = call(root.parent, "modules", empty)
     assert p.stdout == p.stderr == ""
 
-@test("C1", "标记含相对路径、任务号、分支和时间；unmark 幂等")
+@test("C1", "标记含绝对路径、任务号、分支和时间；unmark 幂等")
 def c1(root):
     call(root, "mark", root / plan, "T1")
     data = json.loads((root / ".git/roadstar-task").read_text())
-    assert data["plan_dir"] == plan and data["task"] == "T1" and data["branch"] == "main", data
+    assert data["plan_dir"] == str((root / plan).resolve()) and data["task"] == "T1" and data["branch"] == "main", data
     datetime.datetime.fromisoformat(data["time"])
     call(root, "unmark")
     call(root, "unmark")
@@ -271,8 +271,8 @@ def c2(root):
     msg = message(root, False)
     for _ in range(2):
         call(root, "hook", "prepare-commit-msg", msg, "message")
-    assert msg.read_text().count("Roadstar-Task: " + task_value) == 1
-    assert git(root, "interpret-trailers", "--parse", msg).stdout.strip() == "Roadstar-Task: " + task_value
+    assert msg.read_text().count("Roadstar-Task: " + str((root / plan).resolve() / "T1")) == 1
+    assert git(root, "interpret-trailers", "--parse", msg).stdout.strip() == "Roadstar-Task: " + str((root / plan).resolve() / "T1")
 
 @test("C2", "没有标记不改提交说明，保留已有的其他任务 trailer")
 def c2_unmarked(root):
@@ -459,7 +459,7 @@ def c7_worktree(root):
     git(root, "worktree", "add", "-qb", "merge-lane", wt, "main")
     record(wt)
     p = call(wt, "check-merge", "topic", expected=1)
-    assert str(root / plan / "rounds/check-T1.md") in p.stderr
+    assert str((root / plan).resolve() / "rounds/check-T1.md") in p.stderr
     record(root)
     call(wt, "check-merge", "topic")
 
@@ -599,7 +599,7 @@ def c9_real(root):
     call(wt, "mark", wt / plan, "T1")
     stage(wt, "src/a/body.py")
     git(wt, "commit", "-qm", "actual commit")
-    assert "Roadstar-Task: " + task_value in git(wt, "log", "-1", "--format=%B").stdout
+    assert "Roadstar-Task: " + str((root / plan).resolve() / "T1") in git(wt, "log", "-1", "--format=%B").stdout  # 副本路径统一换成主目录同位置
     stage(wt, "src/b/body.py")
     p = git(wt, "commit", "-qm", "outside", expected=1)
     assert "src/b/body.py → 乙模块" in p.stderr
@@ -686,10 +686,10 @@ def c12_slots(root):
     git(root, "worktree", "add", "-qb", "lane/s1-T1", slot)
     call(slot, "mark", root / plan, "T1")
     data = json.loads((Path(git(slot, "rev-parse", "--path-format=absolute", "--git-dir").stdout.strip()) / "roadstar-task").read_text())
-    assert data["plan_dir"] == plan, data
+    assert data["plan_dir"] == str((root / plan).resolve()), data
     stage(slot, "src/a/body.py", "slot change\n")
     git(slot, "commit", "-qm", "slot commit")
-    assert "Roadstar-Task: " + task_value in git(slot, "log", "-1", "--format=%B").stdout
+    assert "Roadstar-Task: " + str((root / plan).resolve() / "T1") in git(slot, "log", "-1", "--format=%B").stdout
     integ = root.parent / "slots" / "int"
     git(root, "worktree", "add", "-qb", "integration", integ, "main")
     p = call(integ, "check-merge", "lane/s1-T1", expected=1)

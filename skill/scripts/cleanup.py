@@ -270,7 +270,7 @@ def close_check(project, base, plan_dirs, as_json):
             values = set()
             for value in records[i + 1].splitlines():
                 plan, sep, task = value.strip().rpartition("/")
-                if sep and plan and not Path(plan).is_absolute() and re.fullmatch(r"T[0-9]+[a-z]?", task):
+                if sep and plan and Path(plan) != Path("/") and re.fullmatch(r"T[0-9]+[a-z]?", task):
                     values.add((plan, task))
             for key in values:
                 counts[key] = counts.get(key, 0) + 1
