@@ -135,9 +135,17 @@ echo "调用：${CMD[*]} < $REQ"
 start=$(date +%s)
 "${CMD[@]}" < "$REQ" > "$LOG" 2>&1 || { echo "codex 退出码非 0，看 $LOG"; exit 1; }
 end=$(date +%s)
-python3 - "$OUT" <<'PY' || { echo "输出不是合法 JSON，看 $LOG"; exit 1; }
+python3 - "$OUT" "$LOG" <<'PY' || exit 1
 import json, sys
-d = json.load(open(sys.argv[1]))
+try:
+    d = json.load(open(sys.argv[1]))
+except (ValueError, OSError):
+    print(f"输出不是合法 JSON，看 {sys.argv[2]}")
+    sys.exit(1)
+lowering = [row for row in d.get("checklist", []) if row.get("item") == "lowering"]
+if not lowering or any(not row.get("note", "").strip() for row in lowering):
+    print("审稿结果缺降标准五查（lowering），这轮不算，重审")
+    sys.exit(1)
 nb = sum(1 for i in d.get("new_issues", []) if i["severity"] == "blocking")
 print(f"verdict={d['verdict']} new_issues={len(d.get('new_issues', []))} new_blocking={nb} questions={len(d.get('questions_for_chair', []))}")
 PY

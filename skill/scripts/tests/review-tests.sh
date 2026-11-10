@@ -12,6 +12,29 @@ trap 'rm -rf "$TMP"' EXIT
 trap 'echo "FAIL: line $LINENO" >&2' ERR
 export FAKE_TRACE_FILE="$TMP/trace.jsonl"
 export ROADSTAR_CONFIG_DIR="$TMP/config"
+# Wrap the shared stub locally so other test suites keep their existing fixtures.
+mkdir -p "$TMP/bin"
+export REVIEW_CODEX_STUB="$TEST_DIR/bin/codex"
+cat > "$TMP/bin/codex" <<'STUB'
+#!/usr/bin/env bash
+set -euo pipefail
+"$REVIEW_CODEX_STUB" "$@"
+python3 - "$@" <<'PY'
+import json, os, sys
+args = sys.argv[1:]
+if '--output-schema' in args:
+    path = args[args.index('-o') + 1]
+    with open(path, encoding='utf-8') as f:
+        data = json.load(f)
+    data['checklist'] = json.loads(os.environ.get('FAKE_REVIEW_CHECKLIST',
+        '[{"item":"lowering","status":"ok","note":"无 diff，不适用"}]'))
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False)
+PY
+STUB
+chmod +x "$TMP/bin/codex"
+export PATH="$TMP/bin:$PATH"
+unset FAKE_REVIEW_CHECKLIST
 PLAN="$TMP/plan dir"
 mkdir -p "$PLAN"
 printf '%s\n' '# Brief' '保留原文。' > "$PLAN/brief.md"
@@ -40,7 +63,7 @@ pass 'review dry-run twice leaves no snapshots, diff or request, still round 1'
 bash "$SCRIPTS/dex-review.sh" "$REVIEW" > "$TMP/review.txt"
 grep -q '模型 gpt-6-astra / 强度 high' "$TMP/review.txt"
 grep -q '用时 ' "$TMP/review.txt"
-json_check "$REVIEW/rounds/r1-dex-review.json" 'd == {"verdict": "PASS", "checklist": [], "new_issues": [], "open_issue_verdicts": [], "alternative": "", "reply_to_chair": "", "questions_for_chair": []}'
+json_check "$REVIEW/rounds/r1-dex-review.json" 'd == {"verdict": "PASS", "checklist": [{"item": "lowering", "status": "ok", "note": "无 diff，不适用"}], "new_issues": [], "open_issue_verdicts": [], "alternative": "", "reply_to_chair": "", "questions_for_chair": []}'
 python3 - "$FAKE_TRACE_FILE" "$SCRIPTS/../references/dex-review.schema.json" "$REVIEW/rounds/r1-dex-review.json" <<'PY'
 import json, sys
 calls = [json.loads(line) for line in open(sys.argv[1], encoding="utf-8")]
@@ -207,7 +230,7 @@ schema = json.loads((scripts.parent/'references/dex-review.schema.json').read_te
 # Standard-library validator for the schema vocabulary used by this contract.
 # Unknown keywords fail the test rather than silently skipping a constraint.
 def validate(value, rule):
-    assert not set(rule) - {'type', 'properties', 'required', 'additionalProperties', 'items', 'enum', 'const', 'contains', 'description'}, rule
+    assert not set(rule) - {'type', 'properties', 'required', 'additionalProperties', 'items', 'enum', 'const', 'description'}, rule
     kind = rule.get('type')
     if kind:
         assert isinstance(value, {'object': dict, 'array': list, 'string': str}[kind]), (value, kind)
@@ -226,15 +249,6 @@ def validate(value, rule):
         for val in value:
             if 'items' in rule:
                 validate(val, rule['items'])
-        if 'contains' in rule:
-            for val in value:
-                try:
-                    validate(val, rule['contains'])
-                    break
-                except AssertionError:
-                    pass
-            else:
-                raise AssertionError('missing required checklist item lowering')
 
 def invalid(value, rule):
     try:
@@ -246,19 +260,33 @@ def invalid(value, rule):
 items = re.findall(r'^- ([a-z_]+)：', contract, re.M)
 valid = dict(verdict='PASS', checklist=[dict(item=k, status='ok', note='无 diff，不适用' if k == 'lowering' else '已核对') for k in items], new_issues=[], open_issue_verdicts=[], alternative='', reply_to_chair='', questions_for_chair=[])
 
+def schema_keywords():
+    assert 'contains' not in (scripts.parent/'references/dex-review.schema.json').read_text()
+    validate(valid, schema)
+check('C1', 'schema 无 contains 且仅使用允许的关键字', schema_keywords)
+
 def mandatory_lowering():
     assert 'checklist' in schema['required']
-    rule = schema['properties']['checklist']
-    assert rule['contains']['properties']['item']['const'] == 'lowering'
-    assert 'item' in rule['contains']['required']
-    validate(valid, schema)
-    for rows in ([], [c for c in valid['checklist'] if c['item'] != 'lowering']):
-        missing = dict(valid, checklist=rows)
-        invalid(missing, schema)
-    missing_note = copy.deepcopy(valid)
-    del missing_note['checklist'][-1]['note']
-    invalid(missing_note, schema)
-check('C4', 'schema 合法且缺 lowering、缺 note 均不能过契约', mandatory_lowering)
+    cases = [([], 1),
+             ([c for c in valid['checklist'] if c['item'] != 'lowering'], 1),
+             ([dict(item='lowering', status='ok')], 1),
+             ([dict(item='lowering', status='ok', note='')], 1),
+             ([dict(item='lowering', status='ok', note='   ')], 1),
+             (valid['checklist'], 0)]
+    for index, (rows, expected) in enumerate(cases):
+        review = scene(f'lowering check {index}')
+        env = dict(os.environ, FAKE_REVIEW_CHECKLIST=json.dumps(rows))
+        r = subprocess.run(['bash', str(scripts/'dex-review.sh'), str(review), '--root', str(tmp)],
+                           capture_output=True, text=True, timeout=120, env=env)
+        assert r.returncode == expected, (r.returncode, r.stdout, r.stderr)
+        message = '审稿结果缺降标准五查（lowering），这轮不算，重审'
+        if expected:
+            assert message in r.stdout, r.stdout
+            assert 'verdict=' not in r.stdout, r.stdout
+        else:
+            assert message not in r.stdout, r.stdout
+            assert 'verdict=PASS new_issues=0 new_blocking=0 questions=0' in r.stdout, r.stdout
+check('C2', 'dex-review 拒绝缺 lowering 或无 note 的桩结果，完整结果通过', mandatory_lowering)
 
 def prompt_contract():
     for key in ['goals_nongoals', 'approach_alternatives', 'open_questions', 'prior_art']:
