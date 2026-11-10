@@ -14,7 +14,8 @@
 除「非目标」以外的行）出现整体性说法 新系统 / 新项目 / 新产品 / 新服务 / 大改版 / 重做 / 立项 之一，或「新模块」
 且同一目标里还有「系统」「服务」「App」之一时，必须有标题含「同类方案」的一节（11-07 收窄：单独的「新建」
 「新增」「新模块」不触发，「新建的测试文件」「新建 quota.py」这类不拦），里面至少 3 条带链接的条目（列表项、表格行或 ### 小标题各算一条）；查不到写「查过：关键词…，无」也放行。
-plan 用 `brief-check.py --plan <plan.md>` 查，只查同类方案，不查六栏；文件里没有「目标与做完的样子」而有
+plan 用 `brief-check.py --plan <plan.md>` 查，只查同类方案，不查六栏；无数字目标节时改查同目录 design.md
+的「为什么做」「做完的样子」，两者都没有则放行。文件里没有「目标与做完的样子」而有
 「<数字> 目标…」一节时自动按 plan 查。dex-exec.sh 派活前对场次目录的 plan.md 也跑一遍。
 可选 --class / --est-minutes / --write / --plan-dir：写活检查引用的设计页与钩子点头记录；不传则保持原六栏检查。
 --init-design-baseline [--dry-run] 初始化老场次 design-exempt；ROADSTAR_DESIGN_CHECK=0 只跳过设计检查并记账。
@@ -119,6 +120,17 @@ def main():
         print(f'brief-check：读不到任务书 {path}：{e}', file=sys.stderr)
         return 2
     bad = problems(text, plan)
+    if plan and not any(re.match(r'^\d+\s*目标', k) for k in sections(text)):
+        design = path.parent / 'design.md'
+        bad = []
+        if design.exists():
+            try:
+                secs = sections(design.read_text(encoding='utf-8'))
+                goals = '\n'.join(find(secs, t) or '' for t in ('为什么做', '做完的样子'))
+                bad = ['design.md：' + b for b in prior_art_problems(
+                    {'目标': goals, **{k: v for k, v in secs.items() if '同类方案' in k}})]
+            except (OSError, UnicodeError) as e:
+                bad = [f'design.md：读不到设计页：{e}']
     if not plan and not is_plan(sections(text)) and requires_design(args.cls, args.est_minutes, args.write):
         if skiplog.skipped('设计页检查', 'ROADSTAR_DESIGN_CHECK', plan_dir):
             pass
@@ -131,7 +143,9 @@ def main():
         print(f'{kind}不合格，派不出去：', file=sys.stderr)
         for b in bad:
             print('  - ' + b, file=sys.stderr)
-        ref = 'references/plan-template.md §3b' if kind == 'plan' else 'references/task-brief-template.md'
+        ref = 'references/task-brief-template.md'
+        if kind == 'plan':
+            ref = 'references/plan-template.md §3b' if is_plan(sections(text)) else 'references/design-template.md 的同类方案'
         print(f'  按 {ref} 补齐再派；真急可 BRIEF_CHECK=0（会记下）。', file=sys.stderr)
         return 2
     return 0

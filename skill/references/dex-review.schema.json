@@ -5,6 +5,12 @@
     "verdict": {"type": "string", "enum": ["PASS", "NO_PASS"]},
     "checklist": {
       "type": "array",
+      "description": "goals_nongoals、approach_alternatives、open_questions、prior_art 看 design.md，没有就看 plan。必填 lowering：审实现或验收材料在 diff 查下调门槛、跳过或删测试、关掉检查（@ts-ignore、eslint-disable、# noqa、XCTSkip、.skip 等）、留桩或半成品、新增没人同意的例外；命中写进 new_issues，方案没明确同意就是 blocking；审纯方案没有 diff 时 status=ok，note=无 diff，不适用。",
+      "contains": {
+        "type": "object",
+        "properties": {"item": {"const": "lowering"}},
+        "required": ["item"]
+      },
       "items": {
         "type": "object",
         "additionalProperties": false,

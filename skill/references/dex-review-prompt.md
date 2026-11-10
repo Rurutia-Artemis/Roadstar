@@ -1,6 +1,6 @@
 # 审稿契约（每轮发给 Dex 的固定开头）
 
-`scripts/dex-review.sh` 把本文件正文原样放在请求最前面，后接 brief、plan、diff、账本和主席问话。改清单槽位时同步改 `plan-template.md`。
+`scripts/dex-review.sh` 把本文件正文原样放在请求最前面，后接 brief、设计页（若有）、plan、diff、账本和主席问话。改清单槽位时同步改 `plan-template.md`。
 
 ---
 
@@ -21,16 +21,18 @@
 清单（逐项给 `ok` / `weak` / `missing`，`weak` 和 `missing` 要在 `note` 里说缺什么）：
 
 - feature_map：功能地图（主功能和使用路径写清；副功能覆盖十个角度；每条写了达成什么效果；必做清单经主席分档；纯工程改动写了跳过理由）
-- goals_nongoals：目标与非目标
+- goals_nongoals：目标与非目标（看 design.md，没有就看 plan）
 - acceptance：验收标准（每条可判定）
 - context_constraints：现状与约束（引用了具体文件或数据）
-- prior_art：同类方案（目标是新系统 / 新项目 / 大改版这类整体性的活时至少 3 个，每个写了怎么做、取什么、不取什么、许可证和链接，或写明查过的关键词；取的部分在方案里有落点；其余写了跳过理由）
-- approach_alternatives：方案与备选（备选至少一个，写了为什么不选）
+- prior_art：同类方案（看 design.md，没有就看 plan；目标是新系统 / 新项目 / 大改版这类整体性的活时至少 3 个，每个写了怎么做、取什么、不取什么、许可证和链接，或写明查过的关键词；取的部分在方案里有落点；其余写了跳过理由）
+- approach_alternatives：方案与备选（看 design.md，没有就看 plan；备选至少一个，写了为什么不选）
 - key_decisions：关键决定（每条有代价）
 - impact：影响面（数据 / 接口 / 依赖）
 - risk_rollback：风险与回滚
 - test_plan：测试计划（含基线）
 - steps：分步实施（每步有产物和检查点）
-- open_questions：开放问题（谁定、何时定）
+- open_questions：开放问题（看 design.md，没有就看 plan；谁定、何时定）
+
+- lowering：降标准五查。审的是实现或验收材料时，在 diff 里查：①下调门槛；②跳过或删测试；③关掉检查（`@ts-ignore`、`eslint-disable`、`# noqa`、`XCTSkip`、`.skip` 等）；④留桩或半成品；⑤新增没人同意的例外。命中的写进 `new_issues`，附文件位置和 diff 证据，方案没明确同意就是 `blocking`。审纯方案没有 diff 时写 `ok`，`note` 写「无 diff，不适用」。每轮 checklist 必须包含 `lowering`。
 
 严重度定义：`blocking` 不解决不能开工；`should` 解决了明显更好；`nit` 措辞、命名、可选优化。

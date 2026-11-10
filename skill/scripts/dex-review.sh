@@ -6,8 +6,8 @@
 #   --effort  model_reasoning_effort，默认 high
 #   --root    codex 的工作目录（-C），默认 plan-dir 所在的 git 根，找不到就用 plan-dir 的上级
 #   --dry-run 只拼请求不调用 codex
-#   --full    第二轮起也发 plan 全文与整本账本（默认精简：只发 diff + 开放议题 + 上轮刚解决的议题，全文留路径让 Dex 按需读，省额度）
-# 产物（都在 <plan-dir>/rounds/）：rN-plan.md 快照、rN-plan.diff、rN-dex-request.md、rN-dex-review.json、rN-dex-stdout.log
+#   --full    第二轮起也发 plan / design 全文与整本账本（默认精简：只发 diff + 开放议题 + 上轮刚解决的议题，全文留路径让 Dex 按需读，省额度）
+# 产物（都在 <plan-dir>/rounds/）：rN-plan.md / rN-design.md 快照及 .diff（设计页存在时）、rN-dex-request.md、rN-dex-review.json、rN-dex-stdout.log
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -55,12 +55,36 @@ else
   : > "$DIFF"
 fi
 
+DESIGN_DIFF="$WORK_ROUNDS/r$N-design.diff"
+if [[ -f "$PLAN_DIR/design.md" ]]; then
+  cp "$PLAN_DIR/design.md" "$WORK_ROUNDS/r$N-design.md"
+  if [[ $N -gt 1 && -f "$ROUNDS/r$P-design.md" ]]; then
+    diff -u "$ROUNDS/r$P-design.md" "$WORK_ROUNDS/r$N-design.md" > "$DESIGN_DIFF" || true
+  elif [[ $N -gt 1 ]]; then
+    diff -u /dev/null "$WORK_ROUNDS/r$N-design.md" > "$DESIGN_DIFF" || true
+  else
+    : > "$DESIGN_DIFF"
+  fi
+fi
+
 REQ="$WORK_ROUNDS/r$N-dex-request.md"
 {
   # 契约正文：跳过 frontmatter 式标题段，从分隔线之后开始
   awk 'f{print} /^---$/{f=1}' "$CONTRACT"
   echo; echo "# 本轮：第 $N 轮"
   echo; echo "## brief"; echo; cat "$PLAN_DIR/brief.md"
+  if [[ -f "$PLAN_DIR/design.md" ]]; then
+    if [[ $N -eq 1 || $FULL -eq 1 ]]; then
+      echo; echo "## 设计页（design.md 全文）"; echo; cat "$PLAN_DIR/design.md"
+    else
+      echo; echo "## 设计页全文没有附在这里（省额度）"; echo
+      echo "全文在 \`$PLAN_DIR/design.md\`。本轮只审下面的 diff；需要核对上下文时自己按段读（sed -n 或 rg -n），不要整份 cat。"
+    fi
+    if [[ $N -gt 1 ]]; then
+      echo; echo "## design.md 自上轮的 diff"; echo
+      if [[ -s "$DESIGN_DIFF" ]]; then echo '```diff'; cat "$DESIGN_DIFF"; echo '```'; else echo "（无改动）"; fi
+    fi
+  fi
   if [[ $N -eq 1 || $FULL -eq 1 ]]; then
     echo; echo "## plan（当前全文）"; echo; cat "$PLAN_DIR/plan.md"
   else
