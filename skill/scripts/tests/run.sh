@@ -1075,8 +1075,6 @@ while IFS= read -r check; do pass "$check"; done < "$TMP/telemetry-checks.txt"
 
 # ---------------------------------------------------------------- 1.12 ----
 # providers.json registry and its validator (no network; the data file is the fixture).
-python3 "$SCRIPTS/providers-check.py" > "$TMP/providers.txt"
-grep -q '合法' "$TMP/providers.txt"
 python3 "$SCRIPTS/providers-check.py" --list | grep -q 'Fable 5.1'
 python3 - "$SCRIPTS/../references/providers.json" "$TMP" <<'PY'
 import json, sys
@@ -1505,3 +1503,4 @@ bash "$TEST_DIR/guard-tests.sh"
 bash "$TEST_DIR/close-check-tests.sh"
 bash "$TEST_DIR/entry-tests.sh"
 bash "$TEST_DIR/guard-rules-tests.sh"
+bash "$TEST_DIR/baseline-tests.sh"

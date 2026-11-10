@@ -1,5 +1,13 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · 跳过记账、基线文件、未提交计数补强（复核 R1–R6，不升版本）
+
+起因：Codex 只读复核 Argo 自己写的 skiplog、baselines、未提交卡三笔小改（`rounds/exec-T5.md`），查出六处：记账失败仍跳过、并发 ratchet 会回升、坏基线被当成首次初始化而放行、未跟踪目录按目录时间整批漏算、符号链接取目标时间、`nan`/`inf` 小时数无痕关掉判断。
+
+- `skiplog.py`：记账成功才跳过，失败照常检查。`baselines.py`：每个名字读改写全程 flock，ratchet 单快照；文件存在但坏了抛 `BaselineError`。`entry-check.py`：坏基线退出 3 并提示；`--untracked-files=all` 逐文件、`lstat`；`ROADSTAR_DIRTY_STALE_HOURS` 只收有限非负数。
+- 测试：新 `tests/baseline-tests.sh` `PASS 8 checks`，entry 36 条，全套 PASS；验收 `check-T6.md`（Argo 复跑）。
+- 上线：计数改成逐文件后，未提交基线按新口径重记一次（只此一次，之后照旧只降不升）。
+
 ## 2026-11-10 · 未提交卡只算 24 小时没动过的文件（不升版本）
 
 起因：上线当天 Argo 自己派 RuruAgent T3 就被未提交卡拒了：记忆那条线正在主目录改 tools/memory，25 个文件里大多是当天刚改的，基线在它中途提交时降到 21，再改就卡死正在跑的线。改成只数「积压」：24 小时内动过的文件当在干的活，不计；删掉的文件读不到时间照算。
