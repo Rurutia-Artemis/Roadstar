@@ -2,6 +2,7 @@
 """派写活前检查接入、未验收存量和主目录未提交改动（仅标准库）。"""
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -84,12 +85,27 @@ def pending(root, data):
     return [item for _, item in sorted(tasks)]
 
 
+class DirtyHoursError(ValueError):
+    pass
+
+
+def _stale_hours():
+    try:
+        hours = float(os.environ.get('ROADSTAR_DIRTY_STALE_HOURS', '24'))
+        if not math.isfinite(hours) or hours < 0:
+            raise ValueError
+        return hours
+    except ValueError as exc:
+        raise DirtyHoursError('ROADSTAR_DIRTY_STALE_HOURS 不合法') from exc
+
+
 def dirty(root):
+    hours = _stale_hours()
     # -z 保留中文、空格、换行等真实路径；rename 的第二个路径不是另一件改动。
     if git(root, 'rev-parse', '--git-dir') is None:
         return None
     # 先排除场次目录，避免未跟踪的 docs/ 被 Git 合并成一行而误计。
-    status = git(root, 'status', '--porcelain', '-z', '--', '.',
+    status = git(root, 'status', '--porcelain', '-z', '--untracked-files=all', '--', '.',
                  ':(exclude)docs/roadstar/')
     if status is None:
         raise OSError('git status 失败')
@@ -105,11 +121,11 @@ def dirty(root):
         if not all(name.startswith('docs/roadstar/') for name in names):
             paths.append(path)
     # 只算积压：24 小时内动过的文件是正在干的活，不计（删掉的文件读不到时间，照算）。
-    cutoff = time.time() - float(os.environ.get('ROADSTAR_DIRTY_STALE_HOURS', '24')) * 3600
+    cutoff = time.time() - hours * 3600
 
     def stale(path):
         try:
-            return os.stat(Path(root) / path.rstrip('/')).st_mtime < cutoff
+            return os.lstat(Path(root) / path.rstrip('/')).st_mtime < cutoff
         except OSError:
             return True
     return [path for path in paths if stale(path)]
@@ -121,6 +137,7 @@ def baseline(name, root, count):
 
 
 def gate(root, dry_run):
+    _stale_hours()
     requested = Path(root).expanduser().resolve()
     root = main_root(requested)
     if not eligible(requested):
@@ -164,6 +181,7 @@ def gate(root, dry_run):
 
 
 def baseline_init(dry_run):
+    _stale_hours()
     config = Path(os.environ.get('ROADSTAR_CONFIG_DIR') or '~/.config/roadstar').expanduser()
     registry = config / 'projects.txt'
     if not registry.exists():
@@ -209,6 +227,12 @@ def main():
             for root, item in sorted(baselines.load(name).items()):
                 print(f'{name}\t{root}\t{item.get("value")}\t{item.get("updated")}')
         return 0
+    except baselines.BaselineError as exc:
+        print(f'基线文件坏了：{exc.path}，先修好或删掉再派（删掉等于按现状重记）', file=sys.stderr)
+        return 3
+    except DirtyHoursError as exc:
+        print(str(exc), file=sys.stderr)
+        return 3
     except (OSError, ValueError, TypeError) as exc:
         warn(f'失败：{exc}')
         return 0

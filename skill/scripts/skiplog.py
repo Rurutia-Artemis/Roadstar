@@ -21,17 +21,17 @@ def record(check, switch, root='', note=''):
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open('a', encoding='utf-8') as handle:
             handle.write('\t'.join(str(v).replace('\t', ' ').replace('\n', ' ') for v in fields) + '\n')
-        where = str(path)
     except OSError as exc:
-        where = f'记账失败：{exc}'
-    print(f'{check}：{switch}=0，这次跳过（记在 {where}）', file=sys.stderr)
+        print(f'{check}：记账失败，不跳过，照常检查（{exc}）', file=sys.stderr)
+        return False
+    print(f'{check}：{switch}=0，这次跳过（记在 {path}）', file=sys.stderr)
+    return True
 
 
 def skipped(check, switch, root='', note=''):
     if os.environ.get(switch) != '0':
         return False
-    record(check, switch, root, note)
-    return True
+    return record(check, switch, root, note)
 
 
 if __name__ == '__main__':

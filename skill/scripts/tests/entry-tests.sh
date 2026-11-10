@@ -303,6 +303,77 @@ with Check('C1 未提交只算 24 小时没动过的：新改的不计、旧的�
     finally:
         os.environ['ROADSTAR_DIRTY_STALE_HOURS'] = '0'
 
+with Check('R4 嵌套未跟踪目录按文件判断，目录新旧不影响计数'):
+    root = fixture('dirty-nested', repo=True)
+    nested = root / 'dir/sub'
+    nested.mkdir(parents=True)
+    old = time.time() - 25 * 3600
+    for i in range(12):
+        path = nested / f'旧 文件{i}.txt'
+        path.write_text('old')
+        os.utime(path, (old, old))
+    (nested / 'fresh.txt').write_text('new')
+    set_baseline('uncommitted', root, 0)
+    out = gate(root, code=3, extra={'ROADSTAR_DIRTY_STALE_HOURS': '24'})
+    assert '主目录有 12 个' in out.stderr
+    with patch.dict(os.environ, {'ROADSTAR_DIRTY_STALE_HOURS': '24'}):
+        paths = entry.dirty(root)
+        assert len(paths) == 12 and all(path.startswith('dir/sub/') for path in paths)
+        os.utime(nested, (old, old))
+        assert entry.dirty(root) == paths
+with Check('R5 lstat 取链接自身时间：旧链新目标计、新链旧目标不计'):
+    root = fixture('dirty-links', repo=True)
+    targets = tmp / 'link-targets'
+    targets.mkdir()
+    fresh, stale = targets / 'fresh', targets / 'stale'
+    fresh.write_text('new'); stale.write_text('old')
+    old = time.time() - 25 * 3600
+    os.utime(stale, (old, old))
+    (root / 'old-link').symlink_to(fresh)
+    (root / 'new-link').symlink_to(stale)
+    os.utime(root / 'old-link', (old, old), follow_symlinks=False)
+    with patch.dict(os.environ, {'ROADSTAR_DIRTY_STALE_HOURS': '24'}):
+        assert entry.dirty(root) == ['old-link']
+with Check('R4/R5 已跟踪删除照计、rename 只计一次，中文空格换行保留'):
+    root = fixture('dirty-deleted-renamed', repo=True)
+    (root / 'deleted').write_text('delete')
+    (root / 'before').write_text('rename')
+    git(root, 'add', '.')
+    git(root, 'commit', '-qm', 'fixture')
+    (root / 'deleted').unlink()
+    renamed = '中文 空格\n换行'
+    git(root, 'mv', 'before', renamed)
+    old = time.time() - 25 * 3600
+    os.utime(root / renamed, (old, old))
+    with patch.dict(os.environ, {'ROADSTAR_DIRTY_STALE_HOURS': '24'}):
+        assert sorted(entry.dirty(root)) == sorted(['deleted', renamed])
+with Check('R6 nan/inf/负数/非数字退出 3，不走警告放行'):
+    root = fixture('dirty-invalid-hours', repo=True)
+    for i in range(12):
+        path = root / f'f{i}'
+        path.write_text('old')
+        old = time.time() - 25 * 3600
+        os.utime(path, (old, old))
+    set_baseline('uncommitted', root, 0)
+    assert '主目录有 12 个' in gate(root, code=3, extra={'ROADSTAR_DIRTY_STALE_HOURS': '24'}).stderr
+    for hours in ('nan', 'inf', '-inf', '-1', 'abc', ''):
+        out = gate(root, code=3, extra={'ROADSTAR_DIRTY_STALE_HOURS': hours})
+        assert 'ROADSTAR_DIRTY_STALE_HOURS 不合法' in out.stderr
+        assert '这次放行' not in out.stderr
+        assert get_baseline('uncommitted', root) == 0
+with Check('R6 参数校验先于界外跳过、checker 缺失和开关放行'):
+    for extra in ({'PROJECT_SHELL_DIR': str(tmp / 'missing')}, {'ROADSTAR_DIRTY_CHECK': '0'}):
+        out = gate(root, code=3, extra={**extra, 'ROADSTAR_DIRTY_STALE_HOURS': 'nan'})
+        assert 'ROADSTAR_DIRTY_STALE_HOURS 不合法' in out.stderr
+    assert 'ROADSTAR_DIRTY_STALE_HOURS 不合法' in gate(outside, code=3, extra={'ROADSTAR_DIRTY_STALE_HOURS': '-1'}).stderr
+with Check('R6 有限非负参数 0、小数、默认值可用'):
+    root = fixture('dirty-valid-hours', repo=True)
+    gate(root, extra={'ROADSTAR_DIRTY_STALE_HOURS': '0'})
+    gate(root, extra={'ROADSTAR_DIRTY_STALE_HOURS': '0.5'})
+    with patch.dict(os.environ, {}, clear=False):
+        os.environ.pop('ROADSTAR_DIRTY_STALE_HOURS', None)
+        assert entry.dirty(root) == []
+
 with Check('C1 worktree 一律读取主目录接入/存量/未提交'):
     root = fixture('main-root', repo=True)
     git(root, 'commit', '--allow-empty', '-qm', 'fixture')
