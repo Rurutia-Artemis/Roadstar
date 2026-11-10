@@ -181,6 +181,8 @@ def approvals(design: Path) -> dict:
             or (result['record'] is not None and not isinstance(result['record'], dict))
             or (result['ok'] and result['record'] is None)):
         return failed
+    if result['ok'] and run.returncode != 0:
+        return {**failed, 'reason': '点头核对退出码与结果不一致'}
     return result
 
 

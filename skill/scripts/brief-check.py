@@ -85,8 +85,11 @@ def check_design(text, brief, plan_dir):
         if needs_approval(design_text):
             result = approvals(design)
             if not result['ok']:
-                bad.append(f'缺主人点头记录：{result["reason"]}。用 '
-                           f'`python3 {approvals_cmd()} ask {design}` 生成问题，在选项框里问主人')
+                reason = result['reason']
+                prefix = '' if reason.startswith('缺主人点头记录') else '缺主人点头记录：'
+                bad.append(f'{prefix}{reason}。用 '
+                           f'`python3 {approvals_cmd()} ask {design}` 生成问题，在选项框里问主人。'
+                           '把 ask 输出的 question 原样放进选项框，选项只放「批准」「不批准」。')
             else:
                 row = result['record']
                 print(f'点头依据：{row.get("design", "")} {row.get("time", "")} '

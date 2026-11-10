@@ -217,6 +217,7 @@ def rejected(reason='没有点头记录', env=None):
     message = (f'缺主人点头记录：{reason}。用 `python3 {used_command} ask {design.resolve()}` '
                '生成问题，在选项框里问主人')
     r = expect(2, write, reference, env=env, contains=message)
+    assert '把 ask 输出的 question 原样放进选项框，选项只放「批准」「不批准」。' in r.stderr
     assert '点头依据：' not in r.stderr
     assert not r.stdout
 
@@ -241,12 +242,27 @@ for size, question in [('中活', '是否保留旧入口？推荐：保留。'),
         accepted()
     check('T2 ' + size + '写方 ok 放行，原样打印记录路径时间调用号指纹', yes_record)
 
+def inconsistent_exit():
+    reply(True, '有效批准', row, 'nonzero')
+    rejected('点头核对退出码与结果不一致')
+check('G1 写方 ok=true 且 record 完整但退出 1，派活拒绝', inconsistent_exit)
+
 for reason in ['主人不批准', '最近一次拿不准', '批准后设计页改过，要重新点头', '写方新增的拒绝理由']:
     for behavior in ['normal', 'nonzero']:
         def denied(reason=reason, behavior=behavior):
             reply(False, reason, row, behavior)
             rejected(reason)
         check('T2 ok=false 原样报告理由（' + behavior + '）：' + reason, denied)
+
+for reason in ['缺主人点头记录', '缺主人点头记录：需要重新询问']:
+    for behavior in ['normal', 'nonzero']:
+        def missing_prefix(reason=reason, behavior=behavior):
+            reply(False, reason, behavior=behavior)
+            r = expect(2, write, reference, contains=reason + '。用 ')
+            assert r.stderr.count('缺主人点头记录') == 1, r.stderr
+            assert '把 ask 输出的 question 原样放进选项框，选项只放「批准」「不批准」。' in r.stderr
+            assert '点头依据：' not in r.stderr
+        check('G2/G3 缺记录前缀只出现一次且说明怎么问（' + behavior + '）：' + reason, missing_prefix)
 
 def missing_command():
     missing = str(tmp / 'missing approvals.py')
