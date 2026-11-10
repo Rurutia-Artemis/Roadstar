@@ -11,7 +11,8 @@ trap 'rm -rf "$TMP"' EXIT
 trap 'echo "FAIL: line $LINENO" >&2' ERR
 export FAKE_TRACE_FILE="$TMP/trace.jsonl"
 export ROADSTAR_CONFIG_DIR="$TMP/config"
-export RURU_APPROVALS_DIR="$TMP/approvals"
+export RURU_APPROVALS_CMD="$TMP/fake approvals.py"
+export PYTHONDONTWRITEBYTECODE=1
 unset BRIEF_CHECK ROADSTAR_DESIGN_CHECK
 unset ROADSTAR_PROJECTS
 PLAN="$TMP/plan dir"
@@ -102,12 +103,10 @@ grep -q 'plan.md 缺同类方案' "$TMP/last-output"
 pass "dex-exec 派活前查场次 plan.md：目标是重做却缺同类方案，退出 2 不派"
 
 # New checks stay isolated even when invoked by the full suite.
-export RURU_APPROVALS_DIR="$TMP/approvals"
+export RURU_APPROVALS_CMD="$TMP/fake approvals.py"
 export RURUCODE_ROOT="$TMP/rurucode"
 unset BRIEF_CHECK ROADSTAR_DESIGN_CHECK
 python3 - "$SCRIPTS" "$TMP" "$COUNT" <<'PY'
-import datetime
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -182,29 +181,113 @@ for question in ['无', '无。', '无，因为沿用已确认的方案']:
         expect(0, write, reference)
     check('C2 中活问题为 ' + question + '，不需点头', no_questions)
 
-folder = Path(os.environ['RURU_APPROVALS_DIR'])
-folder.mkdir()
-record = folder / (hashlib.sha256(str(session.resolve()).encode()).hexdigest()[:16] + '.jsonl')
-def approve(session_value=None, time=None):
-    row = dict(session=session_value or str(session.resolve()), design=str(design), words='好',
-               time=time or datetime.datetime.now().astimezone().isoformat())
-    record.write_text('bad json\n[]\n' + json.dumps(row, ensure_ascii=False) + '\n')
+# The fake writer owns the verdict. No real approval store or command is used.
+command = Path(os.environ['RURU_APPROVALS_CMD'])
+response = tmp / 'verify-response.json'
+mode = tmp / 'verify-mode'
+calls = tmp / 'verify-calls.jsonl'
+command.write_text(r"""import json, sys, time
+from pathlib import Path
+root = Path(__file__).parent
+with (root / 'verify-calls.jsonl').open('a') as handle:
+    handle.write(json.dumps(sys.argv[1:]) + '\n')
+assert sys.argv[1] == 'verify' and sys.argv[3:] == ['--json']
+assert Path(sys.argv[2]).is_absolute()
+mode = (root / 'verify-mode').read_text()
+if mode == 'timeout':
+    time.sleep(30)
+if mode == 'bad-encoding':
+    sys.stdout.buffer.write(b'\xff')
+else:
+    sys.stdout.write((root / 'verify-response.json').read_text())
+sys.exit(1 if mode == 'nonzero' else 0)
+""")
+row = dict(design=str(tmp / 'main repo/design.md'), time='2000-01-01T00:00:00Z',
+           tool_use_id='writer-tool', fingerprint='1234567890abcdef')
 
-for size, question in [('中活', '是否保留旧入口？推荐：保留。主人回「好」即全部按推荐答案。'), ('大活', '无'), ('新项目', '无')]:
+def reply(ok=False, reason='没有点头记录', record=None, behavior='normal'):
+    mode.write_text(behavior)
+    response.write_text(json.dumps(dict(ok=ok, record=record, reason=reason), ensure_ascii=False))
+
+def call_rows():
+    return [json.loads(line) for line in calls.read_text().splitlines()] if calls.exists() else []
+
+def rejected(reason='没有点头记录', env=None):
+    used_command = (env or {}).get('RURU_APPROVALS_CMD', str(command))
+    message = (f'缺主人点头记录：{reason}。用 `python3 {used_command} ask {design.resolve()}` '
+               '生成问题，在选项框里问主人')
+    r = expect(2, write, reference, env=env, contains=message)
+    assert '点头依据：' not in r.stderr
+    assert not r.stdout
+
+def accepted():
+    before = len(call_rows())
+    r = expect(0, write, reference)
+    evidence = (f'点头依据：{row["design"]} {row["time"]} '
+                f'tool_use_id={row["tool_use_id"]} 指纹={row["fingerprint"]}')
+    assert [line for line in r.stderr.splitlines() if line.startswith('点头依据：')] == [evidence], r.stderr
+    assert '警告' not in r.stderr  # Old record time does not trigger an mtime rule.
+    assert not r.stdout
+    assert call_rows()[before:] == [['verify', str(design.resolve()), '--json']]
+
+for size, question in [('中活', '是否保留旧入口？推荐：保留。'), ('大活', '无'), ('新项目', '无')]:
     def no_record(size=size, question=question):
-        record.unlink(missing_ok=True)
         design.write_text(page(size, question))
-        expect(2, write, reference, contains='缺主人点头记录')
-    check('C3 ' + size + '需要点头，手写主人点头无效', no_record)
+        reply()
+        rejected()
+    check('T2 ' + size + '写方未批准，手写主人点头无效', no_record)
     def yes_record():
-        approve()
-        expect(0, write, reference)
-    check('C3 ' + size + '读到钩子格式点头记录放行', yes_record)
+        reply(True, '有效批准', row)
+        accepted()
+    check('T2 ' + size + '写方 ok 放行，原样打印记录路径时间调用号指纹', yes_record)
 
-def wrong_session():
-    approve(str(tmp))
-    expect(2, write, reference, contains='缺主人点头记录')
-check('C2 记录的 session 不匹配不能点头', wrong_session)
+for reason in ['主人不批准', '最近一次拿不准', '批准后设计页改过，要重新点头', '写方新增的拒绝理由']:
+    for behavior in ['normal', 'nonzero']:
+        def denied(reason=reason, behavior=behavior):
+            reply(False, reason, row, behavior)
+            rejected(reason)
+        check('T2 ok=false 原样报告理由（' + behavior + '）：' + reason, denied)
+
+def missing_command():
+    missing = str(tmp / 'missing approvals.py')
+    before = len(call_rows())
+    rejected('点头核对命令不在：' + missing, {'RURU_APPROVALS_CMD': missing})
+    assert len(call_rows()) == before
+check('T2 命令不在则拒绝并报告路径', missing_command)
+
+def timed_out():
+    import time
+    reply(behavior='timeout')
+    start = time.monotonic()
+    rejected('点头核对超时')
+    assert 9 <= time.monotonic() - start < 20
+check('T2 命令真实等待 10 秒后超时拒绝', timed_out)
+
+for output in ['not json', '', '{"ok": true', '[]', 'null',
+               '{"ok": "true", "record": {}, "reason": ""}',
+               '{"ok": true, "record": null, "reason": ""}']:
+    def bad_output(output=output):
+        reply()
+        response.write_text(output)
+        rejected('点头核对输出看不懂')
+    check('T2 非 JSON 或协议形状错误拒绝：' + repr(output), bad_output)
+
+def bad_encoding():
+    reply(behavior='bad-encoding')
+    rejected('点头核对输出看不懂')
+check('T2 非 UTF-8 输出拒绝', bad_encoding)
+
+def no_approval_required():
+    reply(behavior='timeout')  # Calling it would fail or time out, never silently pass.
+    calls.write_text('')
+    for question in ['无', '无。', '无，因为沿用已确认的方案']:
+        design.write_text(page(question=question))
+        r = expect(0, write, reference)
+        assert '点头依据：' not in r.stderr
+    assert call_rows() == []
+    reply()
+    design.write_text(page('大活'))
+check('T2 不需点头的设计页完全不调核对命令，调用数为 0', no_approval_required)
 
 def literal_none():
     for q in ['无。是否迁移？推荐：不迁移。', '无权限修改的模块要不要包含？推荐：不包含。']:
@@ -217,22 +300,6 @@ def literal_none():
 check('C2 无字开头的问题仍要点头；纯 Markdown 标记不算已填写', literal_none)
 
 
-def changed_after():
-    approve(time='2000-01-01T00:00:00+00:00')
-    r = expect(0, write, reference, warn='设计页在主人点头后改过')
-    assert not r.stdout
-check('C3 设计页修改晚于记录只向 stderr 警告，不拦', changed_after)
-
-def last_row():
-    approve(time='2099-01-01T00:00:00+00:00')
-    row = json.loads(record.read_text().splitlines()[-1])
-    row['time'] = '2000-01-01T00:00:00+00:00'
-    with record.open('a') as handle:
-        handle.write(json.dumps(row) + '\n')
-    expect(0, write, reference, warn='设计页在主人点头后改过')
-check('C3 修改时间与最后一条有效记录比较', last_row)
-
-record.unlink()
 for cls in ['取证', '复核', '审方案', '补全']:
     check('C2/C3 ' + cls + '不要求设计', lambda c=cls: expect(0, ['--write', '--class', c]))
 for cls in ['批量', '窄回归']:

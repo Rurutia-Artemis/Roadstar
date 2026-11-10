@@ -27,7 +27,7 @@ import re
 import sys
 from pathlib import Path
 
-from design_page import (sections, find, prior_art_problems, approvals, approval_time,
+from design_page import (sections, find, prior_art_problems, approvals, approvals_cmd,
                          requires_design, find_design_page, design_problems, needs_approval, init_baseline)
 import baselines
 import skiplog
@@ -82,11 +82,16 @@ def check_design(text, brief, plan_dir):
     bad = design_problems(design, count)
     try:
         design_text = design.read_text(encoding='utf-8')
-        rows = approvals(design)
-        if needs_approval(design_text) and not rows:
-            bad.append('缺主人点头记录：把设计页（大活 / 新项目，或中活里只有主人能答的问题）给主人看，主人当轮回话后钩子会自动记下；不能手写')
-        if rows and design.stat().st_mtime > approval_time(rows[-1]):
-            print('警告：设计页在主人点头后改过', file=sys.stderr)
+        if needs_approval(design_text):
+            result = approvals(design)
+            if not result['ok']:
+                bad.append(f'缺主人点头记录：{result["reason"]}。用 '
+                           f'`python3 {approvals_cmd()} ask {design}` 生成问题，在选项框里问主人')
+            else:
+                row = result['record']
+                print(f'点头依据：{row.get("design", "")} {row.get("time", "")} '
+                      f'tool_use_id={row.get("tool_use_id", "")} 指纹={row.get("fingerprint", "")}',
+                      file=sys.stderr)
     except (OSError, UnicodeError):
         pass  # design_problems 已报告读取错误
     return bad
