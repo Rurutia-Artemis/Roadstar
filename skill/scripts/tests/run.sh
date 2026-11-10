@@ -11,6 +11,9 @@ trap 'rm -rf "$TMP"' EXIT
 trap 'echo "FAIL: line $LINENO" >&2' ERR
 export FAKE_TRACE_FILE="$TMP/trace.jsonl"
 export ROADSTAR_CONFIG_DIR="$TMP/config"
+# Never fall back to the real writer, including in child test suites.
+export RURU_APPROVALS_CMD="$TMP/fake approvals.py"
+export PYTHONDONTWRITEBYTECODE=1
 unset ROADSTAR_PROJECTS
 PLAN="$TMP/plan dir"
 mkdir -p "$PLAN"

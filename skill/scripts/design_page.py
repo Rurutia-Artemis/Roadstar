@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """一页设计的解析、派活门槛与只读点头记录；仅依赖标准库。"""
 from __future__ import annotations
-import datetime
-import hashlib
 import json
 import os
 import re
@@ -159,29 +157,33 @@ def needs_approval(text: str) -> bool:
     return size == '中活' and bool(questions) and not re.fullmatch(r'无[。．.!！]?|无[，,]\s*因为[\s\S]*', questions)
 
 
-def approvals(design: Path) -> list[dict]:
-    session = str(design.parent.resolve())
-    name = hashlib.sha256(session.encode()).hexdigest()[:16] + '.jsonl'
-    folder = Path(os.environ.get('RURU_APPROVALS_DIR') or '~/.cache/ruru/dispatch-gate/approvals/').expanduser()
+def approvals_cmd() -> Path:
+    return Path(os.environ.get('RURU_APPROVALS_CMD') or
+                '~/Documents/RuruCode/RuruAgent/tools/dispatch-gate/approvals.py').expanduser()
+
+
+def approvals(design: Path) -> dict:
+    """只解析写方的核对结果，不在派活端重判批准规则。"""
+    command = approvals_cmd()
+    failed = {'ok': False, 'record': None, 'reason': '点头核对输出看不懂'}
+    if not command.is_file():
+        return {**failed, 'reason': f'点头核对命令不在：{command}'}
     try:
-        lines = (folder / name).read_text(encoding='utf-8').splitlines()
-    except (OSError, UnicodeError):
-        return []
-    result = []
-    for line in lines:
-        try:
-            row = json.loads(line)
-            if isinstance(row, dict) and row.get('session') == session:
-                if all(isinstance(row.get(k), str) for k in ('design', 'words', 'time')):
-                    approval_time(row)
-                    result.append(row)
-        except (ValueError, TypeError, OverflowError):
-            continue
+        run = subprocess.run(['python3', str(command), 'verify', str(design), '--json'],
+                             capture_output=True, text=True, encoding='utf-8', timeout=10)
+        result = json.loads(run.stdout)
+    except subprocess.TimeoutExpired:
+        return {**failed, 'reason': '点头核对超时'}
+    except (OSError, UnicodeError, ValueError):
+        return failed
+    if (not isinstance(result, dict) or not isinstance(result.get('ok'), bool)
+            or not isinstance(result.get('reason'), str) or 'record' not in result
+            or (result['record'] is not None and not isinstance(result['record'], dict))
+            or (result['ok'] and result['record'] is None)):
+        return failed
+    if result['ok'] and run.returncode != 0:
+        return {**failed, 'reason': '点头核对退出码与结果不一致'}
     return result
-
-
-def approval_time(row):
-    return datetime.datetime.fromisoformat(row['time'].replace('Z', '+00:00')).timestamp()
 
 
 def git_main(path):
