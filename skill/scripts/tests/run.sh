@@ -338,9 +338,7 @@ FAKE_CODEX_REPORT="$R/exec-T53.md" FAKE_CODEX_EXIT=5 expect_exit 5 run_task T53
 grep -q '^exit=5$' "$R/exec-T53.meta"
 pass 'dex-exec 中途失败：执行方已写的报告原样保留，不追加最终回复，退出码照传'
 
-source "$TEST_DIR/guard-rules-tests.sh" --legacy
-
-bash "$TEST_DIR/review-tests.sh"
+source "$TEST_DIR/trailer-path-tests.sh" --legacy
 
 # Fixed clocks keep progress monitoring tests independent of wall time.
 PROGRESS="$TMP/progress fixtures"
@@ -1464,3 +1462,4 @@ bash "$TEST_DIR/close-check-tests.sh"
 bash "$TEST_DIR/entry-tests.sh"
 bash "$TEST_DIR/guard-rules-tests.sh"
 bash "$TEST_DIR/baseline-tests.sh"
+bash "$TEST_DIR/trailer-path-tests.sh"

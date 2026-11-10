@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · Roadstar-Task 尾注写绝对路径，旧相对尾注按主目录与各副本解析（不升版本）
+
+起因：大脑线从副本 RuruAgent-slots/s4 提交，尾注 `../../Selene/docs/roadstar/2026-11-10-fable52-review/T26`，合并时按主目录解析落到不存在的路径，验收齐了也被报「没有验收记录」。场次 `docs/roadstar/2026-11-10-trailer-path/`。
+
+- `skill/scripts/guard.py`：mark 写场次目录的绝对路径；副本里的路径统一换成主目录同位置（mark、prepare、commit-msg、merge 共用一个函数）；旧相对尾注先认主目录，主目录拼不出再按各副本根拼，按真实路径去重恰好一个才用，零个或多个拦下并打印试过的路径；绝对路径不存在报「计划目录不存在」；`/T1` 这类根目录场次直接拒。
+- `skill/scripts/cleanup.py`：收工检查认绝对尾注。
+- 测试：新 `tests/trailer-path-tests.sh` `PASS 18 checks`；guard-tests 五条断言随绝对路径改写、C9 一条期望改为主目录路径，全套 PASS。三遍复查：换会话验收通过；找茬两轮，第一轮两条必须修已修，第二轮无必须修。
+- 真实数据：新版对 RuruAgent 主目录干跑 `check-merge brain/t26`，尾注解析到 Selene 下 fable52-review 的 T26，验收记录找得到，下一道降标准检查拦下 rca 文档里一行 `# noqa: E402`，要在 check-T26 的五查里点名。
+
 ## 2026-11-10 · plan 模板去掉和设计页重复的节，审稿带上设计页并加降标准一查（不升版本）
 
 起因：总管修正第 3 条，设计页是「为什么做、怎么做、要问主人什么」的唯一一份。
