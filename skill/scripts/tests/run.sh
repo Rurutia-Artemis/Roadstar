@@ -371,47 +371,7 @@ else
   pass 'ws-guard: check_root.py not installed on this machine, root check skipped'
 fi
 
-REVIEW="$TMP/review dir"
-mkdir -p "$REVIEW"
-cp "$PLAN/brief.md" "$PLAN/plan.md" "$PLAN/ledger.md" "$REVIEW/"
-: > "$FAKE_TRACE_FILE"
-bash "$SCRIPTS/dex-review.sh" "$REVIEW" --dry-run > "$TMP/review-dry1.txt"
-bash "$SCRIPTS/dex-review.sh" "$REVIEW" --dry-run > "$TMP/review-dry2.txt"
-[[ -z "$(ls -A "$REVIEW/rounds")" && ! -s "$FAKE_TRACE_FILE" ]]
-grep -q '第 1 轮' "$TMP/review-dry1.txt"
-grep -q '第 1 轮' "$TMP/review-dry2.txt"
-pass 'review dry-run twice leaves no snapshots, diff or request, still round 1'
-bash "$SCRIPTS/dex-review.sh" "$REVIEW" > "$TMP/review.txt"
-grep -q '模型 gpt-6-astra / 强度 high' "$TMP/review.txt"
-grep -q '用时 ' "$TMP/review.txt"
-json_check "$REVIEW/rounds/r1-dex-review.json" 'd == {"verdict": "PASS", "checklist": [], "new_issues": [], "open_issue_verdicts": [], "alternative": "", "reply_to_chair": "", "questions_for_chair": []}'
-python3 - "$FAKE_TRACE_FILE" "$SCRIPTS/../references/dex-review.schema.json" "$REVIEW/rounds/r1-dex-review.json" <<'PY'
-import json, sys
-calls = [json.loads(line) for line in open(sys.argv[1], encoding="utf-8")]
-args = calls[-1]["args"]
-assert args[args.index("-m")+1] == "gpt-6-astra", args
-assert args[args.index("-c")+1] == "model_reasoning_effort=high", args
-assert args[args.index("--disable")+1] == "fast_mode", args
-schema = json.load(open(sys.argv[2], encoding="utf-8"))
-data = json.load(open(sys.argv[3], encoding="utf-8"))
-assert set(data) == set(schema["required"]) == set(schema["properties"])
-for key, value in data.items():
-    rule = schema["properties"][key]
-    assert isinstance(value, {"string": str, "array": list}[rule["type"]])
-    assert "enum" not in rule or value in rule["enum"]
-PY
-pass 'review default model, effort, fast_mode, schema JSON and timing'
-printf '%s\n' 'New change.' >> "$REVIEW/plan.md"
-bash "$SCRIPTS/dex-review.sh" "$REVIEW" --dry-run > "$TMP/review-dry3.txt"
-[[ ! -f "$REVIEW/rounds/r2-plan.md" && ! -f "$REVIEW/rounds/r2-plan.diff" && ! -f "$REVIEW/rounds/r2-dex-request.md" ]]
-bash "$SCRIPTS/dex-review.sh" "$REVIEW" --model custom-model --effort medium > "$TMP/review-r2.txt"
-grep -q 'plan 全文没有附在这里' "$REVIEW/rounds/r2-dex-request.md"
-grep -q '^+New change\.' "$REVIEW/rounds/r2-plan.diff"
-grep -q '^model: custom-model$' "$REVIEW/rounds/r2-dex-stdout.log"
-pass 'review later dry-run preserves compact mode, diff and model overrides'
-bash "$SCRIPTS/dex-review.sh" "$REVIEW" --full > "$TMP/review-r3.txt"
-grep -q 'plan（当前全文）' "$REVIEW/rounds/r3-dex-request.md"
-pass 'review full mode preserved'
+bash "$TEST_DIR/review-tests.sh"
 
 # Fixed clocks keep progress monitoring tests independent of wall time.
 PROGRESS="$TMP/progress fixtures"

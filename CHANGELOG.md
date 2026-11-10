@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-11-10 · plan 模板去掉和设计页重复的节，审稿带上设计页并加降标准一查（不升版本）
+
+起因：总管修正第 3 条，设计页是「为什么做、怎么做、要问主人什么」的唯一一份。
+
+- `references/plan-template.md` 删「1 目标与非目标」「3b 同类方案」「4 方案」「9 开放问题」，开头指向同目录 design.md，其余节号不重排。
+- `brief-check.py --plan`：老 plan（有目标节）行为不变；没有目标节时读同目录 design.md 查同类方案，原因前缀「design.md：」。
+- `dex-review.sh`：场次有 design.md 时请求多「设计页」一节，第二轮给快照与 diff；没有时请求与以前逐字相同。`dex-review-prompt.md` 与 schema：四项改看设计页，新增必填 `lowering`（降标准五查）。
+- 测试：新 `tests/review-tests.sh` `PASS 19 checks`；验收 `check-T4.md`（Argo 复跑：8 份真实老 plan 新旧输出一致，无设计页时审稿请求新旧一致）。
+
 ## 2026-11-10 · dex-exec 派写活前查项目接入、没验收的存量和主目录未提交；首次派发不再误算返工（不升版本）
 
 起因：总管 11-10 派活书 P2、P5 与修正第 4、5 条。project-shell 的钩子只在 Claude 会话改文件时拦没地图的项目，Codex 经 dex-exec 改文件不经过它，RuruBrain 的活就这样一次都没被拦；没验收的活越积越多（cardestiny mobile 130 多件）；按模板先存成 exec-T<n>-request.md 再派会被另存成 r2、算成返工。场次 `docs/roadstar/2026-11-10-flow-gaps/`，裁定见 ledger.md 第 3–6、17、18 条。
