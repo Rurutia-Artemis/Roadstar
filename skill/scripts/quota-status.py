@@ -88,7 +88,7 @@ def window_tier(value, hours, now):
     elapsed = min(1, max(0, 1 - remaining / hours))
     used = value["used"]
     ahead = used - elapsed * 100
-    if used >= 95 and remaining > 6:
+    if used >= 100:  # 主席 2026-11-13 定：用到零才算空，之前不停派、不问
         return "空"
     if used >= 85 or ahead >= 15:
         return "紧"

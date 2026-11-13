@@ -70,8 +70,11 @@ pass 'quota Chinese output, JST, no account identity'
 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/base.json"
 json_check "$TMP/base.json" 'd["claude"]["tier"] == d["codex"]["tier"] == "宽" and d["claude"]["source"] == d["codex"]["source"] == "live" and d["claude"]["plan"] == "max" and d["codex"]["plan"] == "pro" and d["codex"]["credits"] == "62500" and d["codex"]["reset_cards"] == 2 and d["claude"]["fable"]["used"] == 1 and "DO_NOT_PRINT_ACCOUNT_ID" not in str(d)'
 pass 'quota JSON windows, plans, credits and cards'
-FAKE_CODEX_USED=97 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/empty.json"
+FAKE_CODEX_USED=100 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/empty.json"
 json_check "$TMP/empty.json" 'd["codex"]["tier"] == "空" and d["claude"]["tier"] == "宽"'
+# 主席 2026-11-13 定：用到零才算空，97% 只是紧，不拦派活
+FAKE_CODEX_USED=97 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/near.json"
+json_check "$TMP/near.json" 'd["codex"]["tier"] == "紧"'
 pass '97 percent weekly quota is empty'
 FAKE_CODEX_USED=70 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/normal.json"
 json_check "$TMP/normal.json" 'd["codex"]["tier"] == "正常"'
@@ -79,22 +82,22 @@ pass 'normal tier'
 FAKE_CODEX_USED=80 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/tight.json"
 json_check "$TMP/tight.json" 'd["codex"]["tier"] == "紧"'
 pass 'ahead-of-window consumption is tight'
-FAKE_CLAUDE_FABLE=97 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/fable.json"
+FAKE_CLAUDE_FABLE=100 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/fable.json"
 json_check "$TMP/fable.json" 'd["claude"]["tier"] == "空" and d["claude"]["five_hour"]["used"] == 1'
 pass 'Claude takes worst Fable window'
 FAKE_CLAUDE_NO_FABLE=1 FAKE_CODEX_FIVE_HOUR=90 FAKE_CODEX_CARDS=4 python3 "$SCRIPTS/quota-status.py" --json > "$TMP/optional.json"
 json_check "$TMP/optional.json" 'd["claude"]["fable"] is None and d["codex"]["five_hour"]["used"] == 90 and d["codex"]["tier"] == "紧" and d["codex"]["reset_cards"] == 4'
 pass 'optional Fable, Codex five-hour window and custom reset cards'
-FAKE_CODEX_USED=97 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/base.json" > "$TMP/pending.json"
+FAKE_CODEX_USED=100 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/base.json" > "$TMP/pending.json"
 json_check "$TMP/pending.json" 'd["codex"]["tier"] == "宽" and any("沿用上次档位" in n for n in d["note"])'
 pass 'hysteresis holds first changed reading'
-FAKE_CODEX_USED=97 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/pending.json" > "$TMP/confirmed.json"
+FAKE_CODEX_USED=100 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/pending.json" > "$TMP/confirmed.json"
 json_check "$TMP/confirmed.json" 'd["codex"]["tier"] == "空"'
 pass 'hysteresis switches on second consecutive reading'
 FAKE_CODEX_USED=70 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/pending.json" > "$TMP/changed.json"
 json_check "$TMP/changed.json" 'd["codex"]["tier"] == "宽"'
 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/changed.json" > "$TMP/recovered.json"
-FAKE_CODEX_USED=97 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/recovered.json" > "$TMP/pending-again.json"
+FAKE_CODEX_USED=100 python3 "$SCRIPTS/quota-status.py" --json --prev "$TMP/recovered.json" > "$TMP/pending-again.json"
 json_check "$TMP/pending-again.json" 'd["codex"]["tier"] == "宽"'
 pass 'nonconsecutive candidate does not trigger hysteresis'
 
@@ -119,7 +122,7 @@ spec.loader.exec_module(q)
 now = datetime.now(timezone.utc)
 def win(used, remaining):
     return {"used": used, "resets_at": (now + timedelta(hours=remaining)).isoformat()}
-for used, remaining, expected in ((95, 6, "紧"), (95, 6.01, "空"), (85, 20, "紧"),
+for used, remaining, expected in ((95, 6, "紧"), (95, 6.01, "紧"), (99.9, 100, "紧"), (100, 100, "空"), (100, 3, "空"), (85, 20, "紧"),
                                   (65, 84, "紧"), (35, 84, "宽"), (70, 25.2, "正常"),
                                   (79, 12, "宽"), (80, 12, "正常")):
     assert q.window_tier(win(used, remaining), 168, now) == expected, (used, remaining)
@@ -256,10 +259,10 @@ bash "$SCRIPTS/dex-exec.sh" "$PLAN" T11 --status > "$TMP/finished.txt"
 grep -q '已结束' "$TMP/finished.txt"
 grep -q '^tokens_used=1234$' "$TMP/finished.txt"
 pass 'detach completion records exit, final metadata and status'
-FAKE_CODEX_USED=97 expect_exit 3 run_task T12
+FAKE_CODEX_USED=100 expect_exit 3 run_task T12
 [[ ! -f "$PLAN/rounds/exec-T12.md" ]]
 pass 'empty Codex quota blocks dispatch with exit 3'
-FAKE_CODEX_USED=97 run_task T12 --force > "$TMP/force.txt"
+FAKE_CODEX_USED=100 run_task T12 --force > "$TMP/force.txt"
 cmp "$BRIEF" "$PLAN/rounds/exec-T12.md"
 pass 'force overrides empty quota gate'
 FAKE_CODEX_EXIT=7 expect_exit 7 run_task T13
@@ -565,7 +568,7 @@ ROADSTAR_CONFIG_DIR="$TMP/config-is-file" run_task T24 > "$TMP/register-warning.
 cmp "$BRIEF" "$PLAN/rounds/exec-T24.md"
 grep -q '警告：项目登记失败' "$TMP/register-warning.txt"
 # A blocked dispatch must not register even when using a new config directory.
-ROADSTAR_CONFIG_DIR="$TMP/blocked config" FAKE_CODEX_USED=97 expect_exit 3 run_task T25
+ROADSTAR_CONFIG_DIR="$TMP/blocked config" FAKE_CODEX_USED=100 expect_exit 3 run_task T25
 [[ ! -e "$TMP/blocked config/projects.txt" ]]
 pass 'registry write failure warns without blocking dispatch; quota-blocked tasks do not register'
 
@@ -1105,7 +1108,7 @@ pass 'quota-status grok column: logged in, logged out, error, hang within patche
 # quota-estimate.py: units, confidence, unlockable, unreadable family, calibrated path, session and plan.
 EST="$TMP/estimate"
 mkdir -p "$EST"
-FAKE_CLAUDE_USED=97 FAKE_CLAUDE_FABLE=19 FAKE_CODEX_USED=8 FAKE_CODEX_CARDS=1 python3 "$SCRIPTS/quota-status.py" --json > "$EST/probe-a.json"
+FAKE_CLAUDE_USED=100 FAKE_CLAUDE_FABLE=19 FAKE_CODEX_USED=8 FAKE_CODEX_CARDS=1 python3 "$SCRIPTS/quota-status.py" --json > "$EST/probe-a.json"
 ROADSTAR_CONFIG_DIR="$EST/nocfg" python3 "$SCRIPTS/quota-estimate.py" --probe "$EST/probe-a.json" --session 探讨 --now 2026-10-16T06:00:00Z > "$EST/a.json"
 json_check "$EST/a.json" 'd["providers"]["codex"]["available_points"] == 82 and d["providers"]["codex"]["calibrated"] is False and d["providers"]["codex"]["units_text"].startswith("约 ") and d["providers"]["codex"]["confidence"] == "低" and d["providers"]["codex"]["unlockable_units"] is not None and d["providers"]["codex"]["units"] == int(82 / 0.3) and d["providers"]["claude"]["tier"] == "空" and d["providers"]["claude"]["units"] is None and d["providers"]["claude"]["available_points"] == 0 and d["total"]["included"] == ["codex"] and d["total"]["units"] == d["providers"]["codex"]["units"] and d["total"]["confidence"] == "低" and d["strategy"] == "auto" and d["strategy_from"] == "默认" and d["config_exists"] is False and d["session"]["rounds"] == 3 and d["session"]["feature_map_calls"] == 2 and d["session"]["codex_points"] > 0 and d["session"]["enough"] is True and d["connected_count"] == 3 and d["connected_text"].startswith("接了 3 家") and d["grace"]["role"] == "调研协作方" and d["skill_version"] == "'"$SKILL_VERSION"'"'
 python3 - "$EST/a.json" "$EST/probe-a.json" <<'PY'
