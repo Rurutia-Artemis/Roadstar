@@ -8,6 +8,7 @@
 - `skill/SKILL.md`、`skill/references/dispatch-table.md`：「额度紧先停下来问主席」改成「用到零再报一次」；写上主席 11-13 定的分工（能用 Codex 就用 Codex；Claude 构思规划用 Fable、写代码用 Sonnet、验收用 Opus 或 Fable）。
 - 同步：`RuruAgent/tools/rules-reminder/roadstar-铁律.md` 同一句。
 - 同日补：主席看到两天里写代码和验收全用 Opus 后再说一次：Claude 这边默认 Sonnet，Sonnet 真的不够用才升 Opus；他没有规定过「额度不够不许降型号」。`SKILL.md`、派活表、铁律和全局 CLAUDE.md 里 10-22 那条一起改。
+- 同日定稿：Argo 给了分配建议，主席回「同意，马上按这个执行」：写代码主力 Codex 6.1 Sol；Sonnet 做 Codex 做不了的、验收 Codex 写的、Codex 到零时顶上；验收换一家；Opus 只在 Sonnet 做错或漏了一次等三种情况上；Fable 只做任务书和拍板。依据：Opus 写、Opus 验过的八次合并，Codex 复核查出 7 处、核实后认 4 处。
 - 验证：`skill/scripts/tests/run.sh` 全套通过（数字见提交时输出）。
 
 ## 2026-11-11 · 验收分轻档、重档两档（不升版本）
