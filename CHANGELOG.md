@@ -7,6 +7,7 @@
 - `skill/scripts/quota-status.py`：`window_tier` 的「空」从「用到 95% 且离重置超过 6 小时」改成「用到 100%」；95% 到 100% 之间显示「紧」，不拦派活。
 - `skill/SKILL.md`、`skill/references/dispatch-table.md`：「额度紧先停下来问主席」改成「用到零再报一次」；写上主席 11-13 定的分工（能用 Codex 就用 Codex；Claude 构思规划用 Fable、写代码用 Sonnet、验收用 Opus 或 Fable）。
 - 同步：`RuruAgent/tools/rules-reminder/roadstar-铁律.md` 同一句。
+- 同日补：主席看到两天里写代码和验收全用 Opus 后再说一次：Claude 这边默认 Sonnet，Sonnet 真的不够用才升 Opus；他没有规定过「额度不够不许降型号」。`SKILL.md`、派活表、铁律和全局 CLAUDE.md 里 10-22 那条一起改。
 - 验证：`skill/scripts/tests/run.sh` 全套通过（数字见提交时输出）。
 
 ## 2026-11-11 · 验收分轻档、重档两档（不升版本）
