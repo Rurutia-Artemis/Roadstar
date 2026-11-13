@@ -1,5 +1,14 @@
 # Roadstar · 更新日志
 
+## 2026-11-13 · 额度用到零才算「空」，型号分工按主席新定的写（不升版本）
+
+起因：大脑线 11-13 下午 Codex 读到 95% 时 `dex-exec.sh` 拒派，Argo 停下来问主席用不用重置卡。主席当天第三次说：用到零他会充值，不要自己卡在 95、90。同一条纠正出现多次，改程序。
+
+- `skill/scripts/quota-status.py`：`window_tier` 的「空」从「用到 95% 且离重置超过 6 小时」改成「用到 100%」；95% 到 100% 之间显示「紧」，不拦派活。
+- `skill/SKILL.md`、`skill/references/dispatch-table.md`：「额度紧先停下来问主席」改成「用到零再报一次」；写上主席 11-13 定的分工（能用 Codex 就用 Codex；Claude 构思规划用 Fable、写代码用 Sonnet、验收用 Opus 或 Fable）。
+- 同步：`RuruAgent/tools/rules-reminder/roadstar-铁律.md` 同一句。
+- 验证：`skill/scripts/tests/run.sh` 全套通过（数字见提交时输出）。
+
 ## 2026-11-11 · 验收分轻档、重档两档（不升版本）
 
 起因：11-10 的换会话验收对每件活都做「自己造输入、逐条改坏实测、量耗时」，一件小补修的验收用掉约 17 万 token，和写它一样多。主人 11-11 定：小修用轻档，中活以上和出错代价大的保持重档。
