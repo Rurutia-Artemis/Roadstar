@@ -70,11 +70,12 @@ grep -q '^timed_out=1$' "$GROK_PLAN/rounds/exec-T2.meta"
 grep -q '^124$' "$GROK_PLAN/rounds/exec-T2.exit"
 [[ ! -e "$GROK_PLAN/rounds/exec-T2.md" ]]
 pass 'Grok C3 timeout: stopped, exit 124, timed_out=1, no success report'
-FAKE_GROK_DELAY=2 grok_task T3 --detach --class 复核 --est-minutes 5 --strategy rush > "$TMP/grok-detach.txt"
+FAKE_GROK_HOLD="$TMP/grok-hold-T3" grok_task T3 --detach --class 复核 --est-minutes 5 --strategy rush > "$TMP/grok-detach.txt"
 [[ -s "$GROK_PLAN/rounds/exec-T3.pid" ]]
 FAKE_GROK_STATE=logged_out bash "$SCRIPTS/grok-exec.sh" "$GROK_PLAN" T3 --status > "$TMP/grok-status.txt"
 grep -q '运行中' "$TMP/grok-status.txt"
 expect_exit 2 grok_task T3
+touch "$TMP/grok-hold-T3"
 wait_done "$GROK_PLAN/rounds/exec-T3.exit"
 cmp "$GROK_BRIEF" "$GROK_PLAN/rounds/exec-T3.md"
 grep -q '^class=复核$' "$GROK_PLAN/rounds/exec-T3.meta"

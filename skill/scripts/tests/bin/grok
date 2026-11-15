@@ -9,7 +9,18 @@ print(json.dumps({"cli": "grok", "args": sys.argv[1:]}, separators=(",", ":")))
 TRACE
 fi
 if [[ "${1:-}" == -p ]]; then
-  sleep "${FAKE_GROK_DELAY:-0}"
+  if [[ -n "${FAKE_GROK_HOLD:-}" ]]; then
+    for ((i=0; i<600; i++)); do
+      [[ -e "$FAKE_GROK_HOLD" ]] && break
+      sleep 0.1
+    done
+    if [[ ! -e "$FAKE_GROK_HOLD" ]]; then
+      echo "stub Grok timed out after 60 seconds waiting for FAKE_GROK_HOLD: $FAKE_GROK_HOLD" >&2
+      exit 1
+    fi
+  else
+    sleep "${FAKE_GROK_DELAY:-0}"
+  fi
   # FAKE_GROK_REPORT：执行方先自己写一份 40 行报告（真实运行里它用工具写）。
   if [[ -n "${FAKE_GROK_REPORT:-}" ]]; then
     { echo '# full report'; for i in $(seq 0 39); do echo "detail line $i"; done; } > "$FAKE_GROK_REPORT"
