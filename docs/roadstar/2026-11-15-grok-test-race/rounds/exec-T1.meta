@@ -1,0 +1,15 @@
+model=gpt-6.1-sol
+effort=high
+sandbox=workspace-write
+root=/Users/rurutia/.claude/jobs/2c63ff8f/tmp/rs-race
+started=2026-11-15T04:11:32Z
+finished=2026-11-15T04:19:06Z
+exit=0
+session_id=01a1dd67-3bf1-7b03-9675-451dae456c22
+tokens_used=58691
+resumed_from=
+attempt=1
+max_minutes=40
+timed_out=0
+class=窄回归
+est_minutes=20

@@ -1,0 +1,15 @@
+- **K1 通过**：新增文件放行开关，每 0.1 秒检查，最多等待 600 次；未设置时保留原行为。未放行实测约 64.97 秒后退出 1，stderr 一行超时原因。
+- **K2 通过**：T3 使用 `FAKE_GROK_HOLD`，拒派断言通过后才 `touch` 放行，再 `wait_done`；后续断言未改。
+- **K3 通过**：临时在重复派活前插入 `sleep 5`，局部测试退出 0，结尾：`PASS 9 Grok checks (temporary sleep 5 before duplicate dispatch)`。该延迟已删除。
+- **K4 通过**：两处 `FAKE_GROK_DELAY=6 ROADSTAR_MINUTE_SECONDS=1` 超时用例原样保留。
+- **K5 通过**：`bash skill/scripts/tests/run.sh` 连跑三次：
+  - 第 1 次：退出 0，265 条 `ok`，结尾 `PASS 18 checks`。
+  - 第 2 次：退出 0，265 条 `ok`，结尾 `PASS 18 checks`。
+  - 第 3 次：退出 0，265 条 `ok`，结尾 `PASS 18 checks`。
+- **K6 通过**：已复核差异，未删用例、放宽断言、增加 skip 或重试。
+
+- **其它命令**：
+  - `bash -n`（两个修改文件）、`git diff --check`：退出 0，无输出。
+  - `git diff --stat`：仅指定两个文件，`14 insertions(+), 2 deletions(-)`。
+  - `grep -n 'FAKE_GROK_DELAY=2' skill/scripts/tests/grok-113.sh`：无输出，退出 1，符合预期。
+- **未完成项／要求内未跑项：无**。临时驱动、放行文件及验证日志已删除；未提交、未推送。
