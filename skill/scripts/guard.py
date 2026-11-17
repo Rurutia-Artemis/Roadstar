@@ -183,20 +183,58 @@ def mark(root, plan, task):
         temporary.unlink(missing_ok=True)
 
 
-def prepare(root, filename):
+def task_marker(root):
     path = git_dir(root) / "roadstar-task"
     if not path.is_file():
-        return
+        return None
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(value, dict):
+            raise ValueError("任务标记必须是 JSON 对象")
+        return value
+    except (ValueError, TypeError):
+        raise Block("任务标记读不懂", "文件：" + str(path),
+                    "怎么办：重新运行 guard.py mark <场次目录> T<n>，或用 unmark 清掉标记。")
+
+
+def merge_marker_matches(root, refs, notice=False):
+    # 标记只作提示和收尾用；坏标记不能改变原有合并验收的退出码。
+    try:
+        value = task_marker(root)
+    except (Block, OSError, UnicodeError):
+        value = {}
+    if value is None:
+        return False
+    branch = value.get("branch")
+    marked = (git(root, "rev-parse", "--verify", "--end-of-options",
+                  "refs/heads/" + branch + "^{commit}", optional=True)
+              if isinstance(branch, str) and branch else None)
+    matched = bool(marked and any(
+        marked == git(root, "rev-parse", "--verify", "--end-of-options",
+                      ref + "^{commit}", optional=True) for ref in refs))
+    if notice and not matched:
+        print(f"提示：任务标记 {value.get('task', '未知任务')}（{value.get('branch', '旧格式，没有分支')}）"
+              "不属于这次合并，不当作任务标记，需要时重新 mark", file=sys.stderr)
+    return matched
+
+
+def prepare(root, filename):
+    value = task_marker(root)
+    if value is None:
+        return
+    try:
         branch = git(root, "symbolic-ref", "--quiet", "--short", "HEAD", optional=True)
         if not branch or value.get("branch") != branch.strip():
+            print(f"提示：任务标记 {value.get('task', '未知任务')} 的分支为"
+                  f"「{value.get('branch', '旧格式，没有分支')}」，当前分支为"
+                  f"「{branch.strip() if branch else 'detached HEAD'}」；"
+                  "请用 guard.py mark <场次目录> T<n> 重新标记。", file=sys.stderr)
             return
         trailer = value["plan_dir"] + "/" + value["task"]
         plan, task = resolve_task(root, trailer)
         trailer = str(plan / task)
     except (ValueError, KeyError, TypeError, AttributeError):
-        raise Block("任务标记读不懂", "文件：" + str(path),
+        raise Block("任务标记读不懂", "文件：" + str(git_dir(root) / "roadstar-task"),
                     "怎么办：重新运行 guard.py mark <场次目录> T<n>，或用 unmark 清掉标记。")
     git(root, "interpret-trailers", "--in-place", "--if-exists", "addIfDifferent",
         "--if-missing", "add", "--trailer", "Roadstar-Task: " + trailer, filename)
@@ -244,6 +282,8 @@ def merging(root):
 
 def commit_message(root, filename):
     if merging(root):
+        if merge_marker_matches(root, pending_merge_refs(root)):
+            (git_dir(root) / "roadstar-task").unlink(missing_ok=True)
         return
     message = Path(filename).read_text(encoding="utf-8")
     values = trailers(root, message)
@@ -293,6 +333,9 @@ def commit_message(root, filename):
         print(notice)
     import guard_rules
     guard_rules.commit_checks(root, message, Block)
+    if not values.get("roadstar-task") and any(Path(name).suffix in guard_rules.CODE for name in changed):
+        print("警告：这次代码提交没有 Roadstar-Task trailer；需要关联任务时请先运行 guard.py mark <场次目录> T<n>。",
+              file=sys.stderr)
 
 
 def merge_tasks(root, refs):
@@ -474,9 +517,14 @@ def main(args):
             commit_message(root, args[2])
         elif args == ["hook", "pre-merge-commit"]:
             refs = pending_merge_refs(root)
-            check_records(root, merge_tasks(root, refs), refs)
+            tasks = merge_tasks(root, refs)
+            merge_marker_matches(root, refs, notice=True)
+            check_records(root, tasks, refs)
         elif len(args) == 2 and args[0] == "check-merge":
-            check_records(root, merge_tasks(root, [args[1]]), [args[1]])
+            refs = [args[1]]
+            tasks = merge_tasks(root, refs)
+            merge_marker_matches(root, refs, notice=True)
+            check_records(root, tasks, refs)
         elif len(args) == 2 and args[0] == "audit":
             import guard_rules
             guard_rules.audit(root, args[1])

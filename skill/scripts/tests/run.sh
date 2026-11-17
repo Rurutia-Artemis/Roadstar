@@ -1463,9 +1463,9 @@ source "$TEST_DIR/panel-113.sh"
 source "$TEST_DIR/grok-113.sh"
 
 printf 'PASS %d checks\n' "$COUNT"
-bash "$TEST_DIR/guard-tests.sh"
-bash "$TEST_DIR/close-check-tests.sh"
-bash "$TEST_DIR/entry-tests.sh"
-bash "$TEST_DIR/guard-rules-tests.sh"
-bash "$TEST_DIR/baseline-tests.sh"
-bash "$TEST_DIR/trailer-path-tests.sh"
+[[ -f "$TEST_DIR/suites.list" ]] || { printf '找不到套件清单：%s\n' "$TEST_DIR/suites.list" >&2; exit 1; }
+while IFS= read -r suite || [[ -n "$suite" ]]; do
+  case "$suite" in ''|\#*) continue ;; esac
+  [[ -f "$TEST_DIR/$suite" ]] || { printf '找不到子套件：%s\n' "$suite" >&2; exit 1; }
+  bash "$TEST_DIR/$suite"
+done < "$TEST_DIR/suites.list"
