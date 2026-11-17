@@ -1,0 +1,15 @@
+model=gpt-6.1-sol
+effort=high
+sandbox=workspace-write
+root=/Users/rurutia/Documents/RuruCode/运行数据/任务临时/RSG2/repo
+started=2026-11-17T11:03:30Z
+finished=2026-11-17T11:07:34Z
+exit=0
+session_id=01a1e900-a656-7d61-ba0b-28977e0e6d55
+tokens_used=263138
+resumed_from=01a1e900-a656-7d61-ba0b-28977e0e6d55
+attempt=1
+max_minutes=30
+timed_out=0
+class=补全
+est_minutes=15

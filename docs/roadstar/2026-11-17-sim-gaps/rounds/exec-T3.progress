@@ -1,0 +1,118 @@
+2026-11-17T19:16:52.967932+09:00	真实 --no-ff 钩子顺序：commit-msg 位于验收门槛之后、提交完成之前	pass	marker-branch-tests ok 1
+2026-11-17 19:16:52 +0900	改 guard 前钩子顺序实测	pass	marker-branch-tests rc=0
+2026-11-17 19:17:20 +0900	基线 run.sh	pass	rc=0；完整输出见本轮工具记录
+2026-11-17T19:20:12.210631+09:00	C3 真实 --no-ff 钩子顺序与匹配标记作废	pass	marker-branch-tests ok 1
+2026-11-17T19:20:12.435629+09:00	C1 mark 格式保持原四键；匹配时静默、幂等添加 trailer 且标记不变	pass	marker-branch-tests ok 2
+2026-11-17T19:20:12.524889+09:00	C1 无标记 prepare 静默且不改消息	pass	marker-branch-tests ok 3
+2026-11-17T19:20:12.687616+09:00	C1 different 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 4
+2026-11-17T19:20:12.838598+09:00	C1 legacy 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 5
+2026-11-17T19:20:13.001769+09:00	C1 detached 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 6
+2026-11-17T19:20:13.163678+09:00	C1 legacy-detached 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 7
+2026-11-17T19:20:13.565360+09:00	C2 check-merge branch：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 8
+2026-11-17T19:20:13.973364+09:00	C2 check-merge sha：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 9
+2026-11-17T19:20:14.145236+09:00	C2 check-merge none：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 10
+2026-11-17T19:20:14.396214+09:00	C2 check-merge legacy：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 11
+2026-11-17T19:20:14.645433+09:00	C2 check-merge deleted：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 12
+2026-11-17T19:20:14.883325+09:00	C2 check-merge malformed：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 13
+2026-11-17T19:20:15.266457+09:00	C2 check-merge 不匹配标记仍照常拦缺失验收，补齐后放行	pass	marker-branch-tests ok 14
+2026-11-17T19:20:15.678909+09:00	C2 pre-merge-commit branch：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 15
+2026-11-17T19:20:16.108216+09:00	C2 pre-merge-commit sha：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 16
+2026-11-17T19:20:16.285056+09:00	C2 pre-merge-commit none：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 17
+2026-11-17T19:20:16.528391+09:00	C2 pre-merge-commit legacy：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 18
+2026-11-17T19:20:16.758735+09:00	C2 pre-merge-commit deleted：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 19
+2026-11-17T19:20:16.981388+09:00	C2 pre-merge-commit malformed：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 20
+2026-11-17T19:20:17.335480+09:00	C2 pre-merge-commit 不匹配标记仍照常拦缺失验收，补齐后放行	pass	marker-branch-tests ok 21
+2026-11-17T19:20:17.589933+09:00	C2 多目标中有标记分支即匹配，使用提交 SHA 比较	pass	marker-branch-tests ok 22
+2026-11-17T19:20:17.893532+09:00	C3 真合并被 pre-merge-commit 拦下、abort 后标记均原样保留	pass	marker-branch-tests ok 23
+2026-11-17T19:20:18.350930+09:00	C3 真合并 unrelated：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 24
+2026-11-17T19:20:18.771986+09:00	C3 真合并 legacy：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 25
+2026-11-17T19:20:19.147465+09:00	C3 真合并 none：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 26
+2026-11-17T19:20:19.612373+09:00	C3 真合并 sha：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 27
+2026-11-17T19:20:19.994928+09:00	C3 --no-commit 后 abort 保留标记，重新合并并手动 commit 后作废	pass	marker-branch-tests ok 28
+2026-11-17T19:20:20.160506+09:00	C4 code：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 29
+2026-11-17T19:20:20.319576+09:00	C4 docs：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 30
+2026-11-17T19:20:20.494354+09:00	C4 trailer：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 31
+2026-11-17T19:20:20.651252+09:00	C4 unstaged：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 32
+2026-11-17T19:20:20.820760+09:00	C4 mixed：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 33
+2026-11-17T19:20:20.968532+09:00	C4 empty：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 34
+2026-11-17T19:20:24.533856+09:00	C4 guard_rules.CODE 每个后缀均产生缺 trailer 警告，非代码不误报	pass	marker-branch-tests ok 35
+2026-11-17T19:20:24.983494+09:00	C4 安装真钩子后无标记代码提交告警但成功，带 mark 提交静默	fail	AssertionError('这个项目没有模块地图，范围检查跳过\n')
+2026-11-17 19:20:25 +0900	新增 marker-branch-tests.sh	fail	rc=1；逐项结果见同文件前行
+2026-11-17T19:21:04.329311+09:00	C3 真实 --no-ff 钩子顺序与匹配标记作废	pass	marker-branch-tests ok 1
+2026-11-17T19:21:04.560564+09:00	C1 mark 格式保持原四键；匹配时静默、幂等添加 trailer 且标记不变	pass	marker-branch-tests ok 2
+2026-11-17T19:21:04.648542+09:00	C1 无标记 prepare 静默且不改消息	pass	marker-branch-tests ok 3
+2026-11-17T19:21:04.806586+09:00	C1 different 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 4
+2026-11-17T19:21:04.975462+09:00	C1 legacy 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 5
+2026-11-17T19:21:05.162136+09:00	C1 detached 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 6
+2026-11-17T19:21:05.349172+09:00	C1 legacy-detached 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 7
+2026-11-17T19:21:05.793027+09:00	C2 check-merge branch：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 8
+2026-11-17T19:21:06.222803+09:00	C2 check-merge sha：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 9
+2026-11-17T19:21:06.405559+09:00	C2 check-merge none：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 10
+2026-11-17T19:21:06.660243+09:00	C2 check-merge legacy：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 11
+2026-11-17T19:21:06.925997+09:00	C2 check-merge deleted：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 12
+2026-11-17T19:21:07.182757+09:00	C2 check-merge malformed：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 13
+2026-11-17T19:21:07.604046+09:00	C2 check-merge 不匹配标记仍照常拦缺失验收，补齐后放行	pass	marker-branch-tests ok 14
+2026-11-17T19:21:08.063798+09:00	C2 pre-merge-commit branch：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 15
+2026-11-17T19:21:08.516258+09:00	C2 pre-merge-commit sha：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 16
+2026-11-17T19:21:08.699800+09:00	C2 pre-merge-commit none：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 17
+2026-11-17T19:21:08.965981+09:00	C2 pre-merge-commit legacy：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 18
+2026-11-17T19:21:09.236780+09:00	C2 pre-merge-commit deleted：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 19
+2026-11-17T19:21:09.502593+09:00	C2 pre-merge-commit malformed：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 20
+2026-11-17T19:21:09.935268+09:00	C2 pre-merge-commit 不匹配标记仍照常拦缺失验收，补齐后放行	pass	marker-branch-tests ok 21
+2026-11-17T19:21:10.246125+09:00	C2 多目标中有标记分支即匹配，使用提交 SHA 比较	pass	marker-branch-tests ok 22
+2026-11-17T19:21:10.614169+09:00	C3 真合并被 pre-merge-commit 拦下、abort 后标记均原样保留	pass	marker-branch-tests ok 23
+2026-11-17T19:21:11.158621+09:00	C3 真合并 unrelated：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 24
+2026-11-17T19:21:11.655764+09:00	C3 真合并 legacy：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 25
+2026-11-17T19:21:12.075265+09:00	C3 真合并 none：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 26
+2026-11-17T19:21:12.592404+09:00	C3 真合并 sha：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 27
+2026-11-17T19:21:12.987414+09:00	C3 --no-commit 后 abort 保留标记，重新合并并手动 commit 后作废	pass	marker-branch-tests ok 28
+2026-11-17T19:21:13.185097+09:00	C4 code：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 29
+2026-11-17T19:21:13.362549+09:00	C4 docs：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 30
+2026-11-17T19:21:13.569746+09:00	C4 trailer：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 31
+2026-11-17T19:21:13.739771+09:00	C4 unstaged：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 32
+2026-11-17T19:21:13.914003+09:00	C4 mixed：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 33
+2026-11-17T19:21:14.089462+09:00	C4 empty：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 34
+2026-11-17T19:21:18.304987+09:00	C4 guard_rules.CODE 每个后缀均产生缺 trailer 警告，非代码不误报	pass	marker-branch-tests ok 35
+2026-11-17T19:21:18.838857+09:00	C4 安装真钩子后无标记代码提交告警但成功，带 mark 无缺 trailer 警告	pass	marker-branch-tests ok 36
+2026-11-17 19:21:18 +0900	新增 marker-branch-tests.sh	pass	rc=0；逐项结果见同文件前行
+2026-11-17 19:21:21 +0900	既有 guard-tests.sh	pass	rc=0；期望 PASS 50
+2026-11-17 19:22:27 +0900	全量回归日志包装启动	fail	执行审查拒绝含 rm 清理的包装命令，未启动测试；已改为直接运行 run.sh
+2026-11-17 19:22:27 +0900	C6 grep 标记读取一致性	pass	guard.py 统一 task_marker 读标记，合并统一 SHA 比较；cleanup.py 仅 Git worktree branch 字段
+2026-11-17T19:23:48.018125+09:00	C3 真实 --no-ff 钩子顺序与匹配标记作废	pass	marker-branch-tests ok 1
+2026-11-17T19:23:48.234404+09:00	C1 mark 格式保持原四键；匹配时静默、幂等添加 trailer 且标记不变	pass	marker-branch-tests ok 2
+2026-11-17T19:23:48.308497+09:00	C1 无标记 prepare 静默且不改消息	pass	marker-branch-tests ok 3
+2026-11-17T19:23:48.441584+09:00	C1 different 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 4
+2026-11-17T19:23:48.567726+09:00	C1 legacy 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 5
+2026-11-17T19:23:48.700266+09:00	C1 detached 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 6
+2026-11-17T19:23:48.834780+09:00	C1 legacy-detached 提示任务、标记分支、当前分支及 mark 命令；消息和标记不变	pass	marker-branch-tests ok 7
+2026-11-17T19:23:49.164064+09:00	C2 check-merge branch：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 8
+2026-11-17T19:23:49.500900+09:00	C2 check-merge sha：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 9
+2026-11-17T19:23:49.638428+09:00	C2 check-merge none：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 10
+2026-11-17T19:23:49.834555+09:00	C2 check-merge legacy：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 11
+2026-11-17T19:23:50.039376+09:00	C2 check-merge deleted：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 12
+2026-11-17T19:23:50.251176+09:00	C2 check-merge malformed：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 13
+2026-11-17T19:23:50.572763+09:00	C2 check-merge 不匹配标记仍照常拦缺失验收，补齐后放行	pass	marker-branch-tests ok 14
+2026-11-17T19:23:50.911042+09:00	C2 pre-merge-commit branch：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 15
+2026-11-17T19:23:51.257656+09:00	C2 pre-merge-commit sha：匹配静默，不匹配提示，均保留标记	pass	marker-branch-tests ok 16
+2026-11-17T19:23:51.399096+09:00	C2 pre-merge-commit none：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 17
+2026-11-17T19:23:51.601153+09:00	C2 pre-merge-commit legacy：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 18
+2026-11-17T19:23:51.809403+09:00	C2 pre-merge-commit deleted：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 19
+2026-11-17T19:23:52.011464+09:00	C2 pre-merge-commit malformed：放行且不改标记，无标记无新输出	pass	marker-branch-tests ok 20
+2026-11-17T19:23:52.363041+09:00	C2 pre-merge-commit 不匹配标记仍照常拦缺失验收，补齐后放行	pass	marker-branch-tests ok 21
+2026-11-17T19:23:52.618780+09:00	C2 多目标中有标记分支即匹配，使用提交 SHA 比较	pass	marker-branch-tests ok 22
+2026-11-17T19:23:52.934458+09:00	C3 真合并被 pre-merge-commit 拦下、abort 后标记均原样保留	pass	marker-branch-tests ok 23
+2026-11-17T19:23:53.375090+09:00	C3 真合并 unrelated：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 24
+2026-11-17T19:23:53.814322+09:00	C3 真合并 legacy：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 25
+2026-11-17T19:23:54.174481+09:00	C3 真合并 none：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 26
+2026-11-17T19:23:54.615882+09:00	C3 真合并 sha：只清匹配标记，合并无缺 trailer 警告	pass	marker-branch-tests ok 27
+2026-11-17T19:23:54.981944+09:00	C3 --no-commit 后 abort 保留标记，重新合并并手动 commit 后作废	pass	marker-branch-tests ok 28
+2026-11-17T19:23:55.160399+09:00	C4 code：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 29
+2026-11-17T19:23:55.317221+09:00	C4 docs：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 30
+2026-11-17T19:23:55.482055+09:00	C4 trailer：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 31
+2026-11-17T19:23:55.623509+09:00	C4 unstaged：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 32
+2026-11-17T19:23:55.778558+09:00	C4 mixed：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 33
+2026-11-17T19:23:55.915392+09:00	C4 empty：仅无 trailer 的暂存代码提交打一行警告并放行	pass	marker-branch-tests ok 34
+2026-11-17T19:23:59.322126+09:00	C4 guard_rules.CODE 每个后缀均产生缺 trailer 警告，非代码不误报	pass	marker-branch-tests ok 35
+2026-11-17T19:23:59.872006+09:00	C4 安装真钩子后无标记代码提交告警但成功，带 mark 无缺 trailer 警告	pass	marker-branch-tests ok 36
+2026-11-17 19:24:00 +0900	修改后 run.sh	pass	rc=0；完整输出见本轮工具记录
+2026-11-17 19:25:31 +0900	差异范围与报告收尾	pass	仅四个允许文件及 RSG3-report.md、rounds/exec-T3.progress；原测试未改；报告已回填全量 rc=0；临时仓库 trap 清理
