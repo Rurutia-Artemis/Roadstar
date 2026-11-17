@@ -43,3 +43,11 @@
 1. 清单 ruru-run 条：改写为已核实（ws-guard 要求长测试命令套 timeout、gtimeout 或 ruru-run，证据 RuruAgent/tools/ws-guard/guard.py:462），并去掉 CHANGELOG「ruru-run 路由未找到依据」。
 2. 清单 _common.md 条：「未核实」改成「脚本不检查，写不写由人把关」。
 3. 清单 CLAUDE.md 条：补一句「文中要出现『模块地图』四个字」。
+
+## 补验 299cbb8
+结论：通过。
+- 「CLAUDE.md 要出现『模块地图』」对：`project-shell/check.py` 用 `'模块地图' not in 文本` 按字面判。「_common.md 脚本不检查」对：skill/scripts 非测试脚本无 `_common` 命中。
+- 「标记记的是派活那一刻的分支」对：`mark` 写入当时的 HEAD 分支（`guard.py:175`），`prepare` 分支不一致就不加 Roadstar-Task（`:193`）。`dex-exec.sh:377-378` 只在带 `--write` 时调 mark；该句可补「写活派发时」，不改也不错。
+- 「mark 写进当前目录所在的仓库」对：`root_at(Path.cwd())`，写到该工作区自己的 git-dir 下（`:177`）。dex-exec 在 `cd $ROOT` 里调用。
+- 长测试命令要套 timeout、gtimeout 或 ruru-run：对（ws-guard `guard.py:29,462`）；放行口子是命令里写 `# ws-guard:ok <理由>`，清单没提，不影响照做。
+- 清单一节 11 行（含标题和空行，条目 9 条，≤12）；SKILL.md 仍 54 行；run.sh rc=0，无 FAIL，PASS 合计 369。
