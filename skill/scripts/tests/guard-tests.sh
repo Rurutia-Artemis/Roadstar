@@ -627,7 +627,23 @@ def dispatch(root, write_flag=True, dry=False, nonrepo=False, broken=False):
     write(directory, "quota-status.py", 'print(\'{"codex":{"tier":"宽"}}\')\n')
     write(directory, "brief-check.py", "raise SystemExit(0)\n")  # 六栏和同类方案校验由 run.sh 测，这里只测任务标记
     write(directory, "entry-check.py", "raise SystemExit(0)\n")  # 接入与存量卡由 entry-tests.sh 测
-    codex = write(directory, "bin/codex", '#!/bin/bash\nif [ -n "$FAKE_EXPECT_MARK" ]; then [ -s "$FAKE_EXPECT_MARK" ] || exit 9; fi\nprintf "called\\n" >> "$FAKE_CALLED"\n')
+    codex = write(directory, "bin/codex", r'''#!/bin/bash
+if [ -n "$FAKE_EXPECT_MARK" ]; then [ -s "$FAKE_EXPECT_MARK" ] || exit 9; fi
+printf "called\n" >> "$FAKE_CALLED"
+output=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o) [[ $# -ge 2 ]] || exit 2; output="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+[[ -n "$output" ]] || exit 2
+cat > "$output" <<'REPLY'
+The offline executor has received the assigned task and completed its local dispatch checks.
+The expected task marker was checked before execution, and the invocation was recorded in the called file.
+This fixed response represents the final answer normally saved by Codex through its output option, so the dispatch can finish with a nonempty handback report.
+REPLY
+''')
     codex.chmod(0o755)
     target = root
     if nonrepo:
@@ -635,7 +651,7 @@ def dispatch(root, write_flag=True, dry=False, nonrepo=False, broken=False):
         target.mkdir()
     args = ["/bin/bash", directory / "dex-exec.sh", root / plan, "T1", "--model", "m", "--effort", "low", "--brief", root / plan / "rounds/exec-T1-request.md", "--root", target]
     if write_flag:
-        args.append("--write")
+        args.extend(["--write", "--max-minutes", "10"])
     if dry:
         args.append("--dry-run")
     mark = ""

@@ -429,12 +429,12 @@ def dex():
     for text, expected in [(base, '缺设计页'), (reference, '缺主人点头记录')]:
         brief.write_text(text)
         design.write_text(page('大活'))
-        cmd = ['bash', str(scripts/'dex-exec.sh'), str(session), 'T1', '--model', 'x', '--effort', 'high', '--class', '跨模块', '--est-minutes', '90', '--write', '--dry-run', '--brief', str(brief)]
+        cmd = ['bash', str(scripts/'dex-exec.sh'), str(session), 'T1', '--model', 'x', '--effort', 'high', '--class', '跨模块', '--est-minutes', '90', '--write', '--max-minutes', '10', '--dry-run', '--brief', str(brief)]
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
         assert r.returncode == 2 and expected in r.stderr, (cmd, r.returncode, r.stdout, r.stderr)
         assert not (session/'rounds/exec-T1.meta').exists()
     # 保证短活豁免参数确实从 dex-exec 传给 brief-check。
-    r = subprocess.run(['bash', str(scripts/'dex-exec.sh'), str(session), 'T1', '--model', 'x', '--effort', 'high', '--class', '批量', '--est-minutes', '60', '--write', '--dry-run', '--brief', str(brief)], capture_output=True, text=True, timeout=20)
+    r = subprocess.run(['bash', str(scripts/'dex-exec.sh'), str(session), 'T1', '--model', 'x', '--effort', 'high', '--class', '批量', '--est-minutes', '60', '--write', '--max-minutes', '10', '--dry-run', '--brief', str(brief)], capture_output=True, text=True, timeout=20)
     assert r.returncode == 0, r.stderr
 check('C6/C9 dex-exec --write --dry-run 两种缺项均退出 2；短活放行', dex)
 
@@ -448,7 +448,7 @@ COUNT="$(cat "$TMP/new-count")"
 run_task() {
   bash "$SCRIPTS/dex-exec.sh" "$PLAN" "$1" --model gpt-6-astra --effort high --brief "$BRIEF" "${@:2}"
 }
-run_task T9b --write --root "$PLAN" > "$TMP/write.txt"
+run_task T9b --write --max-minutes 10 --root "$PLAN" > "$TMP/write.txt"
 grep -q '^sandbox=workspace-write$' "$PLAN/rounds/exec-T9b.meta"
 python3 - "$PLAN/rounds/exec-T9b.meta" "$PLAN" <<'PY'
 import os, sys

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 圆桌 · 把一份任务书交给 Dex（codex exec）执行。
-# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--class 类别] [--est-minutes N] [--strategy S] [--root DIR] [--write [--network]] [--max-minutes N] [--resume SESSION_ID] [--detach] [--status] [--force] [--dry-run]
+# 用法：dex-exec.sh <plan-dir> <T#> --model M --effort E --brief FILE [--class 类别] [--est-minutes N] [--strategy S] [--root DIR] [--write [--network]] [--max-minutes N] [--resume SESSION_ID] [--detach] [--wait] [--status] [--force] [--dry-run]
 #   T#        如 T3、T3b；产物写到 plan-dir/rounds/exec-T#*。
 #   --class   取证、批量、页面实现、窄回归、跨模块、根因、性能、视觉照做、复核、审方案、补全；可选，写入 meta。
 #   --est-minutes N  排活表里的预估用时（分钟），写入 meta 的 est_minutes，完工时和实际用时对账。
@@ -9,9 +9,10 @@
 #   --write   使用 workspace-write；默认 read-only。
 #             派写活（含 resume/dry-run）先查项目接入、未验收存量和未提交基线；超限退出 3。
 #   --network 联网（只配合 --write，且只给 --class 取证 的调研活；主席 2026-10-24 定）：加 -c sandbox_workspace_write.network_access=true。
-#   --max-minutes N  止损：到 N 分钟还没结束就停掉 codex，退出码 124，meta 记 timed_out=1（常规 120、难活 240）。
+#   --max-minutes N  写活必填（含 resume/dry-run，status 除外）；到 N 分钟停掉 codex，退出 124，meta 记 timed_out=1（常规 120、难活 240、窄回归 60）。
 #   --resume  续接会话；resume 不接 -m/-s/-C，脚本改用 -c model= / sandbox_mode= 覆盖并在 root 里启动（不传模型会退回 config 默认）。
 #   --detach  后台执行；--status 查询状态，不需要 model/effort/brief。
+#   --wait    前台等到结束，打印 handback、exit 与报告末 5 行，退出码同 .exit；不与 detach/status/dry-run 同用。
 #   --force   Codex 额度为「空」时仍执行；--dry-run 不读额度、不调用 codex。
 set -euo pipefail
 
@@ -43,6 +44,7 @@ write_meta() {
     if [[ -n "$CLASS" ]]; then printf 'class=%s\n' "$CLASS"; fi
     if [[ -n "$EST_MINUTES" ]]; then printf 'est_minutes=%s\n' "$EST_MINUTES"; fi
     if [[ -n "$STRATEGY" ]]; then printf 'strategy=%s\n' "$STRATEGY"; fi
+    if [[ -n "${HANDBACK:-}" ]]; then printf 'handback=%s\n' "$HANDBACK"; fi
   } > "$tmp"
   mv -f "$tmp" "$META"
 }
@@ -64,7 +66,11 @@ finalize_report() {
 }
 
 show_failure() {
-  printf 'codex 退出码 %s；日志：%s\n' "$1" "$LOG" >&2
+  if [[ "$1" == 4 ]]; then
+    printf '交回为空；结果：%s；日志：%s\n' "$OUT" "$LOG" >&2
+  else
+    printf 'codex 退出码 %s；日志：%s\n' "$1" "$LOG" >&2
+  fi
   if [[ -f "$LOG" ]]; then tail -n 20 "$LOG" >&2; fi
 }
 
@@ -82,7 +88,7 @@ stop_job() {
 }
 
 run_job() {
-  local rc=0 value pid cap waited=0
+  local rc=0 value pid cap waited=0 bytes
   TIMED_OUT=0
   # 子 shell 里 exec，拿到的 pid 就是 codex 本身，止损时能直接停它。
   (cd "$META_ROOT" 2>/dev/null || cd "$ROOT"; exec "${CMD[@]}" < "$REQ" > "$LOG" 2>&1) &
@@ -104,6 +110,18 @@ run_job() {
   wait "$pid" || rc=$?
   [[ "$TIMED_OUT" -eq 0 ]] || rc=124
   finalize_report
+  HANDBACK=""
+  if [[ ! -s "$OUT" ]]; then
+    HANDBACK=empty
+    printf '警告：交回为空；结果：%s；日志：%s\n' "$OUT" "$LOG" >&2
+    if [[ "$rc" -eq 0 ]]; then rc=4; fi
+  else
+    bytes="$(wc -c < "$OUT" | tr -d '[:space:]')"
+    if [[ "$bytes" -lt 200 ]]; then
+      HANDBACK=short
+      printf '警告：交回仅 %s 字节；结果：%s；日志：%s\n' "$bytes" "$OUT" "$LOG" >&2
+    fi
+  fi
   RESULT="$rc"
   FINISHED="$(timestamp)"
   SESSION_ID="$(log_header 'session id')"
@@ -124,6 +142,12 @@ run_job() {
   printf '%s\n' "$rc" > "$EXIT_FILE.tmp.$$"
   mv -f "$EXIT_FILE.tmp.$$" "$EXIT_FILE"
   if [[ "$rc" -ne 0 ]]; then show_failure "$rc"; fi
+  if [[ "$WAIT" -eq 1 ]]; then
+    grep '^handback=' "$META" || true
+    printf 'exit：%s\n' "$(cat "$EXIT_FILE")"
+    if [[ -f "$OUT" ]]; then tail -n 5 "$OUT";
+    else printf '结果文件不存在：%s\n' "$OUT"; fi
+  fi
   return "$rc"
 }
 
@@ -140,7 +164,7 @@ if [[ "${1:-}" == --_worker ]]; then
   shift
   CMD=("$@")
   LAST_REPLY="$(last_reply_path "$OUT")"
-  FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""; TIMED_OUT=0
+  FINISHED=""; RESULT=""; SESSION_ID=""; TOKENS_USED=""; TIMED_OUT=0; HANDBACK=""; WAIT=0
   LOCK_OWNED=1
   trap release_lock EXIT
   printf '%s\n' "$$" > "$LOCK/pid"
@@ -149,7 +173,7 @@ if [[ "${1:-}" == --_worker ]]; then
 fi
 
 PLAN_DIR=""; TASK=""; MODEL=""; EFFORT=""; BRIEF=""; ROOT=""; RESUME=""; MAX_MINUTES=""; TIMED_OUT=0; CLASS=""; EST_MINUTES=""; STRATEGY=""
-WRITE=0; NETWORK=0; DETACH=0; STATUS=0; FORCE=0; DRY=0
+WRITE=0; NETWORK=0; DETACH=0; WAIT=0; STATUS=0; FORCE=0; DRY=0; HANDBACK=""
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -182,15 +206,19 @@ while [[ $# -gt 0 ]]; do
     --write) WRITE=1; shift ;;
     --network) NETWORK=1; shift ;;
     --detach) DETACH=1; shift ;;
+    --wait) WAIT=1; shift ;;
     --status) STATUS=1; shift ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
     --) shift; while [[ $# -gt 0 ]]; do POSITIONAL+=("$1"); shift; done ;;
     -*) usage_error "未知选项：$1" ;;
     *) POSITIONAL+=("$1"); shift ;;
   esac
 done
+if [[ "$WAIT" -eq 1 && ( "$DETACH" -eq 1 || "$STATUS" -eq 1 || "$DRY" -eq 1 ) ]]; then
+  usage_error '--wait 不与 --detach、--status、--dry-run 同用'
+fi
 [[ ${#POSITIONAL[@]} -eq 2 ]] || usage_error '需要 plan-dir 和任务编号（如 T3 或 T3b）'
 PLAN_DIR="${POSITIONAL[0]}"; TASK="${POSITIONAL[1]}"
 [[ "$TASK" =~ ^T[0-9]+[a-z]?$ ]] || usage_error "任务编号无效：$TASK"
@@ -227,6 +255,9 @@ if [[ "$STATUS" -eq 1 ]]; then
   exit 0
 fi
 
+if [[ "$WRITE" -eq 1 && -z "$MAX_MINUTES" ]]; then
+  usage_error '写活必须带 --max-minutes（常规 120、难活 240、窄回归 60）'
+fi
 [[ -n "$MODEL" ]] || usage_error '缺 --model'
 [[ -n "$EFFORT" ]] || usage_error '缺 --effort'
 [[ -n "$BRIEF" && -f "$BRIEF" ]] || usage_error "brief 文件不存在：$BRIEF"
@@ -395,4 +426,4 @@ if [[ "$DETACH" -eq 1 ]]; then
 fi
 
 run_job
-printf '已结束；结果：%s\n' "$OUT"
+if [[ "$WAIT" -eq 0 ]]; then printf '已结束；结果：%s\n' "$OUT"; fi
