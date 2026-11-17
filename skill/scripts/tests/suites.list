@@ -5,3 +5,4 @@ guard-rules-tests.sh
 baseline-tests.sh
 trailer-path-tests.sh
 marker-branch-tests.sh
+exec-handback-tests.sh
