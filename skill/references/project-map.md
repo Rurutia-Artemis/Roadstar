@@ -56,3 +56,15 @@
 - 每件任务书写明「涉及模块」，用地图里的名字。
 - 改动碰了某个模块的入口文件、对外接口、测试命令或规矩，执行方在同一个提交里改地图那一节；验收方核对地图和代码一致，不一致算没通过。
 - 新增或删掉模块，同时改「模块一览」和「出了问题先看哪」。
+
+## 刚接入的项目：接入清单
+
+- 地图的「模块一览」要有管测试目录的模块，并列出实际测试路径；`guard.py` 按任务涉及模块的路径判越界，测试目录不自动豁免。
+- 准备 `docs/模块地图.md`，在项目 `CLAUDE.md` 写明先读它，文中要出现「模块地图」这四个字（检查按字面认）；`entry-check.py` 调用项目检查器，结构缺口会拒派写活。
+- 在 Roadstar 的 `skill/` 目录运行 `bash scripts/install-guard.sh <项目根> --claude`；已有 `core.hooksPath` 时按脚本提示手动接入，不能只凭安装命令退出判断 Git 钩子已装好。
+- 准备 `docs/roadstar/_common.md`，写项目常驻边界并让任务书引用；脚本不检查它在不在，靠任务书引用。
+- 先切到干活的分支再派活：标记记的是派活那一刻的分支，派完才开分支，提交不会带 `Roadstar-Task`，合并检查认不到这件活。
+- 不经 `dex-exec.sh`、自己动手的活，在干活的那个仓库目录里执行 `python3 <Roadstar>/skill/scripts/guard.py mark <场次目录> T<n>`；标记写进当前目录所在的仓库，在别的目录里执行会标错地方。
+- 在目标主干工作区运行 `python3 <Roadstar>/skill/scripts/guard.py check-merge <分支>`（按当前 HEAD 计算待合并提交）；非空验收记录放主干工作区的场次目录 `rounds/check-T<n>.md`，再用 `git merge --no-ff <分支>` 合并。
+- 合并被钩子拦后，若已进入合并状态，先 `git merge --abort` 再补记录、重试；未核实：脚本只确认允许退出合并，未自动执行回滚。
+- 在 `_common.md` 写清测试命令走哪条：本机的长测试命令要套 `timeout`、`gtimeout` 或 `ruru-run`，裸跑会被 ws-guard 拦（`RuruAgent/tools/ws-guard/guard.py`）。
