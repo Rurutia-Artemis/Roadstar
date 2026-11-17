@@ -56,3 +56,13 @@
 - 每件任务书写明「涉及模块」，用地图里的名字。
 - 改动碰了某个模块的入口文件、对外接口、测试命令或规矩，执行方在同一个提交里改地图那一节；验收方核对地图和代码一致，不一致算没通过。
 - 新增或删掉模块，同时改「模块一览」和「出了问题先看哪」。
+
+## 刚接入的项目：接入清单
+
+- 地图的「模块一览」要有管测试目录的模块，并列出实际测试路径；`guard.py` 按任务涉及模块的路径判越界，测试目录不自动豁免。
+- 准备 `docs/模块地图.md`，在项目 `CLAUDE.md` 写明先读它；`entry-check.py` 调用项目检查器，结构缺口会拒派写活。
+- 在 Roadstar 的 `skill/` 目录运行 `bash scripts/install-guard.sh <项目根> --claude`；已有 `core.hooksPath` 时按脚本提示手动接入，不能只凭安装命令退出判断 Git 钩子已装好。
+- 准备 `docs/roadstar/_common.md`，写项目常驻边界并让任务书引用；未核实：当前脚本没有对该文件的存在检查。
+- 在目标主干工作区运行 `python3 <Roadstar>/skill/scripts/guard.py check-merge <分支>`（按当前 HEAD 计算待合并提交）；非空验收记录放主干工作区的场次目录 `rounds/check-T<n>.md`，再用 `git merge --no-ff <分支>` 合并。
+- 合并被钩子拦后，若已进入合并状态，先 `git merge --abort` 再补记录、重试；未核实：脚本只确认允许退出合并，未自动执行回滚。
+- 在 `_common.md` 写清测试命令走哪条；未核实：仓库及 `~/.claude/skills` 未找到 ws-guard 拦裸 pytest、改用 `ruru-run` 的依据，不能照抄为已确认命令。

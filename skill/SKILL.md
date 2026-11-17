@@ -40,6 +40,7 @@ metadata:
 ## 文件
 
 `<项目根>/docs/roadstar/_common.md` 是项目常驻边界；每件活一个 `<日期>-<slug>/`：`plan.md`（大活才有）、`ledger.md`、`rounds/`（`exec-T<n>-request.md` 任务书、`exec-T<n>.md` 执行回复、`.meta`、`.progress`、`check-T<n>.md` 验收）。没有仓库的任务放 `~/Documents/RuruCode/AI任务/roadstar/`。本机设置在 `~/.config/roadstar/`。
+刚接入的项目先按 `references/project-map.md`「刚接入的项目：接入清单」逐项核对。
 
 ## 纪律（铁律摘要由 `RuruAgent/tools/rules-reminder` 在场次活着时每轮贴进对话）
 
