@@ -353,6 +353,38 @@ def real_code_commit():
     assert marker(root).read_bytes() == before
     assert 'Roadstar-Task: ' in git(root, 'log', '-1', '--format=%B').stdout
 
+for target in ('branch', 'sha'):
+    @test('T3d %s 正常合并全过程没有提示行，匹配标记仍作废' % target)
+    def merge_without_branch_notice(target=target):
+        root = fixture()
+        topic(root, task=True, code=True)
+        write(root, plan + '/rounds/check-T1.md', '已验收\n')
+        mark_branch(root)
+        install(root)
+        ref = 'topic' if target == 'branch' else git(root, 'rev-parse', 'topic').stdout.strip()
+        p = git(root, 'merge', '--no-ff', '--no-edit', ref)
+        assert not any(line.startswith('提示：') for line in p.stderr.splitlines()), p.stderr
+        assert not marker(root).exists()
+        assert len(git(root, 'rev-list', '--parents', '-n', '1', 'HEAD').stdout.split()) == 3
+
+    @test('T3d %s 无关分支标记只提示一次不属于本次合并，标记保留' % target)
+    def unrelated_merge_notice_once(target=target):
+        root = fixture()
+        topic(root, task=True, code=True)
+        topic(root, name='other')
+        write(root, plan + '/rounds/check-T1.md', '已验收\n')
+        mark_branch(root, 'other')
+        before = marker(root).read_bytes()
+        install(root)
+        ref = 'topic' if target == 'branch' else git(root, 'rev-parse', 'topic').stdout.strip()
+        p = git(root, 'merge', '--no-ff', '--no-edit', ref)
+        hints = [line for line in p.stderr.splitlines() if line.startswith('提示：')]
+        assert len(hints) == 1 and '不属于这次合并' in hints[0], p.stderr
+        assert p.stderr.count('不属于这次合并') == 1, p.stderr
+        assert '当前分支为' not in p.stderr, p.stderr
+        assert marker(root).read_bytes() == before
+        assert len(git(root, 'rev-list', '--parents', '-n', '1', 'HEAD').stdout.split()) == 3
+
 for description, fn in tests:
     try:
         fn()
