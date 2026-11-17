@@ -225,6 +225,8 @@ def prepare(root, filename):
     try:
         branch = git(root, "symbolic-ref", "--quiet", "--short", "HEAD", optional=True)
         if not branch or value.get("branch") != branch.strip():
+            if merging(root):
+                return
             print(f"提示：任务标记 {value.get('task', '未知任务')} 的分支为"
                   f"「{value.get('branch', '旧格式，没有分支')}」，当前分支为"
                   f"「{branch.strip() if branch else 'detached HEAD'}」；"
