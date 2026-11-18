@@ -306,8 +306,12 @@ def commit_message(root, filename):
             notices.append("这个项目没有模块地图，范围检查跳过")
             continue
         selected = requested_modules(body, modules, request)
+        import guard_rules
         allowed = [p for name in selected for p in modules[name]] + list(ALLOW)
-        outside = [name for name in changed if not any(matches(root, name, p) for p in allowed)]
+        outside = [name for name in changed
+                   if not any(matches(root, name, p) for p in allowed)
+                   and (not guard_rules.test_file(name) or any(
+                       matches(root, name, p) for patterns in modules.values() for p in patterns))]
         reason = next((v for v in values.get("roadstar-scope", []) if v), None)
         if outside and reason:
             notices.append("越界已放行：" + reason)

@@ -295,8 +295,19 @@ def close_check(project, base, plan_dirs, as_json):
             if not record.is_file() or not record.read_bytes().strip():
                 acceptance.append({"kind": "no_acceptance", "plan_dir": label, "task": task,
                                    "detail": f"没验收：{task}（{label}）"})
-    items = unmerged + tasks + uncleared + acceptance
+    pending = unmerged + tasks
+    others = []
+    if plan_dirs:
+        plans = {p.expanduser().resolve() for p in plan_dirs}
+        local_branches = {item["branch"] for item in tasks
+                          if (project / item["plan_dir"]).resolve() in plans}
+        other_branches = {item["branch"] for item in tasks} - local_branches
+        others = [item for item in pending if item["branch"] in other_branches]
+        pending = [item for item in pending if item["branch"] not in other_branches]
+    items = pending + uncleared + acceptance
     report = {"clean": not items, "items": items}
+    if others:
+        report["others"] = others
     if as_json:
         print(json.dumps(report, ensure_ascii=False))
         if not plan_dirs:
@@ -305,6 +316,10 @@ def close_check(project, base, plan_dirs, as_json):
         print(f"收工检查：还有 {len(items)} 项没收完" if items else "收工检查：都收完了")
         for item in items:
             print(item["detail"])
+        if others:
+            print("别的场次的（不计入）：")
+            for item in others:
+                print(item["detail"])
         if not plan_dirs:
             print("没给场次目录，验收记录这项没查")
     return 1 if items else 0
@@ -313,11 +328,11 @@ def close_check(project, base, plan_dirs, as_json):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="场内垃圾清理第一档：已合并且干净的 worktree、rounds/ 里超期的中间产物；默认只列不删")
     parser.add_argument("--project", type=Path, default=Path.cwd(), help="项目根（主工作区）")
-    parser.add_argument("--plan-dir", type=Path, action="append", default=[], help="场次目录，可多个；不给时清理扫 <项目>/docs/roadstar/*，--check 跳过验收记录")
+    parser.add_argument("--plan-dir", type=Path, action="append", default=[], help="场次目录，可多个；--check 查指定场次验收，别场次的任务只列出；不给时清理扫 <项目>/docs/roadstar/*，--check 跳过验收记录")
     parser.add_argument("--days", type=int, default=7, help="rounds/ 中间产物保留天数")
     parser.add_argument("--base", help="判「已合并」的基准分支，默认 origin/HEAD、origin/main、main、master 里第一个存在的")
     parser.add_argument("--apply", action="store_true", help="真删；不给就是 dry-run")
-    parser.add_argument("--check", action="store_true", help="收工检查：只查不删，没收完退出 1")
+    parser.add_argument("--check", action="store_true", help="收工检查：只查不删，没收完退出 1；带 --plan-dir 时别场次条目不计入退出码")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
     if args.check and args.apply:

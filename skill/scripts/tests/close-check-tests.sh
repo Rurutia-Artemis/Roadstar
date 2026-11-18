@@ -273,6 +273,51 @@ def legacy(root):
     call(root.parent, expected=2)
 
 
+@test("F4", "指定场次时别场次独占分支只列出；混合分支、无任务标记副本和缺验收仍计入")
+def scoped_check(root):
+    other_task = "task\n\nRoadstar-Task: docs/roadstar/别的场次/T9"
+    git(root, "checkout", "-qb", "other")
+    commit(root, other_task)
+    git(root, "checkout", "-q", "main")
+    write(root, plan + "/rounds/exec-T1.md")
+    write(root, plan + "/rounds/check-T1.md", "验收通过\n")
+    args = ("--plan-dir", plan)
+
+    p = call(root, "--check", *args)
+    scoped = report(root, *args, expected=0)
+    assert scoped["clean"] and scoped["items"] == [], scoped
+    assert [(i["kind"], i["task"]) for i in scoped["others"]] == [("unmerged_task", "T9")], scoped
+    assert p.stdout.splitlines() == [
+        "收工检查：都收完了", "别的场次的（不计入）：", scoped["others"][0]["detail"]
+    ], p.stdout
+    unscoped = report(root)
+    assert unscoped == {"clean": False, "items": scoped["others"]}, unscoped
+
+    write(root, plan + "/rounds/exec-T3.md")
+    p = call(root, "--check", *args, expected=1)
+    assert "没验收：T3" in p.stdout and "别的场次的（不计入）：" in p.stdout, p.stdout
+    write(root, plan + "/rounds/check-T3.md", "验收通过\n")
+
+    local = lane(root, "local")
+    commit(local, "task\n\nRoadstar-Task: " + str(root / plan / "../测试场次/T2"))
+    scoped = report(root, *args)
+    assert [(i["kind"], i.get("task")) for i in scoped["items"]] == [
+        ("unmerged", None), ("unmerged_task", "T2")
+    ], scoped
+    commit(local, other_task)
+    scoped = report(root, *args)
+    assert {i["task"] for i in scoped["items"] if i["kind"] == "unmerged_task"} == {"T2", "T9"}, scoped
+    assert [(i["branch"], i["task"]) for i in scoped["others"]] == [("other", "T9")], scoped
+
+    git(root, "worktree", "add", "-q", root.parent / "other copy", "other")
+    lane(root, "unmarked")
+    scoped = report(root, *args)
+    assert {i["branch"] for i in scoped["items"] if i["kind"] == "unmerged"} == {"local", "unmarked"}, scoped
+    assert [(i["kind"], i["branch"]) for i in scoped["others"]] == [
+        ("unmerged", "other"), ("unmerged_task", "other")
+    ], scoped
+
+
 failed = count = 0
 for number, description, fn in tests:
     directory = None

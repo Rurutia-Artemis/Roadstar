@@ -102,6 +102,23 @@ grep -q 'plan.md 缺同类方案' "$TMP/last-output"
 [[ ! -e "$TMP/pa plan/rounds" ]]
 pass "dex-exec 派活前查场次 plan.md：目标是重做却缺同类方案，退出 2 不派"
 
+for goal in '这次不重做 text 模块，只改乘法。' '不要立项，只补一个检查。' \
+    '没有新系统，只改已有函数。' '不是重做，只改乘法。' '不再 新模块，只修现有服务。'; do
+  prior_brief "$goal" '' > "$TMP/pa-f2.md"
+  expect_exit 0 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-f2.md" || { echo "FAIL F2：$goal" >&2; exit 1; }
+done
+for goal in '重做记忆服务。' '不改接口，重做记忆服务。' '新系统：本机记忆服务。' \
+    '不要立项，但重做记忆服务。' $'本次不\n重做记忆服务。'; do
+  prior_brief "$goal" '' > "$TMP/pa-f2.md"
+  if ! expect_exit 2 python3 "$SCRIPTS/brief-check.py" "$TMP/pa-f2.md" ||
+     ! grep -q '缺「同类方案」一节' "$TMP/last-output"; then
+    cat "$TMP/last-output" >&2
+    echo "FAIL F2：$goal" >&2
+    exit 1
+  fi
+done
+pass 'F2 否定目标不要求同类方案，肯定目标仍拦，标点或换行不把否定延续下去'
+
 # New checks stay isolated even when invoked by the full suite.
 export RURU_APPROVALS_CMD="$TMP/fake approvals.py"
 export RURUCODE_ROOT="$TMP/rurucode"
@@ -437,6 +454,15 @@ def dex():
     r = subprocess.run(['bash', str(scripts/'dex-exec.sh'), str(session), 'T1', '--model', 'x', '--effort', 'high', '--class', '批量', '--est-minutes', '60', '--write', '--max-minutes', '10', '--dry-run', '--brief', str(brief)], capture_output=True, text=True, timeout=20)
     assert r.returncode == 0, r.stderr
 check('C6/C9 dex-exec --write --dry-run 两种缺项均退出 2；短活放行', dex)
+
+def f3b_module_count():
+    fields = dp.sections(page(rows=1))
+    del fields['模块表']
+    design.write_text('\n\n'.join(f'## {k}\n{v}' for k, v in fields.items()) + '\n')
+    for name in ('tests', '「 `TeSt` 」', '「测试」'):
+        expect(0, write, reference.replace('流程与调度契约、任务执行与验收', '甲\n' + name))
+    expect(2, write, reference.replace('流程与调度契约、任务执行与验收', '甲\n乙'), contains='模块表')
+check('F3b 测试项不计模块数，两个实际模块仍要求模块表', f3b_module_count)
 
 # 给原样搬来的写沙箱回归准备有效的中活设计，旧断言不改。
 fixture = tmp / 'plan dir/fixture-design.md'; fixture.write_text(page())

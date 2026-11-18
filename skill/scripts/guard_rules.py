@@ -20,7 +20,7 @@ CONFIG = ('.eslintrc*', 'eslint.config.*', '.prettierrc*', 'tsconfig*.json', 'je
 CATEGORIES = ('下调门槛', '跳过或删测试', '关掉检查', '留桩或半成品', '新增例外 / 改检查配置')
 SKIP = re.compile(r'\.skip\(|\bit\.skip\b|\bdescribe\.skip\b|\btest\.skip\b|\bx(?:it|describe|test)\(|\.only\(|@pytest\.mark\.skip|pytest\.skip\(|@unittest\.skip|skipTest\(|XCTSkip|t\.Skip\(|#\[ignore\]')
 DISABLE = re.compile(r'@ts-ignore|@ts-nocheck|@ts-expect-error|eslint-disable|# noqa|type: ignore|pylint: disable|istanbul ignore|c8 ignore|nosemgrep|gitleaks:allow|swiftlint:disable|nolint|@SuppressWarnings|--no-verify')
-STUB = re.compile(r'TODO|FIXME|XXX|NotImplementedError|fatalError\(|unimplemented!|todo!\(|not implemented', re.I)
+STUB = re.compile(r'(?<![\w.-])(?:TODO|FIXME|XXX)(?!\w)|(?:#|//|/\*|<!--)[ \t]*(?i:todo|fixme|xxx)(?!\w)|NotImplementedError|fatalError\(|unimplemented!|todo!\(|(?i:not implemented)')
 ASSERT = re.compile(r'assert|XCTAssert|expect\(')
 NUMBER = re.compile(r'''["']?([\w.-]+)["']?\s*(?::|=|\s)\s*(-?\d+(?:\.\d+)?)''')
 TOOLS = re.compile(r'^\s*\[tool\.(?:ruff[^\]]*|pytest[^\]]*|mypy[^\]]*|coverage[^\]]*|pylint[^\]]*|black|isort)\]\s*(?:#.*)?$')

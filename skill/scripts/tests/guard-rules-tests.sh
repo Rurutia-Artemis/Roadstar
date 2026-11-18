@@ -604,6 +604,33 @@ def evidence(root):
     print('=== C7 end ===', flush=True)
 
 
+@test('F1', '留桩：标识符和 mktemp 模板放行，独立标记与未实现照拦')
+def stub_boundaries(root):
+    clean = [
+        ('calc.py', 'def count_done(todo_list):'),
+        ('tests/test_x.py', 'def test_todo_done():'),
+        ('mk.sh', 'f=$(mktemp "$archive_bin/.$script.XXXXXX")'),
+        ('mk2.sh', 'mktemp /tmp/x.XXX'),
+        ('constant.py', 'x = TODO_LIST'),
+        ('comment.py', '# todo_list = []'),
+    ]
+    stubs = [
+        '# TODO: 没做完', 'raise NotImplementedError', '# XXX 待补',
+        '// todo: later', '/* fixme */', 'XXX', 'FIXME', 'todo!()', 'Not Implemented',
+    ]
+    for name, line in clean:
+        stage(root, name, line + '\n')
+        commit(root)
+        actual = rules.lowering_hits(root, 'HEAD~1', 'HEAD')
+        assert actual == [], (name, line, actual)
+    for i, line in enumerate(stubs):
+        name = f'stub-{i}.py'
+        stage(root, name, line + '\n')
+        commit(root)
+        actual = rules.lowering_hits(root, 'HEAD~1', 'HEAD')
+        assert actual == [('留桩或半成品', name, line)], (name, line, actual)
+
+
 # 每项使用独立仓库；一项失败立即结束，重跑也保留连续失败次数。
 streak = {}
 if progress:
