@@ -9,6 +9,7 @@ from pathlib import Path
 
 PRIOR_ART_TRIGGER = re.compile(r'新系统|新项目|新产品|新服务|大改版|重做|立项')
 NEW_MODULE = re.compile(r'新模块')
+NEGATION = re.compile(r'(?:不要|不再|不会|不用|不是|不|没有|没|无需|无|别|勿|并非|非)\s*$')
 MODULE_SCOPE = re.compile(r'系统|服务|(?<![A-Za-z])app(?![A-Za-z])', re.I)  # 新模块要配上其一才算整体性
 PRIOR_ART_MIN = 3
 PRIOR_ART_HOW = '至少 3 个同类开源项目或产品，每个写它怎么做、我们取什么、不取什么、许可证，附链接；查不到写「查过：关键词…，无」'
@@ -64,13 +65,15 @@ def prior_art_items(body):
 
 
 def prior_art_trigger(goal):
-    """返回触发同类方案的词；单独的 新建 / 新增 / 新模块 不算。"""
-    m = PRIOR_ART_TRIGGER.search(goal)
-    if m:
-        return m.group(0)
-    m, scope = NEW_MODULE.search(goal), MODULE_SCOPE.search(goal)
-    if m and scope:
-        return f'{m.group(0)}」+「{scope.group(0)}'
+    """返回触发同类方案的词；否定说法和单独的 新建 / 新增 / 新模块 不算。"""
+    for m in PRIOR_ART_TRIGGER.finditer(goal):
+        if not NEGATION.search(goal[:m.start()].rsplit('\n', 1)[-1]):
+            return m.group(0)
+    scope = MODULE_SCOPE.search(goal)
+    if scope:
+        for m in NEW_MODULE.finditer(goal):
+            if not NEGATION.search(goal[:m.start()].rsplit('\n', 1)[-1]):
+                return f'{m.group(0)}」+「{scope.group(0)}'
     return None
 
 

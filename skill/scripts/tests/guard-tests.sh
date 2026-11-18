@@ -727,6 +727,20 @@ def c12(root):
         assert p.stdout.strip() == "已关闭检查（ROADSTAR_GUARD=off）" and p.stderr == ""
     pretool(root, "git merge missing", extra={"ROADSTAR_GUARD": "off"})
 
+@test("F3a", "未认领的测试文件可提交，别模块测试和未认领普通文件仍越界")
+def unowned_tests(root):
+    install(root)
+    git(root, "checkout", "-qb", "topic")
+    call(root, "mark", root / plan, "T1")
+    stage(root, "tests/test_calc.py", "assert True\n")
+    git(root, "commit", "-qm", "unowned test")
+    for path, owner in (("src/b/test_b.py", "乙模块"), ("unknown.txt", "地图里没有")):
+        stage(root, path)
+        p = git(root, "commit", "-qm", "outside scope", expected=1)
+        assert f"{path} → {owner}" in p.stderr, p.stderr
+        git(root, "reset", "-q", "HEAD", "--", path)
+
+
 failed = 0
 count = 0
 streak = {}

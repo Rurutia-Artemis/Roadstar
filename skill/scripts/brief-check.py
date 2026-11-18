@@ -78,7 +78,9 @@ def check_design(text, brief, plan_dir):
     if design is None:
         return ['缺设计页：中活以上的写活先按 references/design-template.md 写一页设计，在任务书里写 `设计页：<路径>`']
     modules = find(sections(text), '涉及模块') or ''
-    count = len([m for m in re.split(r'[,，、\n]', modules) if m.strip()])
+    names = (re.sub(r'^[\s`「」]+|[\s`「」]+$', '', m).casefold()
+             for m in re.split(r'[,，、\n]', modules) if m.strip())
+    count = sum(name not in {'tests', 'test', '测试'} for name in names)
     bad = design_problems(design, count)
     try:
         design_text = design.read_text(encoding='utf-8')
