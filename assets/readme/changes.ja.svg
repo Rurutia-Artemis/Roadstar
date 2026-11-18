@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="ja" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+  <title id="title">1.14 → 2.0</title>
+  <desc id="desc">起動: 呼ばれたら動く → 最初から動く / ルール: 本文に書く → スクリプトが3か所で止める / 本文: 224 行 → 54 行 / 着手前: 開始パネルと戦略の確認 → 1 ページ設計 / 検討: 通常は3ラウンド → 両社が1ラウンドずつ</desc>
+  <rect id="base" x="0" y="0" width="1200" height="480" fill="#F7F4EE" rx="28" />
+  <rect id="before" x="228" y="34" width="429" height="66" fill="#E4DED3" rx="18" />
+  <rect id="after" x="718" y="34" width="438" height="66" fill="#F2B544" rx="18" />
+  <text data-card="before" x="254" y="79" font-size="34" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">1.14</text>
+  <text data-card="after" x="744" y="79" font-size="34" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">2.0</text>
+  <path d="M1121,54 Q1121,67 1134,67 Q1121,67 1121,80 Q1121,67 1108,67 Q1121,67 1121,54 Z" fill="#2B2A3D" />
+  <rect id="label-0" x="34" y="111" width="184" height="58" fill="#F7F4EE" rx="0" />
+  <rect id="before-0" x="228" y="111" width="429" height="58" fill="#E4DED3" rx="15" />
+  <rect id="after-0" x="718" y="111" width="438" height="58" fill="#FFFFFF" rx="15" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="label-0" x="49" y="147.0" font-size="21" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">起動</text>
+  <path d="M670,140.0 H705 m-8,-7 l8,7 -8,7" fill="none" stroke="#3E9C9E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="before-0" x="254" y="148.0" font-size="22" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">呼ばれたら動く</text>
+  <text data-card="after-0" x="744" y="148.0" font-size="22" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">最初から動く</text>
+  <rect id="label-1" x="34" y="178" width="184" height="58" fill="#F7F4EE" rx="0" />
+  <rect id="before-1" x="228" y="178" width="429" height="58" fill="#E4DED3" rx="15" />
+  <rect id="after-1" x="718" y="178" width="438" height="58" fill="#FFFFFF" rx="15" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="label-1" x="49" y="214.0" font-size="21" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">ルール</text>
+  <path d="M670,207.0 H705 m-8,-7 l8,7 -8,7" fill="none" stroke="#3E9C9E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="before-1" x="254" y="215.0" font-size="22" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">本文に書く</text>
+  <text data-card="after-1" x="744" y="215.0" font-size="22" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">スクリプトが3か所で止める</text>
+  <rect id="label-2" x="34" y="245" width="184" height="98" fill="#F7F4EE" rx="0" />
+  <rect id="before-2" x="228" y="245" width="429" height="98" fill="#E4DED3" rx="15" />
+  <rect id="after-2" x="718" y="245" width="438" height="98" fill="#FFFFFF" rx="15" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="label-2" x="49" y="301.0" font-size="21" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">本文</text>
+  <path d="M670,294.0 H705 m-8,-7 l8,7 -8,7" fill="none" stroke="#3E9C9E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="before-2" x="254" y="313.0" font-size="57" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">224 行</text>
+  <text data-card="after-2" x="744" y="313.0" font-size="57" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">54 行</text>
+  <rect id="label-3" x="34" y="352" width="184" height="58" fill="#F7F4EE" rx="0" />
+  <rect id="before-3" x="228" y="352" width="429" height="58" fill="#E4DED3" rx="15" />
+  <rect id="after-3" x="718" y="352" width="438" height="58" fill="#FFFFFF" rx="15" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="label-3" x="49" y="388.0" font-size="21" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">着手前</text>
+  <path d="M670,381.0 H705 m-8,-7 l8,7 -8,7" fill="none" stroke="#3E9C9E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="before-3" x="254" y="389.0" font-size="22" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">開始パネルと戦略の確認</text>
+  <text data-card="after-3" x="744" y="389.0" font-size="22" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">1 ページ設計</text>
+  <rect id="label-4" x="34" y="419" width="184" height="58" fill="#F7F4EE" rx="0" />
+  <rect id="before-4" x="228" y="419" width="429" height="58" fill="#E4DED3" rx="15" />
+  <rect id="after-4" x="718" y="419" width="438" height="58" fill="#FFFFFF" rx="15" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="label-4" x="49" y="455.0" font-size="21" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">検討</text>
+  <path d="M670,448.0 H705 m-8,-7 l8,7 -8,7" fill="none" stroke="#3E9C9E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="before-4" x="254" y="456.0" font-size="22" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">通常は3ラウンド</text>
+  <text data-card="after-4" x="744" y="456.0" font-size="22" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">両社が1ラウンドずつ</text>
+</svg>

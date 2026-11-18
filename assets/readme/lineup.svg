@@ -1,41 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 640" role="img" aria-labelledby="t d">
-<title id="t">Six models, each on the work it does best</title>
-<desc id="d">Fable 5.1 Main session; root causes when stuck / Opus 5.5 Hard tasks, root causes, mockups / Sonnet 5.5 Cross-vendor review, spec'd builds / Haiku 5.5 Lookups and batch work, always on / Astra Hard tasks, plan review / 6.1 Sol Routine implementation</desc>
-<rect width="1200" height="640" rx="28" fill="#F7F4EE"/>
-<text x="48" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="40" font-weight="800" fill="#2B2A3D">Six models, each on the work it does best</text>
-<path d="M62,110 Q62,122 74,122 Q62,122 62,134 Q62,122 50,122 Q62,122 62,110 Z" fill="#E07A5F"/>
-<text x="84" y="130" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#B9583F">Claude · four tiers</text>
-<rect x="48" y="152" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="72" y="190" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Fable 5.1</text>
-<text x="664" y="189" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$10 / $50</text>
-<text x="72" y="222" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">Main session; root causes when stuck</text>
-<rect x="48" y="252" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="72" y="290" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Opus 5.5</text>
-<text x="664" y="289" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$4 / $20</text>
-<text x="72" y="322" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">Hard tasks, root causes, mockups</text>
-<rect x="48" y="352" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="72" y="390" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Sonnet 5.5</text>
-<text x="664" y="389" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$2 / $10</text>
-<text x="72" y="422" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">Cross-vendor review, spec'd builds</text>
-<rect x="48" y="452" width="640" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="72" y="490" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Haiku 5.5</text>
-<text x="664" y="489" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#B9583F">$0.10 / $0.50</text>
-<text x="72" y="522" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">Lookups and batch work, always on</text>
-<path d="M734,110 Q734,122 746,122 Q734,122 734,134 Q734,122 722,122 Q734,122 734,110 Z" fill="#3E9C9E"/>
-<text x="756" y="130" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="24" font-weight="700" fill="#2E7C7E">Codex · two tiers</text>
-<rect x="720" y="152" width="432" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="744" y="190" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">Astra</text>
-<text x="1128" y="189" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#2E7C7E">baseline</text>
-<text x="744" y="222" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">Hard tasks, plan review</text>
-<rect x="720" y="252" width="432" height="88" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="744" y="290" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="27" font-weight="800" fill="#2B2A3D">6.1 Sol</text>
-<text x="1128" y="289" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#2E7C7E">~1/5</text>
-<text x="744" y="322" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">Routine implementation</text>
-<rect x="48" y="560" width="640" height="48" rx="24" fill="#2B2A3D"/>
-<text x="368" y="591" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#F7F4EE">↑ Stuck? Stop, keep what passed, hand the rest up</text>
-<text x="720" y="396" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#2B2A3D">Codex has two tiers.</text>
-<text x="720" y="426" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#2B2A3D">Claude covers the cheapest</text>
-<text x="720" y="456" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#2B2A3D">and the hardest work.</text>
-<text x="720" y="510" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">Prices: API $ per 1M tokens,</text>
-<text x="720" y="536" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">input / output, for comparison</text>
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" width="1200" height="461" viewBox="0 0 1200 461" role="img" aria-labelledby="title desc">
+  <title id="title">Claude side · Codex side</title>
+  <desc id="desc">Fable: Briefs, decisions / Sonnet: Verify, cover gaps / Haiku: Evidence, bulk jobs / Opus: Escalate only on error / Sol: Writes code / Astra: Hard tasks, plan review / Cross-vendor verify / Stop only at zero quota</desc>
+  <rect id="base" x="0" y="0" width="1200" height="461" fill="#F7F4EE" rx="28" />
+  <rect id="claude" x="44" y="30" width="421" height="46" fill="#F7F4EE" rx="0" />
+  <path d="M60,41 Q60,53 72,53 Q60,53 60,65 Q60,53 48,53 Q60,53 60,41 Z" fill="#E07A5F" />
+  <text data-card="claude" x="82" y="62" font-size="26" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude side</text>
+  <rect id="codex" x="735" y="30" width="421" height="46" fill="#F7F4EE" rx="0" />
+  <path d="M751,41 Q751,53 763,53 Q751,53 751,65 Q751,53 739,53 Q751,53 751,41 Z" fill="#3E9C9E" />
+  <text data-card="codex" x="773" y="62" font-size="26" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex side</text>
+  <rect id="claude-0" x="44" y="85" width="421" height="62" fill="#FFFFFF" rx="16" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="claude-0" x="66" y="124" font-size="24" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Fable</text>
+  <text data-card="claude-0" x="173" y="124" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Briefs, decisions</text>
+  <rect id="claude-1" x="44" y="157" width="421" height="62" fill="#FFFFFF" rx="16" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="claude-1" x="66" y="196" font-size="24" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Sonnet</text>
+  <text data-card="claude-1" x="173" y="196" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Verify, cover gaps</text>
+  <rect id="claude-2" x="44" y="229" width="421" height="62" fill="#FFFFFF" rx="16" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="claude-2" x="66" y="268" font-size="24" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Haiku</text>
+  <text data-card="claude-2" x="173" y="268" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Evidence, bulk jobs</text>
+  <rect id="claude-3" x="44" y="301" width="421" height="62" fill="#F7F4EE" rx="16" stroke="#8A8798" stroke-width="2" stroke-dasharray="6 5" />
+  <text data-card="claude-3" x="66" y="340" font-size="24" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Opus</text>
+  <text data-card="claude-3" x="173" y="340" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Escalate only on error</text>
+  <rect id="sol" x="735" y="85" width="421" height="204" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="sol-accent" x="757" y="108" width="44" height="6" fill="#3E9C9E" rx="3" />
+  <text data-card="sol" x="757" y="194" font-size="70" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Sol</text>
+  <text data-card="sol" x="758" y="248" font-size="32" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Writes code</text>
+  <rect id="astra" x="735" y="301" width="421" height="62" fill="#FFFFFF" rx="16" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="astra" x="757" y="340" font-size="24" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Astra</text>
+  <text data-card="astra" x="861" y="340" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Hard tasks, plan review</text>
+  <rect id="verify" x="478" y="160" width="244" height="56" fill="#F7F4EE" rx="0" />
+  <text data-card="verify" x="600" y="193" font-size="18" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Cross-vendor verify</text>
+  <path d="M508,235 H692 M518,225 L508,235 518,245 M682,225 L692,235 682,245" fill="none" stroke="#F2B544" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M600,226 Q600,235 609,235 Q600,235 600,244 Q600,235 591,235 Q600,235 600,226 Z" fill="#F2B544" />
+  <rect id="footer" x="44" y="382" width="1112" height="50" fill="#2B2A3D" rx="24" />
+  <text data-card="footer" x="600" y="415" font-size="21" font-weight="700" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Stop only at zero quota</text>
 </svg>

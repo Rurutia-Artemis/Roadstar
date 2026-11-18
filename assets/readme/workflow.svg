@@ -1,26 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 400" role="img" aria-labelledby="t d">
-<title id="t">Three modes, one entry</title>
-<desc id="d">Discuss You have an idea Features first, build second → feature map + plan / Review You have a project Both read it, then cross-check → gap list + top 3 fixes / Dispatch You have a plan Split, assign, verify → a done report with evidence — Type /roadstar (or 用 skill): it picks the mode, prints one setup line, and starts.</desc>
-<rect width="1200" height="400" rx="28" fill="#F7F4EE"/>
-<text x="56" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="40" font-weight="800" fill="#2B2A3D">Three modes, one entry</text>
-<rect x="56" y="104" width="352" height="210" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<path d="M96,134 Q96,148 110,148 Q96,148 96,162 Q96,148 82,148 Q96,148 96,134 Z" fill="#F2B544" opacity="1.0"/>
-<text x="122" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="800" fill="#2B2A3D">Discuss</text>
-<text x="84" y="208" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" fill="#8A8798">You have an idea</text>
-<text x="84" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#2B2A3D">Features first, build second</text>
-<text x="84" y="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#B07D10">→ feature map + plan</text>
-<rect x="432" y="104" width="352" height="210" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<path d="M472,134 Q472,148 486,148 Q472,148 472,162 Q472,148 458,148 Q472,148 472,134 Z" fill="#3E9C9E" opacity="1.0"/>
-<text x="498" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="800" fill="#2B2A3D">Review</text>
-<text x="460" y="208" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" fill="#8A8798">You have a project</text>
-<text x="460" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#2B2A3D">Both read it, then cross-check</text>
-<text x="460" y="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#3E9C9E">→ gap list + top 3 fixes</text>
-<rect x="808" y="104" width="352" height="210" rx="22" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<path d="M848,134 Q848,148 862,148 Q848,148 848,162 Q848,148 834,148 Q848,148 848,134 Z" fill="#E07A5F" opacity="1.0"/>
-<text x="874" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="800" fill="#2B2A3D">Dispatch</text>
-<text x="836" y="208" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" fill="#8A8798">You have a plan</text>
-<text x="836" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#2B2A3D">Split, assign, verify</text>
-<text x="836" y="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="21" font-weight="600" fill="#E07A5F">→ a done report with evidence</text>
-<rect x="56" y="336" width="1088" height="40" rx="20" fill="#2B2A3D"/>
-<text x="600" y="363" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#F7F4EE">Type /roadstar (or 用 skill): it picks the mode, prints one setup line, and starts.</text>
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">One-page design → Size the job → Six-field brief → Dispatch → Verify in a new session → Wrap up → Reconcile</title>
+  <desc id="desc">Claude main session / Codex or subagent / Other vendor's model</desc>
+  <rect id="base" x="0" y="0" width="1200" height="330" fill="#F7F4EE" rx="28" />
+  <rect id="step-0" x="48" y="38" width="144" height="128" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="number-0" x="61" y="52" width="42" height="34" fill="#F2B544" rx="10" />
+  <text data-card="number-0" x="82" y="76" font-size="21" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0</text>
+  <path d="M194,106 H201 m-3,-4 l4,4 -4,4" fill="none" stroke="#8A8798" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="step-0" x="120.0" y="120" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">One-page</text>
+  <text data-card="step-0" x="120.0" y="145" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">design</text>
+  <rect id="step-1" x="204" y="38" width="136" height="128" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="number-1" x="217" y="52" width="42" height="34" fill="#E4DED3" rx="10" stroke="#3E9C9E" stroke-width="2" />
+  <text data-card="number-1" x="238" y="76" font-size="21" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">1</text>
+  <path d="M342,106 H349 m-3,-4 l4,4 -4,4" fill="none" stroke="#8A8798" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="step-1" x="272.0" y="120" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Size the</text>
+  <text data-card="step-1" x="272.0" y="145" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">job</text>
+  <rect id="step-2" x="352" y="38" width="147" height="128" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="number-2" x="365" y="52" width="42" height="34" fill="#E4DED3" rx="10" stroke="#3E9C9E" stroke-width="2" />
+  <text data-card="number-2" x="386" y="76" font-size="21" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">2</text>
+  <path d="M501,106 H508 m-3,-4 l4,4 -4,4" fill="none" stroke="#8A8798" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="step-2" x="425.5" y="120" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Six-field</text>
+  <text data-card="step-2" x="425.5" y="145" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">brief</text>
+  <rect id="step-3" x="511" y="38" width="166" height="128" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="number-3" x="524" y="52" width="42" height="34" fill="#E4DED3" rx="10" stroke="#3E9C9E" stroke-width="2" />
+  <text data-card="number-3" x="545" y="76" font-size="21" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">3</text>
+  <path d="M679,106 H686 m-3,-4 l4,4 -4,4" fill="none" stroke="#8A8798" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="step-3" x="594.0" y="133" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Dispatch</text>
+  <rect id="step-4" x="689" y="38" width="194" height="128" fill="#2B2A3D" rx="18" />
+  <rect id="number-4" x="702" y="52" width="42" height="34" fill="#F2B544" rx="10" />
+  <text data-card="number-4" x="723" y="76" font-size="21" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">4</text>
+  <path d="M857,58 Q857,69 868,69 Q857,69 857,80 Q857,69 846,69 Q857,69 857,58 Z" fill="#F2B544" />
+  <path d="M885,106 H892 m-3,-4 l4,4 -4,4" fill="none" stroke="#8A8798" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="step-4" x="786.0" y="120" font-size="18" font-weight="750" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Verify in a</text>
+  <text data-card="step-4" x="786.0" y="145" font-size="18" font-weight="750" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">new session</text>
+  <rect id="step-5" x="895" y="38" width="122" height="128" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="number-5" x="908" y="52" width="42" height="34" fill="#E4DED3" rx="10" stroke="#3E9C9E" stroke-width="2" />
+  <text data-card="number-5" x="929" y="76" font-size="21" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">5</text>
+  <path d="M1019,106 H1026 m-3,-4 l4,4 -4,4" fill="none" stroke="#8A8798" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+  <text data-card="step-5" x="956.0" y="133" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Wrap up</text>
+  <rect id="step-6" x="1029" y="38" width="123" height="128" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="number-6" x="1042" y="52" width="42" height="34" fill="#E4DED3" rx="10" stroke="#3E9C9E" stroke-width="2" />
+  <text data-card="number-6" x="1063" y="76" font-size="21" font-weight="800" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">6</text>
+  <text data-card="step-6" x="1090.5" y="133" font-size="18" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Reconcile</text>
+  <rect id="owner-0" x="48" y="181" width="451" height="56" fill="#E4DED3" rx="14" />
+  <text data-card="owner-0" x="273.5" y="215" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude main session</text>
+  <rect id="owner-3" x="511" y="181" width="166" height="56" fill="#E4DED3" rx="14" />
+  <text data-card="owner-3" x="594.0" y="205" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex or</text>
+  <text data-card="owner-3" x="594.0" y="225" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">subagent</text>
+  <rect id="owner-4" x="689" y="181" width="194" height="56" fill="#F2B544" rx="14" />
+  <text data-card="owner-4" x="786.0" y="205" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Other vendor's</text>
+  <text data-card="owner-4" x="786.0" y="225" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">model</text>
+  <rect id="owner-5" x="895" y="181" width="257" height="56" fill="#E4DED3" rx="14" />
+  <text data-card="owner-5" x="1023.5" y="215" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude main session</text>
+  <path d="M425.5,240 V257" fill="none" stroke="#E07A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <rect id="gate-2" x="339.5" y="259" width="172" height="39" fill="#2B2A3D" rx="19" />
+  <text data-card="gate-2" x="425.5" y="284" font-size="16" font-weight="600" fill="#F7F4EE" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">brief-check.py</text>
+  <path d="M786.0,240 V257" fill="none" stroke="#E07A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <rect id="gate-4" x="731.0" y="259" width="110" height="39" fill="#2B2A3D" rx="19" />
+  <text data-card="gate-4" x="786.0" y="284" font-size="16" font-weight="600" fill="#F7F4EE" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">guard.py</text>
+  <path d="M956.0,240 V257" fill="none" stroke="#E07A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <rect id="gate-5" x="854.5" y="259" width="203" height="39" fill="#2B2A3D" rx="19" />
+  <text data-card="gate-5" x="956.0" y="284" font-size="16" font-weight="600" fill="#F7F4EE" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">cleanup.py --check</text>
 </svg>

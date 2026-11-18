@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" width="1200" height="331" viewBox="0 0 1200 331" role="img" aria-labelledby="title desc">
+  <title id="title">Before dispatch · At merge · At wrap-up</title>
+  <desc id="desc">Before dispatch: brief-check.py — Brief missing a field: no dispatch / At merge: guard.py — No verification record, no merge / At wrap-up: cleanup.py --check — Loose ends mean not done</desc>
+  <rect id="base" x="0" y="0" width="1200" height="331" fill="#F7F4EE" rx="28" />
+  <rect id="when-0" x="44" y="35" width="234" height="80" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <path d="M70,65 Q70,75 80,75 Q70,75 70,85 Q70,75 60,75 Q70,75 70,65 Z" fill="#E07A5F" />
+  <text data-card="when-0" x="92" y="83" font-size="19" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Before dispatch</text>
+  <rect id="script-0" x="290" y="35" width="276" height="80" fill="#2B2A3D" rx="18" />
+  <text data-card="script-0" x="428" y="82" font-size="20" font-weight="600" fill="#F7F4EE" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">brief-check.py</text>
+  <rect id="result-0" x="578" y="35" width="578" height="80" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="result-0" x="605" y="83" font-size="24" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Brief missing a field: no dispatch</text>
+  <rect id="when-1" x="44" y="125" width="234" height="80" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <path d="M70,155 Q70,165 80,165 Q70,165 70,175 Q70,165 60,165 Q70,165 70,155 Z" fill="#F2B544" />
+  <text data-card="when-1" x="92" y="173" font-size="19" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">At merge</text>
+  <rect id="script-1" x="290" y="125" width="276" height="80" fill="#2B2A3D" rx="18" />
+  <text data-card="script-1" x="428" y="172" font-size="20" font-weight="600" fill="#F7F4EE" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">guard.py</text>
+  <rect id="result-1" x="578" y="125" width="578" height="80" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="result-1" x="605" y="173" font-size="24" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">No verification record, no merge</text>
+  <rect id="when-2" x="44" y="215" width="234" height="80" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <path d="M70,245 Q70,255 80,255 Q70,255 70,265 Q70,255 60,255 Q70,255 70,245 Z" fill="#3E9C9E" />
+  <text data-card="when-2" x="92" y="263" font-size="19" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">At wrap-up</text>
+  <rect id="script-2" x="290" y="215" width="276" height="80" fill="#2B2A3D" rx="18" />
+  <text data-card="script-2" x="428" y="262" font-size="20" font-weight="600" fill="#F7F4EE" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">cleanup.py --check</text>
+  <rect id="result-2" x="578" y="215" width="578" height="80" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <text data-card="result-2" x="605" y="263" font-size="24" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Loose ends mean not done</text>
+</svg>
