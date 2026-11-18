@@ -21,12 +21,12 @@ README 配图
 旧用例冲突处理：桩测试不该受影响；有任何一套 PASS 数变了就停下，交回套件名和完整输出，不改测试。
 
 ## 执行环境
-克隆 `/Users/rurutia/Documents/RuruCode/运行数据/任务临时/RSH1/repo`，分支 `docs/homepage-2x`，HEAD `3afe4b6`，工作区带着上一轮没提交的改动：三份 `README*.md` 已修改（别人的，别碰），`assets/readme/` 下新旧 svg 的增删改，`assets/readme/source/` 下新脚本，`docs/模块地图.md`、`CHANGELOG.md` 已修改，未跟踪 `RSH1-report.md` 和本场次目录（对不上就停）。命令从仓库根用 `python3` 跑。本机 `qlmanage` 在沙箱里转不了图，不用试，看图由 Argo 做。临时文件放自己 `mktemp -d` 的系统临时目录，收尾用字面路径删。
+克隆 `/Users/rurutia/Documents/RuruCode/运行数据/任务临时/RSH1/repo`，分支 `docs/homepage-2x`，上一轮的图、脚本和三份 README 已由 Argo 提交（`c1a6189`、`3398670`，其后可能还有只动场次文档的提交，HEAD 以 `git log -1` 为准）。工作区里这些都属预期、不算停：未跟踪的 `RSH1-report.md`（含上一次停工说明，接着往后追加）；本场次目录 `docs/roadstar/2026-11-18-homepage-2x/` 下任何已修改或未跟踪的文件（账本、任务书、运行记录由 Argo 随时追加）。只有这两处之外还有未提交改动才停。命令从仓库根用 `python3` 跑。本机 `qlmanage` 在沙箱里转不了图，不用试，看图由 Argo 做。临时文件放自己 `mktemp -d` 的系统临时目录，收尾用字面路径删。
 
 ## 验收命令与期望输出
 1. 改图前：`python3 assets/readme/source/check_assets.py; echo $?` → 非 0，输出里有 `changes` 三个文件名和离边留白的原因。
 2. 改图后：`python3 assets/readme/source/check_assets.py --all; echo $?` → `PASS 15 SVGs; three READMEs; no unreferenced SVGs`，0。
-3. `shasum -a 256 assets/readme/*.svg` 两遍一致；`git diff --stat -- assets/readme/workflow*.svg assets/readme/gates*.svg assets/readme/lineup*.svg` 与上一轮结束时相比无变化（先在动手前记下这九个文件的散列，改完再比）。
+3. `shasum -a 256 assets/readme/*.svg` 两遍一致；`git diff --exit-code -- assets/readme/workflow*.svg assets/readme/gates*.svg assets/readme/lineup*.svg; echo $?` → 0（这九个文件与已提交的逐字节相同）。
 4. C4 的变异命令与退出码。
 5. `bash skill/scripts/tests/run.sh` → 退出 0，九套 PASS 数同上。
 6. `wc -l assets/readme/source/*.py` → 每个不超过 400。
