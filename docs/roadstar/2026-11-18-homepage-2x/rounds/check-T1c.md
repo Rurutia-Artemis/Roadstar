@@ -67,7 +67,8 @@
 - 跳过或删测试：无。`skill/` 与 `install.sh` 相对 `3afe4b6` 零改动，桩测试文件没被改、删、跳过，九套 PASS 数同基线。
 - 关掉检查：无。
 - 留桩或半成品：无。
-- 新增例外 / 改检查配置：无。新增行里没有 `noqa`、`type: ignore`、`skip`（命中的只是英文 README 里「skipped test」一句描述）。
+- 新增例外 / 改检查配置：无。`git diff 3afe4b6 838328f -- . ':!docs/roadstar'` 的新增行里这几个词共 3 处命中，全在 `README.en.md` 的正文描述（「skipped test」「skips the check」「skip the design-page check」），代码和测试里为 0。
+- 合并检查点名的两个文件可以接受：`docs/roadstar/2026-11-18-homepage-2x/rounds/check-T1.md` 和 `docs/roadstar/2026-11-18-homepage-2x/rounds/check-T1c.md` 都是验收记录，命中的是「新增行里没有 noqa、type: ignore、skip」这句否定陈述本身含有这几个词，没有关掉任何检查、没有新增例外，也没有改检查配置。
 
 ## 必须改
 无。
