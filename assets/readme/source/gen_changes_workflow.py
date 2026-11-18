@@ -48,17 +48,19 @@ WORKFLOW = {
 def changes(lang):
     rows = CHANGES[lang]
     desc = " / ".join(f"{label}: {before} → {after}" for label, before, after in rows)
-    art = Drawing(480, lang, "1.14 → 2.0", desc)
-    art.rect("before", 228, 34, 429, 66, LINE)
-    art.rect("after", 718, 34, 438, 66, GOLD)
+    header_top, top, gap = 34, 111, 9
+    row_heights = (58, 58, 98, 58, 58)
+    last_row_bottom = top + sum(row_heights) + gap * (len(rows) - 1)
+    # The last row's 2-unit stroke extends one unit beyond its rect.
+    art = Drawing(last_row_bottom + 1 + header_top, lang, "1.14 → 2.0", desc)
+    art.rect("before", 228, header_top, 429, 66, LINE)
+    art.rect("after", 718, header_top, 438, 66, GOLD)
     art.text("before", "1.14", 254, 79, 34, weight=800, mono=True)
     art.text("after", "2.0", 744, 79, 34, weight=800, mono=True)
     art.star(1121, 67, 13, INK)
 
-    top = 111
-    for index, (label, before, after) in enumerate(rows):
+    for index, ((label, before, after), height) in enumerate(zip(rows, row_heights)):
         body = index == 2
-        height = 98 if body else 58
         center = top + height / 2
         art.rect(f"label-{index}", 34, top, 184, height, BG, radius=0)
         art.rect(f"before-{index}", 228, top, 429, height, LINE, radius=15)
@@ -69,7 +71,7 @@ def changes(lang):
         baseline = center + (19 if body else 8)
         art.text(f"before-{index}", before, 254, baseline, size, weight=750 if body else 500)
         art.text(f"after-{index}", after, 744, baseline, size, weight=800 if body else 700)
-        top += height + 9
+        top += height + gap
 
     art.write("changes", lang)
 

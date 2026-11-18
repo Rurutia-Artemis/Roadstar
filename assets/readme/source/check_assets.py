@@ -12,12 +12,15 @@ MAX_BYTES = 40_000
 DISPLAY_WIDTH = 880
 MIN_RENDERED_SIZE = 11
 PADDING = 12
+CANVAS_MARGIN = 24
 MIN_CONTRAST = 4.5
 READMES = ("README.md", "README.en.md", "README.ja.md")
 ASSET_REFERENCE = re.compile(r"assets/readme/([^\s<>\"`()]+\.svg)\b")
 UNSAFE_SOURCE = re.compile(r"@import|https?|<!DOCTYPE|<!ENTITY|<\?(?!xml\s)", re.IGNORECASE)
 SVG_NAMESPACE_DECL = re.compile(r"""\s+xmlns=(["'])http://www\.w3\.org/2000/svg\1""")
 ALLOWED_TAGS = {"svg", "title", "desc", "rect", "path", "circle", "text"}
+PATH_TOKEN = re.compile(r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?|[^\s,]")
+PATH_COORDS = {"M": 2, "L": 2, "H": 1, "V": 1, "Q": 4}
 
 
 def number(element, key):
@@ -38,6 +41,92 @@ def luminance(color):
 def contrast_ratio(foreground, background):
     dark, light = sorted((luminance(foreground), luminance(background)))
     return (light + 0.05) / (dark + 0.05)
+
+
+def check_margin(label, bounds, viewbox):
+    left, top, right, bottom = bounds
+    x, y, width, height = viewbox
+    distances = {"left": left - x, "top": top - y,
+                 "right": x + width - right, "bottom": y + height - bottom}
+    edges = [f"{edge} {gap:g}" for edge, gap in distances.items() if gap < CANVAS_MARGIN]
+    if edges:
+        yield f"{label}: canvas margin (< {CANVAS_MARGIN} units): {', '.join(edges)}"
+
+
+def add_quadratic_extreme(values, start, control, end):
+    denominator = start - 2 * control + end
+    if denominator:
+        t = (start - control) / denominator
+        if 0 < t < 1:
+            values.append((1 - t) ** 2 * start + 2 * (1 - t) * t * control + t ** 2 * end)
+
+
+def path_bounds(data):
+    # These are the absolute/relative path commands emitted by the generators.
+    tokens = PATH_TOKEN.findall(data)
+    if not tokens or tokens[0] not in ("M", "m"):
+        raise ValueError("path must start with M or m")
+    xs, ys = [], []
+    x = y = start_x = start_y = 0
+    index = 0
+    command = ""
+    while index < len(tokens):
+        if tokens[index].isalpha():
+            command = tokens[index]
+            index += 1
+        kind = command.upper()
+        if kind == "Z":
+            x, y = start_x, start_y
+            command = ""
+            continue
+        count = PATH_COORDS.get(kind)
+        if count is None or index + count > len(tokens):
+            raise ValueError(f"invalid or unsupported path command {command!r}")
+        coords = [float(token) for token in tokens[index:index + count]]
+        if not all(map(math.isfinite, coords)):
+            raise ValueError("path coordinates must be finite")
+        index += count
+        dx, dy = (x, y) if command.islower() else (0, 0)
+        if kind == "H":
+            x = coords[0] + dx
+        elif kind == "V":
+            y = coords[0] + dy
+        else:
+            end_x, end_y = coords[-2] + dx, coords[-1] + dy
+            if kind == "Q":
+                add_quadratic_extreme(xs, x, coords[0] + dx, end_x)
+                add_quadratic_extreme(ys, y, coords[1] + dy, end_y)
+            x, y = end_x, end_y
+        if kind == "M":
+            start_x, start_y = x, y
+            command = "l" if command.islower() else "L"
+        xs.append(x)
+        ys.append(y)
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def check_shape_margin(element, tag, viewbox):
+    identifier = element.get("id")
+    label = f"<{tag}> {identifier!r}" if identifier else f"<{tag}>"
+    try:
+        if tag == "rect":
+            x, y, width, height = (number(element, key) for key in ("x", "y", "width", "height"))
+            if identifier == "base" and (x, y, width, height) == viewbox:
+                return
+            bounds = (x, y, x + width, y + height)
+        elif tag == "circle":
+            x, y, radius = (number(element, key) for key in ("cx", "cy", "r"))
+            bounds = (x - radius, y - radius, x + radius, y + radius)
+        else:
+            bounds = path_bounds(element.attrib["d"])
+        if element.get("stroke", "none") != "none":
+            half_stroke = number(element, "stroke-width") / 2 if "stroke-width" in element.attrib else 0.5
+            left, top, right, bottom = bounds
+            bounds = (left - half_stroke, top - half_stroke, right + half_stroke, bottom + half_stroke)
+    except (KeyError, ValueError) as error:
+        yield f"{label}: invalid geometry for canvas margin ({error})"
+        return
+    yield from check_margin(label, bounds, viewbox)
 
 
 def check_text(element, cards, viewbox):
@@ -63,6 +152,7 @@ def check_text(element, cards, viewbox):
     text_width = size * sum(0.6 if char.isascii() else 1 for char in label)
     start = x - text_width * anchor
     end = start + text_width
+    yield from check_margin(repr(label), (start, y - size, end, y), viewbox)
     canvas_x, canvas_y, canvas_w, canvas_h = viewbox
     if width <= 0 or height <= 0 or not (
         canvas_x <= left < left + width <= canvas_x + canvas_w
@@ -136,6 +226,8 @@ def check_svg(path):
         if tag == "text":
             text_count += 1
             yield from check_text(element, cards, viewbox)
+        elif tag in ("rect", "circle", "path"):
+            yield from check_shape_margin(element, tag, viewbox)
 
     if not text_count:
         yield "SVG has no text to check"

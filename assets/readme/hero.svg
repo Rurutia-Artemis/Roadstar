@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" width="1200" height="463" viewBox="0 0 1200 463" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" width="1200" height="472" viewBox="0 0 1200 472" role="img" aria-labelledby="title desc">
   <title id="title">Roadstar</title>
   <desc id="desc">Claude plans, splits, verifies, Codex writes the code. Another vendor's model reviews, Scripts enforce the rules. Claude main session → Codex / Writes code → Claude subagent / What Codex can't do → Verify / New session, other vendor Brief incomplete: no dispatch · Unverified: no merge</desc>
-  <rect id="base" x="0" y="0" width="1200" height="463" fill="#F7F4EE" rx="28" />
+  <rect id="base" x="0" y="0" width="1200" height="472" fill="#F7F4EE" rx="28" />
   <rect id="intro" x="28" y="30" width="490" height="356" fill="#F7F4EE" rx="0" />
   <path d="M65,64 Q65,76 77,76 Q65,76 65,88 Q65,76 53,76 Q65,76 65,64 Z" fill="#F2B544" />
   <text data-card="intro" x="89" y="82" font-size="18" font-weight="600" fill="#2B2A3D" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">CLAUDE CODE SKILL · v2.0.0</text>
@@ -15,24 +15,24 @@
   <path d="M853,35 Q853,61 879,61 Q853,61 853,87 Q853,61 827,61 Q853,61 853,35 Z" fill="#F2B544" />
   <text data-card="host-label" x="853" y="121" font-size="24" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude main session</text>
   <path d="M853,136 V148 H598.0 V177" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" />
-  <rect id="card-T1" x="528" y="176" width="140" height="132" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="card-T1" x="528" y="176" width="140" height="141" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
   <rect id="card-T1-badge" x="542" y="191" width="52" height="32" fill="#E4DED3" rx="10" stroke="#3E9C9E" stroke-width="2" />
   <text data-card="card-T1-badge" x="568" y="213" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">T1</text>
   <text data-card="card-T1" x="543" y="252" font-size="20" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex</text>
   <text data-card="card-T1" x="542" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Writes code</text>
   <path d="M853,136 V148 H799.0 V177" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" />
-  <rect id="card-T2" x="680" y="176" width="238" height="132" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="card-T2" x="680" y="176" width="238" height="141" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
   <rect id="card-T2-badge" x="694" y="191" width="52" height="32" fill="#E07A5F" rx="10" />
   <text data-card="card-T2-badge" x="720" y="213" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">T2</text>
   <text data-card="card-T2" x="695" y="252" font-size="20" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude subagent</text>
   <text data-card="card-T2" x="694" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">What Codex can't do</text>
   <path d="M853,136 V148 H1043.0 V177" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" />
-  <rect id="card-verify" x="930" y="176" width="226" height="132" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="card-verify" x="930" y="176" width="226" height="141" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
   <rect id="card-verify-badge" x="944" y="191" width="52" height="32" fill="#F2B544" rx="10" />
   <text data-card="card-verify-badge" x="970" y="213" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">✓</text>
   <text data-card="card-verify" x="945" y="252" font-size="20" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Verify</text>
-  <text data-card="card-verify" x="945" y="276" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">New session,</text>
-  <text data-card="card-verify" x="945" y="296" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">other vendor</text>
-  <rect id="footer" x="44" y="382" width="1112" height="50" fill="#2B2A3D" rx="24" />
-  <text data-card="footer" x="600" y="415" font-size="21" font-weight="700" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Brief incomplete: no dispatch · Unverified: no merge</text>
+  <text data-card="card-verify" x="945" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">New session,</text>
+  <text data-card="card-verify" x="945" y="304.95" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">other vendor</text>
+  <rect id="footer" x="44" y="391" width="1112" height="50" fill="#2B2A3D" rx="24" />
+  <text data-card="footer" x="600" y="424" font-size="21" font-weight="700" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Brief incomplete: no dispatch · Unverified: no merge</text>
 </svg>

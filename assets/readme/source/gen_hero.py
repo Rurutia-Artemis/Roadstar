@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate the three localized Roadstar README hero illustrations."""
 
+import math
 import re
 
 from common import BG, CORAL, GOLD, INK, LINE, ROOT, SUFFIXES, TEAL, Drawing
@@ -50,7 +51,17 @@ def skill_version():
 def hero(lang, version):
     title, sentences, host, cards, footer = COPY[lang]
     diagram = " → ".join([host, *(" / ".join(card) for card in cards)])
-    art = Drawing(463, lang, title, " ".join((*sentences, diagram, footer)))
+    subtitles = [(detail,) for _, detail in cards]
+    if lang == "en":
+        first, second = subtitles[-1][0].split(", ", 1)
+        subtitles[-1] = (first + ",", second)
+
+    card_top, card_height = 176, 132
+    subtitle_baseline, subtitle_size, subtitle_bottom_padding = 282, 17, 12
+    line_height = subtitle_size * 1.35
+    last_baseline = subtitle_baseline + line_height * (max(map(len, subtitles)) - 1)
+    extra_height = max(0, math.ceil(last_baseline + subtitle_bottom_padding) - (card_top + card_height))
+    art = Drawing(463 + extra_height, lang, title, " ".join((*sentences, diagram, footer)))
     art.rect("intro", 28, 30, 490, 356, BG, radius=0)
     art.star(65, 76, 12)
     art.text("intro", f"CLAUDE CODE SKILL · v{version}", 89, 82, 18, mono=True)
@@ -66,27 +77,26 @@ def hero(lang, version):
     art.star(853, 61, 26)
     art.text("host-label", host, 853, 121, 24, weight=750, anchor="middle")
 
-    for x, width, badge, tone, (name, detail) in zip(
-        (528, 680, 930), (140, 238, 226), ("T1", "T2", "✓"), (TEAL, CORAL, GOLD), cards
+    for x, width, badge, tone, (name, _), lines in zip(
+        (528, 680, 930), (140, 238, 226), ("T1", "T2", "✓"), (TEAL, CORAL, GOLD), cards, subtitles
     ):
         key = "card-" + badge.replace("✓", "verify")
         middle = x + width / 2
         art.path(f"M853,136 V148 H{middle} V177", dash="3 6")
-        art.rect(key, x, 176, width, 132, stroke=LINE)
+        art.rect(key, x, card_top, width, card_height + extra_height, stroke=LINE)
         art.rect(key + "-badge", x + 14, 191, 52, 32, LINE if tone == TEAL else tone,
                  radius=10, stroke=TEAL if tone == TEAL else None)
         art.text(key + "-badge", badge, x + 40, 213, 17, anchor="middle", mono=True)
         name_size = 17 if lang == "ja" and badge == "T2" else 20
         art.text(key, name, x + 15, 252, name_size, weight=750)
-        if lang == "en" and badge == "✓":
-            first, second = detail.split(", ", 1)
-            art.text(key, first + ",", x + 15, 276, 17, weight=500)
-            art.text(key, second, x + 15, 296, 17, weight=500)
-        else:
-            art.text(key, detail, x + 14, 282, 17, weight=500)
+        subtitle_x = x + (15 if len(lines) > 1 else 14)
+        y = subtitle_baseline
+        for line in lines:
+            art.text(key, line, subtitle_x, y, subtitle_size, weight=500)
+            y += line_height
 
-    art.rect("footer", 44, 382, 1112, 50, INK, radius=24)
-    art.text("footer", footer, 600, 415, 21, color=BG, weight=700, anchor="middle")
+    art.rect("footer", 44, 382 + extra_height, 1112, 50, INK, radius=24)
+    art.text("footer", footer, 600, 415 + extra_height, 21, color=BG, weight=700, anchor="middle")
     art.write("hero", lang)
 
 

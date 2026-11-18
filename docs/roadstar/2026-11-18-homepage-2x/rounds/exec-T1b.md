@@ -1,5 +1,9 @@
 🛠 Karina · 工程
 
-T1b 在工作区预检时按任务书要求停下。分支 `docs/homepage-2x`、HEAD `3398670` 均符合要求，但 [ledger.md](</Users/rurutia/Documents/RuruCode/运行数据/任务临时/RSH1/repo/docs/roadstar/2026-11-18-homepage-2x/ledger.md>) 有一条未提交的 16:24 派活记录，位于允许范围 `rounds/` 之外。
+T1b 的 C1–C5 全部通过，证据已追加到 [RSH1-report.md](</Users/rurutia/Documents/RuruCode/运行数据/任务临时/RSH1/repo/RSH1-report.md:154>)。
 
-我保留了这条记录，未改脚本或配图，C1–C5 均未执行。已在 [RSH1-report.md](</Users/rurutia/Documents/RuruCode/运行数据/任务临时/RSH1/repo/RSH1-report.md:141>) 追加 T1b 停工说明，末行标为「完成状态：未全部完成」。
+- 新增四边至少 24 单位的留白检查。改图前只有 `changes` 三版报错；修后上下留白均为 34。
+- `hero` 三版的副句首行基线统一为 282。英文第二行按 1.35 倍字号下排，三张卡等高；中日图逐字节不变。
+- 画布缩短 30 的变异退出 1，还原后退出 0。15 张图两次生成的 SHA-256 一致，九张受保护图与基线逐字节相同。默认检查、`--all` 和桩测试均退出 0，九套 PASS 数与预期一致。
+
+临时文件已清理，未提交、未推送。实际渲染目检由 Argo 完成。

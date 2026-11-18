@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="en" width="1200" height="512" viewBox="0 0 1200 512" role="img" aria-labelledby="title desc">
   <title id="title">1.14 → 2.0</title>
   <desc id="desc">Trigger: Runs on request → Runs by default / Rules: Rules in the text → Scripts block 3 points / Body: 224 lines → 54 lines / Before work: Dashboard and strategy prompt → One-page design / Discussion: Three rounds by default → One round from each vendor</desc>
-  <rect id="base" x="0" y="0" width="1200" height="480" fill="#F7F4EE" rx="28" />
+  <rect id="base" x="0" y="0" width="1200" height="512" fill="#F7F4EE" rx="28" />
   <rect id="before" x="228" y="34" width="429" height="66" fill="#E4DED3" rx="18" />
   <rect id="after" x="718" y="34" width="438" height="66" fill="#F2B544" rx="18" />
   <text data-card="before" x="254" y="79" font-size="34" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">1.14</text>
