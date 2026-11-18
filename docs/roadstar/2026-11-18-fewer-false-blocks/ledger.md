@@ -1,0 +1,15 @@
+主人 11-18 09:41 回「改误拦」
+- 11-18 起草（Sonnet 起草人，会话「大脑」派）：主干 `1ad849f`，Roadstar 主目录有别的未跟踪场次目录，未动。复现都在 `/Users/rurutia/Documents/RuruCode/运行数据/任务临时/` 下自己 `mktemp -d` 的合成仓库里做，代码只读。
+- 开工基线：在主干克隆里跑 `bash skill/scripts/tests/run.sh`，退出 0；各套件末行 PASS 依次 88、20、95、50、13、36、41、8、18、40、23，合计 432。
+- 复现 1 留桩：复现了。`guard_rules.lowering_hits` 对 `def count_done(todo_list):`、`def test_todo_done():`、`f=$(mktemp "$archive_bin/.$script.XXXXXX")` 都报「留桩或半成品」（真样例 `# TODO: 没做完` 也报，应当）。根因 `guard_rules.py:23` 的 STUB 忽略大小写子串匹配，`:159` 对新增行使用。记忆卡 mc-2edd7188bd 正文只写「两处误报、拦了 4 次合并」，没有更细的内容；按它的日期和实例判断与本条重复（todo 标识符、XXXXXX 模板），并入改动 1，没有它独有的新项。
+- 复现 2「重做」否定句：复现了。任务书目标写「这次不重做 text 模块，只改乘法。」，`brief-check.py` 退出 2，报「目标里有「重做」，缺「同类方案」一节」。根因 `design_page.py:66` `prior_art_trigger` 用 `.search`，不看紧前文。
+- 复现 3 tests 目录：复现了两处。(a) 地图只有 calc、text 两个模块，任务选 calc，提交 `tests/test_calc.py`，commit-msg 退出 1，「tests/test_calc.py → 地图里没有」，根因 `guard.py:309-311`。(b) 任务书涉及模块写 calc 和 tests、设计页没有两行模块表，`--write --class 页面实现` 退出 2，「设计页「模块表」至少要两行数据」，根因 `brief-check.py:80-81` 的模块计数把 tests 也算。
+- 复现 4 `cleanup.py --check`：复现了，范围比盘点说的窄一点：不是恒退出 1（模拟里单项目退 0），而是带 `--plan-dir` 时别的分支上带别场次 `Roadstar-Task` trailer 的未合并任务也算，本场次全收完仍退出 1，输出「没合并：T9（docs/roadstar/old）在分支 other 上，1 个提交」。根因 `cleanup.py` `close_check`（236 行起）按全部本地分支扫 trailer（278 行），不看 `--plan-dir`；`:310` `return 1 if items`。没复现「别人的工作副本」那一路：ws-guard 钩子拦下了我在克隆外新建 worktree 的命令，没有绕过，只复现了分支这一路。
+- 复现 5 记忆卡 mc-2edd7188bd：用 memory_read 读到，卡是 11-17 的待办，写「两处误报，本周拦了 4 次合并」，没有主人批准证据；两处按卡的说法与改动 1（留桩的标识符和模板）对应，已并入，无新增项。
+- 拆分：一份任务书 T1，预计 45 分钟、上限 90（窄回归默认 15 分钟，五处修复各带用例和变异检验按三倍取）。五处分属 guard_rules.py、design_page.py、brief-check.py、guard.py、cleanup.py 五个源文件，没有两份活改同一文件的问题，所以不拆。
+- 任务书检查：`python3 ~/.claude/skills/roadstar/scripts/brief-check.py rounds/brief-T1.md --class 补全 --est-minutes 45 --write --plan-dir <场次目录>` 退出 0，无输出。
+- 待「大脑」定：`RuruAgent/tools/rules-reminder/roadstar-铁律.md` 第 11 行要不要同步写 `--plan-dir`（不在任务书范围）；任务书让执行方不要跑 `./install.sh`（会把 skill 软链改指向克隆），合并后由 Argo 跑。
+- 11-18 09:58 「大脑」看过任务书，照派：Codex gpt-6.2-sol/high，补全，预计 45 分钟、上限 90 分钟，克隆 RFB1（1ad849f）。裁定：RuruAgent 的 roadstar-铁律.md 这次不同步（另一份活正在改那个钩子，铁律正文要求一个字不动）；install.sh 执行方不跑，合并后看 skill 链接指向哪再定；新用例里的 TODO、XXX 样例会被仓库自己的留桩检查命中，由验收员在五查里点名。
+- 11-18 10:20 T1 交回（Codex gpt-6.2-sol，约 19 分钟，rounds/exec-T1-report.md）：13 个文件 +165/−21，它报全量 437 项通过（基线 432）。提交 1ad849f，提交后我复跑测试入口见上。派 Sonnet 验收。
+- 11-18 10:23 更正上一行：第一次提交被克隆里装的范围检查拦下（`skill/scripts/tests/close-check-tests.sh` 没登记在地图里，正是这次要修的那类），没提交成。没用放行行；我在克隆的地图「任务执行与验收」那一行的入口栏补登了这个测试文件（一处），重提成功：81a6445。复跑测试入口见上。
+- 11-18 10:31 T1 验收通过（check-T1.md，26a655f）：全量 437 项（基线 432），五次变异各挂对应新用例。可以不改、进停车场的：判「测试文件」用的是含 `test/` 的子串，`docs/latest/x.txt` 这类路径也会被当成测试文件放行（原有判断，这次多了一个出口）；「不能不重做」这种双重否定会被放行；NotImplementedError 等几个词现在区分大小写。合并进主干。

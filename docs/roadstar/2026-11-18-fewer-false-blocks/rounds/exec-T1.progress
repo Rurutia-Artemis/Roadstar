@@ -1,0 +1,30 @@
+2026-11-18T01:00:05Z	1	pass	HEAD 1ad849faa8bef235ce99ba473399e801303f1ad9，分支 roadstar/fewer-false-blocks，初始 git status --short 为空；待改源文件与测试均未超 800 行
+2026-11-18T01:02:08Z	6-baseline	pass	bash skill/scripts/tests/run.sh 退出 0；PASS 88/20/95/50/13/36/41/8/18/40/23，合计 432
+2026-11-18T01:02:08Z	7-backup-dir	fail	mkdir ../mut 被沙箱拒绝（Operation not permitted）；将尝试在进程内保留源字节，不落盘备份
+2026-11-18T01:03:58+00:00	2	pass	bash skill/scripts/tests/guard-rules-tests.sh 退出 0；PASS 42 checks
+2026-11-18T01:04:17+00:00	3	pass	bash skill/scripts/tests/guard-tests.sh 退出 0；PASS 51
+2026-11-18T01:04:21+00:00	4	fail	bash skill/scripts/tests/close-check-tests.sh 退出 1；FAIL 1/14
+2026-11-18T01:06:41+00:00	4-baseline-fixture	pass	bash skill/scripts/tests/close-check-tests.sh 退出 0；PASS 13（沿用 run.sh 的临时废纸篓设置）
+2026-11-18T01:06:45+00:00	4	pass	bash skill/scripts/tests/close-check-tests.sh 退出 0；PASS 14（沿用 run.sh 的临时废纸篓设置）
+2026-11-18T01:07:02+00:00	5	pass	bash skill/scripts/tests/brief-tests.sh 退出 0；PASS 90 checks（沿用 run.sh 的临时废纸篓设置）
+2026-11-18T01:07:45+00:00	8-dir	fail	沙箱不允许在 RFB1 直属位置 mkdir；改在 RFB1/repo 下建临时复现目录
+2026-11-18T01:07:47+00:00	8	pass	固定版分别复现 F1/F2/F3a/F3b/F4 的放行与拦截，核对五查命中文件；合成目录已删除
+2026-11-18T01:09:26+00:00	6	pass	bash skill/scripts/tests/run.sh 退出 0；PASS 90/20/95/51/14/36/42/8/18/40/23，合计 437
+2026-11-18T01:10:05+00:00	7-F1-mutated	pass	guard_rules.py 回退 HEAD，guard-rules-tests.sh 退出 1；命中新用例 F1
+2026-11-18T01:10:05+00:00	7-F1-restore	pass	guard_rules.py 源字节和 git diff --stat 与变异前一致
+2026-11-18T01:10:29+00:00	7-F1-rerun	pass	guard-rules-tests.sh 退出 0；PASS 42 checks
+2026-11-18T01:10:30+00:00	7-F2-mutated	pass	design_page.py 回退 HEAD，brief-tests.sh 退出 1；命中新用例 F2
+2026-11-18T01:10:30+00:00	7-F2-restore	pass	design_page.py 源字节和 git diff --stat 与变异前一致
+2026-11-18T01:10:46+00:00	7-F2-rerun	pass	brief-tests.sh 退出 0；PASS 90 checks
+2026-11-18T01:11:01+00:00	7-F3b-mutated	pass	brief-check.py 回退 HEAD，brief-tests.sh 退出 1；命中新用例 F3b
+2026-11-18T01:11:01+00:00	7-F3b-restore	pass	brief-check.py 源字节和 git diff --stat 与变异前一致
+2026-11-18T01:11:18+00:00	7-F3b-rerun	pass	brief-tests.sh 退出 0；PASS 90 checks
+2026-11-18T01:11:36+00:00	7-F3a-mutated	pass	guard.py 回退 HEAD，guard-tests.sh 退出 1；命中新用例 F3a
+2026-11-18T01:11:36+00:00	7-F3a-restore	pass	guard.py 源字节和 git diff --stat 与变异前一致
+2026-11-18T01:11:55+00:00	7-F3a-rerun	pass	guard-tests.sh 退出 0；PASS 51
+2026-11-18T01:11:58+00:00	7-F4-mutated	pass	cleanup.py 回退 HEAD，close-check-tests.sh 退出 1；命中新用例 F4
+2026-11-18T01:11:58+00:00	7-F4-restore	pass	cleanup.py 源字节和 git diff --stat 与变异前一致
+2026-11-18T01:12:03+00:00	7-F4-rerun	pass	close-check-tests.sh 退出 0；PASS 14
+2026-11-18T01:12:45+00:00	9	pass	9 个源文件和测试文件最大 781 行；guard-tests.sh 781 行，新增 14 行
+2026-11-18T01:12:45+00:00	10	pass	git diff --stat 仅含任务书的 13 个已跟踪文件；13 files changed, 165 insertions(+), 21 deletions(-)
+2026-11-18T01:14:35+00:00	6	pass	最终版 bash skill/scripts/tests/run.sh 退出 0；PASS 90/20/95/51/14/36/42/8/18/40/23，合计 437
