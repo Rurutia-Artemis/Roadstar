@@ -42,7 +42,7 @@ metadata:
 `<项目根>/docs/roadstar/_common.md` 是项目常驻边界；每件活一个 `<日期>-<slug>/`：`plan.md`（大活才有）、`ledger.md`、`rounds/`（`exec-T<n>-request.md` 任务书、`exec-T<n>.md` 执行回复、`.meta`、`.progress`、`check-T<n>.md` 验收）。没有仓库的任务放 `~/Documents/RuruCode/AI任务/roadstar/`。本机设置在 `~/.config/roadstar/`。
 刚接入的项目先按 `references/project-map.md`「刚接入的项目：接入清单」逐项核对。
 
-## 纪律（铁律摘要由 `RuruAgent/tools/rules-reminder` 在场次活着时每轮贴进对话）
+## 纪律（铁律由 `RuruAgent/tools/rules-reminder` 在场次活着时贴进对话：全文在首轮、压缩后、每 20 轮，其余轮一行提醒）
 
 - 品质不打折：交给主席的东西先问自己愿不愿意用、愿不愿意发；额度用到零再报一次（哪家、几时重置），由主席充值或重置，之前不停、不问（主席 11-13 定）。
 - 数字只来自脚本输出或 `.meta`，不手填；证据先于立场；范围外建议进停车场；密钥不进 prompt（喂给 Dex、Grace 的内容等于发给外部）。
