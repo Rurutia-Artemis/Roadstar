@@ -17,7 +17,7 @@ COPY = {
     "en": (
         "Roadstar",
         ("Claude plans, splits, verifies,", "Codex writes the code.",
-         "Another vendor's model hunts for errors,", "Scripts enforce the rules."),
+         "Another vendor's model hunts for errors.", "Scripts enforce the rules."),
         "Claude main session",
         (("Codex", "Writes code"), ("Claude subagent", "What Codex can't do"),
          ("Verify", "New session, other vendor")),
@@ -48,6 +48,27 @@ def skill_version():
     raise ValueError("skill/SKILL.md: missing metadata.version in frontmatter")
 
 
+def wrap_intro_subtitle(sentence, size, available_width):
+    def estimated_width(line):
+        # Match the SVG checker's estimates for ASCII and full-width glyphs.
+        return size * sum(0.6 if char.isascii() else 1 for char in line)
+
+    if estimated_width(sentence) <= available_width:
+        return [sentence]
+
+    lines = []
+    line = ""
+    # Keep ASCII words together; unspaced CJK copy can break between glyphs.
+    for token in re.findall(r"[!-~]+|.", sentence):
+        candidate = line + token
+        if line and estimated_width(candidate.rstrip()) > available_width:
+            lines.append(line.rstrip())
+            line = token
+        else:
+            line = candidate
+    return [*lines, line.rstrip()]
+
+
 def hero(lang, version):
     title, sentences, host, cards, footer = COPY[lang]
     diagram = " → ".join([host, *(" / ".join(card) for card in cards)])
@@ -56,6 +77,7 @@ def hero(lang, version):
         first, second = subtitles[-1][0].split(", ", 1)
         subtitles[-1] = (first + ",", second)
 
+    card_lefts = (528, 680, 930)
     card_top, card_height = 176, 132
     subtitle_baseline, subtitle_size, subtitle_bottom_padding = 282, 17, 12
     line_height = subtitle_size * 1.35
@@ -66,16 +88,20 @@ def hero(lang, version):
     art.star(65, 76, 12)
     art.text("intro", f"CLAUDE CODE SKILL · v{version}", 89, 82, 18, mono=True)
     art.text("intro", title, 48, 167, 49 if lang == "zh-CN" else 74, weight=800)
-    for index, (sentence, y, size) in enumerate(zip(sentences, (226, 264, 321, 352), (27, 27, 20, 20))):
-        weight = 700 if size == 27 else 500
-        if lang == "en" and size == 27:
-            size = 24
-        if lang == "en" and index == 2:
-            determiner, vendor, model, action = sentence.split(" ", 3)
-            art.text("intro", f"{determiner} {vendor} {model}", 49, y - 14, size, weight=weight)
-            art.text("intro", action, 49, y + 10, size, weight=weight)
-        else:
-            art.text("intro", sentence, 49, y, size, weight=weight)
+    intro_x = 49
+    for sentence, y in zip(sentences[:2], (226, 264)):
+        art.text("intro", sentence, intro_x, y, 24 if lang == "en" else 27, weight=700)
+
+    # The first diagram card starts half its 2-unit stroke before its x coordinate.
+    intro_width = min(card_lefts) - 1 - intro_x - 40
+    intro_size = 18 if lang == "en" else 20
+    intro_lines = [
+        line for sentence in sentences[2:]
+        for line in wrap_intro_subtitle(sentence, intro_size, intro_width)
+    ]
+    intro_line_height = intro_size * 1.35 if len(intro_lines) > len(sentences[2:]) else 31
+    for index, line in enumerate(intro_lines):
+        art.text("intro", line, intro_x, 321 + index * intro_line_height, intro_size, weight=500)
 
     art.rect("host-label", 646, 94, 414, 39, BG, radius=0)
     art.add("circle", cx=853, cy=61, r=30, fill=LINE)
@@ -83,7 +109,7 @@ def hero(lang, version):
     art.text("host-label", host, 853, 121, 24, weight=750, anchor="middle")
 
     for x, width, badge, tone, (name, _), lines in zip(
-        (528, 680, 930), (140, 238, 226), ("T1", "T2", "✓"), (TEAL, CORAL, GOLD), cards, subtitles
+        card_lefts, (140, 238, 226), ("T1", "T2", "✓"), (TEAL, CORAL, GOLD), cards, subtitles
     ):
         key = "card-" + badge.replace("✓", "verify")
         middle = x + width / 2
