@@ -1,127 +1,202 @@
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Roadstar: Claude plans, splits and verifies; Codex writes the code. Both subscriptions get used, and the other vendor's model reviews every plan.">
+  <img src="./assets/readme/hero.svg" width="100%" alt="Roadstar 2.0: Claude plans, splits and verifies; Codex writes the code. A model from the other vendor reviews the work, and scripts enforce the rules.">
 </p>
 
-<p align="center"><b>English</b> · <a href="./README.md">中文</a> · <a href="./README.ja.md">日本語</a></p>
+<p align="center"><a href="./README.md">中文</a> · <b>English</b> · <a href="./README.ja.md">日本語</a></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-skill-E07A5F?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/Codex_CLI-%E2%89%A5%200.160-3E9C9E?style=flat-square" alt="Codex CLI 0.160 or later">
-  <img src="https://img.shields.io/badge/version-1.14.0-F2B544?style=flat-square" alt="version 1.14.0">
+  <img src="https://img.shields.io/badge/version-2.0.0-F2B544?style=flat-square" alt="version 2.0.0">
   <img src="https://img.shields.io/badge/deps-bash%20%2B%20python%20stdlib-8A8798?style=flat-square" alt="bash and Python standard library only">
   <img src="https://img.shields.io/badge/license-MIT-2B2A3D?style=flat-square" alt="MIT license">
 </p>
 
-Roadstar is a Claude Code skill that turns your Claude session into a dispatcher for Codex. Claude writes the plan, splits the work into tasks of two hours or less, picks a model for each one, sends the coding to Codex, and verifies the result with a different model before it reaches you. If you pay for both Claude and ChatGPT, both subscriptions finally do real work.
+# Roadstar
 
-<p align="center"><img src="./assets/readme/section-1.svg" width="100%" alt="01 Used for real: 17 runs, 244 Codex sessions, 31 rules"></p>
+Roadstar is a Claude Code skill. The main Claude session plans, splits the work and verifies it. Codex writes the code. Then a different session, on a model from the other vendor, comes back and hunts for mistakes. Any job that takes more than an hour runs through six steps automatically inside your project session. You never name the skill.
 
-Since 2026-10-04 the author has run it across four of their own projects (two apps, a website and a design tool):
+After you install it, you keep asking for things in your project as usual. When a request is bigger than an hour, Claude first writes a one-page design. It then splits the job into six-field task briefs and hands them to Codex or to Claude subagents. A fresh session, on a model from the other vendor, re-runs the verification commands on each result. Nothing merges into the main branch until that check has passed. Small jobs that fit in an hour are done directly, with no process.
 
-<p align="center"><img src="./assets/readme/stats.svg" width="100%" alt="17 runs across four projects since 2026-10-04, 244 Codex sessions (130 on gpt-6.1-sol, 114 on gpt-6-astra), 31 rules"></p>
+You get two things. Each subscription's quota covers its own kind of work, so your Claude quota goes to directing and judging. And every deliverable carries a review record from the other vendor's model, stored in the repo where you can look it up later.
 
-Each of the 31 rules was written the day a real run went wrong: a task that used 30% of the weekly quota in 7.5 hours, a merge that committed 846 screenshots, an app that passed every test and then ignored all taps once installed on a phone.
+| What you need | How Roadstar runs it | What you get |
+|---|---|---|
+| A small job, under an hour | No process. Claude just does it. | One turn, no extra files |
+| A medium job, over an hour | Half-page design, one task brief, one executor, verification in a new session | The change plus a verification record |
+| A large job or a new project | Full-page design, split into several task briefs of two hours or less, dispatch table shown to you first | Each task has its own brief and verification record, then merges into the main branch |
+| Just an idea, or a retrospective | Say "open a roundtable" (开圆桌). Both vendors each give one round of lists and you pick | A `plan.md`, or a list of gaps you have chosen |
 
-Every run starts with one line of setup and a live quota reading. The probe reads both accounts in just over a second and spends no quota:
+## What changed in 2.0
+
+1.14 was a long process you had to name to run, with a 224-line body. 2.0 was rewritten on November 3. The two weeks after that added another round of fixes from real projects and simulated runs.
+
+<p align="center"><img src="./assets/readme/changes.svg" width="100%" alt="1.14 versus 2.0: runs on request becomes runs by default, rules written in the text become scripts that block at three points, and the body shrinks from 224 lines to 54."></p>
+
+1. **It runs by default, with no trigger words to remember.** In a project session, any job that takes more than an hour goes through the six steps on its own. 1.14 needed you to say "use the skill".
+2. **Scripts enforce the rules. The model does not have to remember to read them.** If a task brief lacks a field, `brief-check.py` makes `dex-exec.sh` exit with code 2 and the job is not dispatched. If there is no verification record, `guard.py` refuses the merge into the main branch. At wrap-up, `cleanup.py --check` finds unfinished work, and the run does not count as done.
+3. **The body fits in two screens.** `skill/SKILL.md` went from 224 lines and 18152 characters in 1.14 to 54 lines and 4514 characters. The dashboard, the strategy question, the minutes and the completion report are all gone. The full 1.14 text is kept in `skill/references/SKILL-v1.14.md` if you want to go back.
+4. **A one-page design comes before any work.** Medium jobs get half a page, large jobs and new projects get a full page, saved as `design.md` in the run's directory. Questions only you can answer are listed once, each with a recommended answer, and replying "OK" takes all the recommendations. For jobs that need your approval, the approval record is taken by a session hook from your own words in that turn. An approval the model writes by hand does not count.
+5. **Verification uses a new session and the other vendor, and looks specifically for quietly lowered standards.** Sonnet verifies what Codex wrote, and Codex verifies what Sonnet wrote. The verification record has a section called the "five lowered-standard checks" (降标准五查): a lowered threshold, a skipped or deleted test, a disabled check, a stub or half-finished piece left behind, and a newly added exception. At merge time `guard.py` checks that section by file path.
+6. **It cuts its losses, and the estimates calibrate themselves.** It stops when one check fails three times in a row, when the work spins in place, or when 90% of the time is used up. Finished work is kept, and only what failed goes to a higher-tier model. The cap is twice the estimated time. The estimate comes from an experience table, and `dispatch-stats.py --calibrate` rewrites that table from the real durations on your machine.
+7. **Fewer wrong blocks.** On November 17 and 18, simulated runs over real usage records and a synthetic project (14 kinds of deliberate mistakes, 2 of them missed) turned up a batch of false blocks and misses. Five false blocks were narrowed and two misses were closed. See the November 17 and 18 entries in `CHANGELOG.md`.
+
+## Watch it block once
+
+The three blocks below are the original output of a real run in a throwaway demo project, with the temp directory in the paths replaced by `demo`. The scripts print their messages in Chinese, so the output is kept as printed, and a short English reading follows each block. In the first, the task brief is missing the "执行环境" (execution environment) field. `brief-check.py` refuses it and exits with code 2:
 
 ```console
-$ python3 skill/scripts/quota-status.py
-Claude：5 小时 4%（18:49 重置）｜本周 82%（10-18 12:59 重置）｜Fable 2%（上限是周额度一半） → 紧
-Codex：本周 9%（10-22 15:50 重置）｜重置卡 1 张｜credits … → 正常
-Grok：已登录 grok-4.7（4 个型号）｜额度读不到（CLI 没有接口） → ？
-API key：有（anthropic）；1.12 只记有无，派活不用
+$ python3 skill/scripts/brief-check.py docs/roadstar/2026-11-20-demo/rounds/exec-T1-request.md
+任务书不合格，派不出去：
+  - 缺「执行环境」一栏
+  按 references/task-brief-template.md 补齐再派；真急可 BRIEF_CHECK=0（会记下）。
+$ echo $?
+2
 ```
 
-Claude's quota reads "tight" (紧) and Codex's reads "normal" (正常), so this week the coding goes to Codex. Since 1.12 the reading opens a panel: how many providers are connected, each one's reading and tier, and how many pieces of work the week still holds once reset cards are counted (a piece is one ordinary page-implementation lane). Numbers whose coefficient is still the default carry a "≈" and the raw percentage next to them. The panel ends with one question about strategy. Enter means auto; one word switches to quality, thrift or rush for this run only.
+The brief fails the check and cannot be dispatched, because the "execution environment" field is missing. Fill in the fields following `references/task-brief-template.md` and dispatch again. In a real emergency, `BRIEF_CHECK=0` skips the check, and the skip is logged.
 
-<p align="center"><img src="./assets/readme/panel.svg" width="100%" alt="Opening panel, one question, then a schedule. Panel: 3 providers connected plus Grace for research; Claude Max week 97%, 0 points left; Codex Pro week 8% with 1 reset card, about 273 pieces; Grok logged in but quota unreadable. About 273 pieces this week at low confidence, 300 more per reset card. Strategy: auto, quality, thrift, rush; Enter means auto. Schedule: six tasks with model, estimate and finish time; lane time 5h48, three Codex lanes, critical path 2, 3, 5, 6, all done by 19:24. Every number comes from a script."></p>
+In the second, the demo repo has the checks installed with `install-guard.sh`. A commit on the feature branch carries a `Roadstar-Task` trailer but there is no `check-T1.md`, so `git merge --no-ff` is blocked:
 
-<p align="center"><img src="./assets/readme/section-2.svg" width="100%" alt="02 What it fixes: two subscriptions, a second model, less babysitting"></p>
+```console
+$ git merge --no-ff feat/export -m "merge feat/export"
+拦下了：这些任务还没有验收记录，不能合并
+- docs/roadstar/2026-11-20-demo/T1：demo/docs/roadstar/2026-11-20-demo/rounds/check-T1.md
+怎么办：先验收，再在上面的路径写下非空验收记录，然后重试 git merge --no-ff。
+Not committing merge; use 'git commit' to complete the merge.
+```
 
-### Two subscriptions, one doing the work
+The merge is blocked because task T1 has no verification record yet. The hook lists the path where the record must be written. Verify first, write a non-empty record at that path, then retry `git merge --no-ff`. The last line is Git's own message.
 
-Claude is the better organizer, so it keeps that job: planning, splitting, reviewing. Codex does the implementation. Claude's four models each have a standing job. Haiku 5.5 takes lookups and batch work at about a twentieth of Sonnet's API price. Sonnet reviews what Codex writes. Opus and Astra split the hard tasks by quota, and Fable stays in the main session until a problem survives two rounds.
+In the third, the same run is wrapped up with `cleanup.py --check`. The work has not been merged into the main branch, and the exit code is 1:
 
-<p align="center"><img src="./assets/readme/lineup.svg" width="100%" alt="Six models, each on the work it does best. Claude, four tiers: Fable 5.1 for main-session judgment and root causes when stuck (API $10/$50); Opus 5.5 for hard tasks, root causes and mockups ($4/$20); Sonnet 5.5 for cross-vendor review and spec'd builds ($2/$10); Haiku 5.5 for lookups and batch work, always on ($0.10/$0.50). Codex, two tiers: Astra for hard tasks and plan review; 6.1 Sol for routine implementation at about a fifth of Astra. Stuck? Stop, keep what passed, hand the rest up."></p>
+```console
+$ python3 skill/scripts/cleanup.py --project demo --check --plan-dir docs/roadstar/2026-11-20-demo
+收工检查：还有 1 项没收完
+没合并：T1（docs/roadstar/2026-11-20-demo）在分支 feat/export 上，1 个提交
+$ echo $?
+1
+```
 
-### A plan is never finished on the first pass
+The wrap-up check reports 1 item still open: T1 has not been merged. It sits on branch `feat/export` with 1 commit. The command exits with 1, so the run is not done.
 
-Claude and Codex have different blind spots. In Discuss mode the strongest model from each vendor reviews the same plan. Every objection must cite a file, a line number or command output. Claude then accepts it, rejects it with a written reason, or leaves the call to you. Three rounds by default; it stops early when neither side finds anything new.
+## The six steps
 
-Discuss mode does not open with engineering. Most people know the main feature and little else, yet the settings, options and spin-off features around it are what make an app pleasant to use. So both models first brainstorm on their own across ten angles: first use, daily use, settings, errors and edge cases, reminders, sharing, data, spin-off features, pricing, accessibility and languages. Each idea says who it is for and what the user gets. Claude merges the two lists, Codex checks the merge for gaps and overreach, and you only sort the ideas into this version, next version or never. The engineering discussion starts after that.
+<p align="center"><img src="./assets/readme/workflow.svg" width="100%" alt="The six steps: size the job, write the six-field brief, dispatch, verify in a new session, wrap up, reconcile. Large jobs and new projects get a one-page design first."></p>
 
-### Dispatching and checking work is exhausting
+Three roles appear below. The Chair (主席) is you: you set the goal, make the calls and can cut in at any time. Argo is the main Claude session. It only produces task briefs, rulings, dispatch records and a few lines for you. Dex is Codex. Dex does the work assigned to it and reviews the other side's work. It does not split jobs or decide anything.
 
-After the discussion, the task table is a schedule: for each task the model, the reason, an estimated duration and the time it should be accepted, then a total line with lane hours, the critical path and the finish time for the whole run. The completion report compares estimate with actual, and a local calibration table makes the next estimate closer. Each task ships with completion criteria that can clearly fail, a model and reasoning effort, a script-enforced time limit, and a reviewer that is always a different model from the implementer. After merging, Claude re-runs the full test suite on the main branch itself; the implementer's "all tests pass" is only a reference.
+0. One-page design. Half a page for medium jobs, a full page for large ones. If it needs your approval, it waits for that before going on.
+1. Size the job. A small job is done directly. A medium job gets one task brief and one executor. A large job is split into several tasks, each with one goal and two hours or less, and you get a dispatch table to look over.
+2. Write the six-field task brief: goal and what done looks like, modules involved, what must not be touched, execution environment, verification commands and expected output, and resource limits and stop-loss.
+3. Dispatch. Well-specified implementation goes to Codex. Work with an unknown root cause, or work Codex cannot do, goes to a Claude subagent. Every line of work gets a time cap and a progress file.
+4. Verify in a new session. A clean session gets only the task brief, the change and the test results. It re-runs the verification commands and writes `check-T<n>.md`.
+5. Wrap up. Fill in the actual time in `.meta`, run `cleanup.py` to take stock, and commit.
+6. Reconcile. The gap between estimate and actual time, the first-pass verification rate and the number of reworks go back into the estimate table.
 
-### A stuck task stops early, and only the unfinished part moves up
+## The three points where scripts block
 
-Every task logs one line per check attempt. Three failures on the same check, a long stretch with no new pass, or 90% of the time limit used will stop the lane. Claude keeps the checks that passed and sends only the failing ones to the next tier: Haiku, Sonnet, Opus, then Fable on the Claude side, Sol then Astra on Codex. Nothing restarts from scratch.
+<p align="center"><img src="./assets/readme/gates.svg" width="100%" alt="Three script checks. Before dispatch, brief-check.py: a brief missing a field is not dispatched. At merge, guard.py: no verification record, no merge. At wrap-up, cleanup.py --check: unfinished work means the run is not done."></p>
 
-### It learns which model fits which job
+The first is before dispatch. `dex-exec.sh` runs `brief-check.py` first, and if any of the six fields is missing it exits with code 2. For medium jobs and up, jobs that write code must also cite the design page, and jobs that need approval must have an approval record.
 
-Each dispatch records the task class, model, outcome and quota spent. Once a class has five samples, `dispatch-stats.py` suggests a cheaper starting tier when that tier finishes 90% of the time, or a higher one when the current tier finishes under 60%. You approve every change, and the same loop runs when you use Claude alone.
+The second is at merge. `guard.py` is installed as the project's Git hook through `skill/scripts/install-guard.sh <project-root> --claude`. A `git merge --no-ff` without the matching `check-T<n>.md` is blocked. A commit that changes a module entry point without updating `docs/模块地图.md` (the module map) is blocked too. It identifies the job from the `Roadstar-Task:` trailer in the commit message. If a commit has no trailer, it only warns and does not block.
 
-<p align="center"><img src="./assets/readme/loop.svg" width="100%" alt="Stop at the wall, learn every run: start on the cheapest tier with a record; log one line per check attempt; stop on 3 fails, idle time or 90% of the time limit; keep what passed and send the rest up a tier; record class, model, result and quota. After 5 samples, 90% done or better moves a class down a tier, under 60% moves it up. You approve each change."></p>
+The third is at wrap-up. `cleanup.py --check --plan-dir <run-directory>` looks for unfinished work in the run (unmerged tasks, leftover copies). If it finds any, it exits with 1 and the run does not count as done. All three scripts are in the repo and work as soon as you install them.
 
-<p align="center">
-  <img src="./assets/readme/workflow.svg" width="100%" alt="Three modes, one entry. Discuss: you have an idea; both models map the features first, then the build, producing a feature map, plan and task table. Review: you have a project, both read it and cross-check, producing a gap list and the top three fixes. Dispatch: you have a plan, split, assign and verify, ending in a report with evidence.">
-</p>
+One more hook records unfinished work as a to-do when a session ends. It lives in the author's own environment and is not in the repo, so installing Roadstar does not give you that one.
 
-Small jobs (under an hour) skip all of this and get done directly. You can override any choice at any time with one sentence, such as "use more GPT this month", and the change holds for the whole run.
+## Who does what, and which model
 
-<p align="center"><img src="./assets/readme/section-3.svg" width="100%" alt="03 Install, or hand this URL to your AI"></p>
+<p align="center"><img src="./assets/readme/lineup.svg" width="100%" alt="The two vendors' split. Claude side: Fable for briefs and decisions, Sonnet for verification and filling gaps, Haiku for evidence and bulk jobs, Opus only when something goes wrong. Codex side: Sol writes code, Astra takes hard tasks and plan review. In the middle, the other vendor verifies. At the bottom: stop only when the quota hits zero."></p>
+
+- Fable only writes task briefs and makes calls in the main session.
+- Codex has two tiers. Sol is the workhorse for writing code: well-specified implementation, changes and refactors go to it first. Astra takes hard tasks and plan review.
+- Sonnet does what Codex cannot (web access, evidence gathering, checks after deployment), verifies the code Codex wrote, and writes the code when Codex's quota hits zero.
+- Haiku handles read-only evidence gathering and mechanical bulk work. Its API price is about one twentieth of Sonnet's.
+- Opus steps in only in three cases: Sonnet got something wrong or missed it once; the two sides disagree and Argo cannot settle it from the diff; or Codex is at zero and a mistake on this job would be costly. Every escalation comes with one sentence on why.
+
+The split table is `skill/references/dispatch-table.md`. Exact model IDs and prices live in `skill/references/models.md`. When a new model comes out, you edit that one file.
+
+Roadstar stops only when quota hits zero. When that happens it tells you once, and you top up or reset. Until then it neither stops dispatching nor asks. `skill/scripts/quota-status.py` costs no quota and shows how much of each side you have used so far.
+
+If you subscribe to only one vendor, the answer depends on which one. With only a Claude subscription you can run in single-vendor mode: each row of the split table keeps just the Claude cell, a Fable subagent reviews plans, and the minutes record "本场单家模式，审稿同家" (this run is single-vendor mode, the reviewer is from the same vendor). The reviewer is still a different model from the executor. You only lose the cross-vendor layer of error-hunting. With only a GPT subscription it does not work, because Argo, the main session, must be Claude.
+
+## What it looks like in use
+
+Each job takes one directory in the project, `docs/roadstar/<date>-<slug>/`, and there is a standing boundary file at `docs/roadstar/_common.md`. A run is one such directory.
+
+```text
+docs/roadstar/2026-11-20-export-button/
+  design.md                    one-page design (required from medium jobs up)
+  plan.md                      large jobs only
+  ledger.md                    rulings, disputes, dispatch log
+  rounds/
+    exec-T1-request.md         task brief
+    exec-T1.md                 what the executor handed back
+    exec-T1.meta               model, effort, estimate and actual time
+    exec-T1.progress           one line per attempt at a check
+    check-T1.md                record of the new-session verification
+```
+
+Write the task brief following `skill/references/task-brief-template.md`. Below is the skeleton of the first field, with the angle brackets marking what you fill in.
+
+```markdown
+# T1 · <one plain-language task name>
+设计页：docs/roadstar/<日期>-<slug>/design.md
+
+## 目标与做完的样子
+<一个目标。完成线拆成 C1 … Cn，每项一条能失败的数字或可观测条件，附测法>
+```
+
+The skeleton is in Chinese because the template is. "设计页" is the design page path, and "目标与做完的样子" is the goal and what done looks like. The angle-bracket line says: one goal; split the finish line into C1 … Cn, each a number or observable condition that can fail, with how to measure it.
+
+The other five fields are modules involved, what must not be touched, execution environment, verification commands and expected output, and resource limits and stop-loss. A field you cannot fill in gets "待定：缺什么信息" (pending: what information is missing). A brief with pending items is not dispatched.
+
+## Open a roundtable
+
+When you have only an idea, or want a retrospective on an existing project, say "开圆桌", "探讨", "复盘" or "全面 review" (open a roundtable, discuss, retrospective, full review). In discussion, Argo and Dex each give one short list covering side features, settings, spin-off features and engineering risks. You pick, then `plan.md` is written. In a retrospective, each side reads the project once, read-only, and gives its own list of gaps. Argo merges them, and you choose which ones go into step 1. Details are in `skill/references/modes.md`.
+
+## Install and requirements
 
 ```bash
 git clone https://github.com/Rurutia-Artemis/Roadstar.git
 cd Roadstar && ./install.sh
 ```
 
-`install.sh` symlinks `skill/` into `~/.claude/skills`, `~/.agents/skills` and `~/.codex/skills`. Open a new Claude Code session in any project and type `/roadstar`, or just say 「用 skill」. When a new version is out, the opening line says so; reply 「更新 Roadstar」 (update Roadstar) to pull it.
+`install.sh` symlinks `skill/` to `~/.claude/skills/roadstar`, `~/.agents/skills/roadstar` and `~/.codex/skills/roadstar`, and removes the old symlinks from its predecessor, roundtable. After installing, start a new Claude Code session. Ask for a job longer than an hour in a project and it follows the process, or you can type `/roadstar`.
 
 > [!TIP]
-> The easiest way is to paste this repository's URL into Claude Code and say "install this".
+> The easiest way to install is to hand this repo's address to Claude Code and say "install this for me".
 
-If you are an AI agent doing the install, follow these steps:
+If you are an AI doing the install, follow these steps:
 
-1. Clone into a permanent folder such as `~/Roadstar`. The installer links to that folder, so do not clone into a temp directory and do not move or delete it afterwards.
-2. Run `./install.sh` from the repo root. It prints one `已链接` (linked) line per target.
-3. Verify: `ls -l ~/.claude/skills/roadstar` points to the repo's `skill/`, and `bash skill/scripts/tests/run.sh` ends with `PASS 94 checks`.
-4. Check Codex: `codex --version` should be 0.160 or later (install with `npm i -g @openai/codex@latest`), and `codex login status` should say logged in. Logging in opens a browser, so ask the human to run `codex login` themselves. Without Codex, Roadstar still runs in Claude-only mode.
-5. Tell the human to start a new Claude Code session (skills load at session start) and say 「用 skill」 or `/roadstar`.
+1. Clone into a directory that will stay, such as `~/Roadstar`. The symlinks point there, so do not move or delete it after installing.
+2. Run `./install.sh` in the repo root. Each target prints one line saying it is linked ("已链接").
+3. Verify: `ls -l ~/.claude/skills/roadstar` points to `skill/` in the repo, and `bash skill/scripts/tests/run.sh` exits with 0.
+4. Check Codex: `codex --version` must be 0.160 or later (if not, `npm i -g @openai/codex@latest`), and `codex login status` must show a logged-in account. Login opens a browser, so ask the user to run `codex login` themselves. Without Codex, use single-vendor mode.
+5. To install the merge and commit checks in a project, run `skill/scripts/install-guard.sh <project-root> --claude`, then tell the user to restart the Claude Code session.
 
-Requirements:
+You need Claude Code. For the two-vendor flow you also need [Codex CLI](https://github.com/openai/codex) 0.160 or later, logged in with a ChatGPT account. You also need macOS, bash and Python 3. The scripts use only the standard library.
 
-- Claude Code (built and used on the Max plan)
-- [Codex CLI](https://github.com/openai/codex) 0.160 or later, signed in with a ChatGPT account: `npm i -g @openai/codex@latest`
-- macOS, bash and Python 3; the scripts use only the standard library
+> [!IMPORTANT]
+> The install is a symlink. If you delete or move the repo folder, the skill stops working. Approval records are written by a hook tool in the author's own environment, and this repo does not include it. In any other environment, a job that needs approval is blocked at the `brief-check.py` step for lack of a record. Set `ROADSTAR_DESIGN_CHECK=0` to skip the design-page check (the skip is logged).
 
-No Codex? It falls back to a Claude-only mode: a Fable subagent reviews the plan (marked as same-vendor in the notes) and Haiku, Sonnet or Opus does the work. This mode exists but has not been through a complete real run yet. The same goes for the four-tier Claude setup, early stops and the learning loop, added on 2026-10-14, and for the opening panel and schedule added on 2026-10-16: the scripts pass their tests, but no full run has gone through the new screens yet, and the pieces-per-point coefficient on the panel is still a default. Grok CLI cannot report quota. With “try new models” enabled and Grok signed in, it can trial read-only evidence gathering and review. After five records, we decide whether it belongs in the default table. Most older dispatch records carry no task class, so the experience table needs a few more runs before it says much.
+## Layout
 
-## Repository
+`skill/` holds `SKILL.md`, `references/` (templates, the split table, the model table) and `scripts/` (checks, dispatch, the quota probe, stub tests). `docs/` holds this skill's own run records, the module map and the notes on data reporting. `install.sh` makes the symlinks. `CHANGELOG.md` gets one entry per change, saying what was verified and what was not.
 
-```
-skill/        SKILL.md, references/, scripts/ (quota probe, review, dispatch, stub tests)
-docs/         records of the skill's own upgrades; runs in other projects live in their docs/roadstar/
-install.sh    symlinks the skill into Claude Code and Codex
-CHANGELOG.md  one entry per change, with what was and was not verified
-```
+## Data reporting (optional, off by default)
 
-## Sharing dispatch data (opt-in, off by default)
-
-On first use Roadstar asks once whether to share dispatch data. If you agree, each finished run opens one Issue in the public [roadstar-data](https://github.com/Rurutia-Artemis/roadstar-data) repository through your own `gh`. It holds only fixed options and rounded numbers for each lane, such as task class, model, effort, outcome, minutes and quota used. No code, paths, project names or free text. The Issue shows your GitHub name and is public, and an exact copy is kept in `~/.config/roadstar/uploads/` before sending.
-
-The data is merged weekly. The maintainer reviews it, updates the routing table and ships a new version, so everyone shares one table and improves together. Say 「关掉回传」 (turn off sharing) or set `ROADSTAR_TELEMETRY=0` to stop, say 「回传了什么」 (what is sent) to preview the next batch, and delete your Issue to withdraw it.
+`skill/scripts/telemetry.py` is still there and is off by default. It turns on only when you run `python3 skill/scripts/telemetry.py enable`. Once on, at the end of each run it uses your local `gh` to open an Issue in the public repo [roadstar-data](https://github.com/Rurutia-Artemis/roadstar-data) from your GitHub account. The Issue holds 12 fixed fields (job category, model, effort, whether it finished, time used, quota difference and so on). It has no code, paths, project names or free text. A copy of the exact text is kept on your machine before it is sent. Run `telemetry.py disable` or set `ROADSTAR_TELEMETRY=0` to turn it off, and `status` shows the current state. The field list and format are in `docs/社区数据回传.md`.
 
 ## Disclaimer
 
-- Personal project. Not affiliated with or endorsed by Anthropic or OpenAI; Claude, Claude Code, Codex and ChatGPT are trademarks of their owners.
-- It runs on your own subscriptions and spends your Claude and Codex quota. A Discuss run typically uses both sides for 30 to 60 minutes.
-- Codex is always launched with an explicit sandbox: `read-only` for reviews, workspace-write for implementation. The one exception, UI acceptance that needs a simulator, uses full access, with strict boundaries fixed in the task brief; read those briefs before you approve them.
-- Model names, quota tiers and prices reflect the author's setup in October 2026. Adjust `skill/references/models.md` for yours.
-- The skill itself and its records are written in Chinese.
-- Provided as is, under the [MIT License](LICENSE).
+- A personal project. It is not affiliated with or endorsed by Anthropic or OpenAI. Claude, Claude Code, Codex and ChatGPT are trademarks of their respective owners.
+- It runs on your own subscriptions and spends your Claude and Codex quota.
+- It does not add `--dangerously-*` flags by default. Codex reviews run `read-only` and execution runs with a writable workspace. `danger-full-access` is used only for verification that has to start a simulator or open a port, with the boundary written into the task brief, so take a look before you approve.
+- Provided as is under the [MIT license](LICENSE).
 
 ---
 
-<p align="center"><sub>README visuals follow <a href="https://github.com/oil-oil/beautify-github-readme">beautify-github-readme</a>. Formerly <i>roundtable</i> (2026-09-24 to 10-04).</sub></p>
+<p align="center"><sub>The README images follow the method of <a href="https://github.com/oil-oil/beautify-github-readme">beautify-github-readme</a>. The predecessor was called roundtable (2026-09-24 to 10-04).</sub></p>
