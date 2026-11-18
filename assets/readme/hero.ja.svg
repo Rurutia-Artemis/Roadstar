@@ -1,35 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1200 460" role="img" aria-labelledby="t d">
-<title id="t">Roadstar：Claude が指揮し、Codex が作る</title>
-<desc id="d">計画と確認は Claude、 コードを書くのは Codex。 両方のサブスクを無駄なく使い、計画は必ずもう一社のモデルがレビュー。</desc>
-<rect width="1200" height="460" rx="28" fill="#F7F4EE"/>
-<path d="M560,63 Q560,70 567,70 Q560,70 560,77 Q560,70 553,70 Q560,70 560,63 Z" fill="#F2B544" opacity="0.45"/>
-<path d="M1150,54 Q1150,60 1156,60 Q1150,60 1150,66 Q1150,60 1144,60 Q1150,60 1150,54 Z" fill="#F2B544" opacity="0.45"/>
-<path d="M590,415 Q590,420 595,420 Q590,420 590,425 Q590,420 585,420 Q590,420 590,415 Z" fill="#F2B544" opacity="0.45"/>
-<text x="72" y="112" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" letter-spacing="3" fill="#8A8798">CLAUDE CODE SKILL · v1.13.0</text>
-<text x="68" y="206" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="86" font-weight="800" fill="#2B2A3D" letter-spacing="-1.5">Roadstar<tspan dx="20" font-size="40" font-weight="600" fill="#8A8798" letter-spacing="2">引路星</tspan></text>
-<text x="72" y="276" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="600" fill="#2B2A3D">計画と確認は Claude、</text>
-<text x="72" y="320" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="30" font-weight="600" fill="#2B2A3D">コードを書くのは Codex。</text>
-<text x="72" y="372" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">両方のサブスクを無駄なく使い、</text>
-<text x="72" y="402" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="20" fill="#8A8798">計画は必ずもう一社のモデルがレビュー。</text>
-<circle cx="900" cy="96" r="46" fill="#F2B544" opacity="0.16"/>
-<path d="M900,58 Q900,96 938,96 Q900,96 900,134 Q900,96 862,96 Q900,96 900,58 Z" fill="#F2B544" opacity="1.0"/>
-<rect x="950" y="78" width="96" height="36" rx="18" fill="#E07A5F"/><text x="998" y="103" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="19" font-weight="700" fill="#FFFFFF">Claude</text>
-<path d="M900,136 C900,176 720.0,150 720.0,194" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/>
-<rect x="640" y="196" width="160" height="112" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="660" y="230" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#8A8798">T1</text>
-<text x="660" y="266" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="26" font-weight="700" fill="#3E9C9E">6.1 Sol</text>
-<text x="660" y="294" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">≤ 2 時間</text>
-<path d="M900,136 C900,176 900.0,150 900.0,194" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/>
-<rect x="820" y="196" width="160" height="112" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="840" y="230" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#8A8798">T2</text>
-<text x="840" y="266" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="26" font-weight="700" fill="#3E9C9E">Astra</text>
-<text x="840" y="294" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">≤ 4 時間</text>
-<path d="M900,136 C900,176 1080.0,150 1080.0,194" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/>
-<rect x="1000" y="196" width="160" height="112" rx="20" fill="#FFFFFF" stroke="#E4DED3" stroke-width="2"/>
-<text x="1020" y="230" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#8A8798">✓</text>
-<text x="1020" y="266" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="26" font-weight="700" fill="#E07A5F">検証</text>
-<text x="1020" y="294" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif" font-size="18" fill="#8A8798">別モデル</text>
-<rect x="640" y="344" width="520" height="60" rx="18" fill="#2B2A3D"/>
-<path d="M668,365 Q668,374 677,374 Q668,374 668,383 Q668,374 659,374 Q668,374 668,365 Z" fill="#F2B544" opacity="1.0"/>
-<text x="690" y="381" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#F7F4EE">Claude 逼迫 · Codex 通常 → Codex へ</text>
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="ja" width="1200" height="463" viewBox="0 0 1200 463" role="img" aria-labelledby="title desc">
+  <title id="title">Roadstar</title>
+  <desc id="desc">Claude が設計・分割・検収し、 Codex がコードを書く。 別社のモデルが誤りを探し、 ルール違反はスクリプトが止める。 Claude メインセッション → Codex / コード実装 → Claude サブエージェント / Codex にできない作業 → 検収 / 別セッション・別社 指示書に項目抜け：割り当て不可 · 未検収：マージ不可</desc>
+  <rect id="base" x="0" y="0" width="1200" height="463" fill="#F7F4EE" rx="28" />
+  <rect id="intro" x="28" y="30" width="490" height="356" fill="#F7F4EE" rx="0" />
+  <path d="M65,64 Q65,76 77,76 Q65,76 65,88 Q65,76 53,76 Q65,76 65,64 Z" fill="#F2B544" />
+  <text data-card="intro" x="89" y="82" font-size="18" font-weight="600" fill="#2B2A3D" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">CLAUDE CODE SKILL · v2.0.0</text>
+  <text data-card="intro" x="48" y="167" font-size="74" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Roadstar</text>
+  <text data-card="intro" x="49" y="226" font-size="27" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude が設計・分割・検収し、</text>
+  <text data-card="intro" x="49" y="264" font-size="27" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex がコードを書く。</text>
+  <text data-card="intro" x="49" y="321" font-size="20" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">別社のモデルが誤りを探し、</text>
+  <text data-card="intro" x="49" y="352" font-size="20" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">ルール違反はスクリプトが止める。</text>
+  <rect id="host-label" x="646" y="94" width="414" height="39" fill="#F7F4EE" rx="0" />
+  <circle cx="853" cy="61" r="30" fill="#E4DED3" />
+  <path d="M853,35 Q853,61 879,61 Q853,61 853,87 Q853,61 827,61 Q853,61 853,35 Z" fill="#F2B544" />
+  <text data-card="host-label" x="853" y="121" font-size="24" font-weight="750" fill="#2B2A3D" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude メインセッション</text>
+  <path d="M853,136 V148 H598.0 V177" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" />
+  <rect id="card-T1" x="528" y="176" width="140" height="132" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="card-T1-badge" x="542" y="191" width="52" height="32" fill="#E4DED3" rx="10" stroke="#3E9C9E" stroke-width="2" />
+  <text data-card="card-T1-badge" x="568" y="213" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">T1</text>
+  <text data-card="card-T1" x="543" y="252" font-size="20" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex</text>
+  <text data-card="card-T1" x="542" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">コード実装</text>
+  <path d="M853,136 V148 H799.0 V177" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" />
+  <rect id="card-T2" x="680" y="176" width="238" height="132" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="card-T2-badge" x="694" y="191" width="52" height="32" fill="#E07A5F" rx="10" />
+  <text data-card="card-T2-badge" x="720" y="213" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">T2</text>
+  <text data-card="card-T2" x="695" y="252" font-size="17" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude サブエージェント</text>
+  <text data-card="card-T2" x="694" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex にできない作業</text>
+  <path d="M853,136 V148 H1043.0 V177" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" />
+  <rect id="card-verify" x="930" y="176" width="226" height="132" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
+  <rect id="card-verify-badge" x="944" y="191" width="52" height="32" fill="#F2B544" rx="10" />
+  <text data-card="card-verify-badge" x="970" y="213" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">✓</text>
+  <text data-card="card-verify" x="945" y="252" font-size="20" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">検収</text>
+  <text data-card="card-verify" x="944" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">別セッション・別社</text>
+  <rect id="footer" x="44" y="382" width="1112" height="50" fill="#2B2A3D" rx="24" />
+  <text data-card="footer" x="600" y="415" font-size="21" font-weight="700" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">指示書に項目抜け：割り当て不可 · 未検収：マージ不可</text>
 </svg>
