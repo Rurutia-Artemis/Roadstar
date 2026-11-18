@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" xml:lang="ja" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
   <title id="title">1 ページ設計 → 難易度の判定 → 6 項目の指示書 → 割り当て → 別セッションで検収 → 仕上げ → 照合</title>
-  <desc id="desc">Claude メインセッション / Codex か サブエージェント / 別社のモデル</desc>
+  <desc id="desc">Claude メインセッション / Codex かサブエージェント / 別社のモデル</desc>
   <rect id="base" x="0" y="0" width="1200" height="330" fill="#F7F4EE" rx="28" />
   <rect id="step-0" x="48" y="38" width="144" height="128" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
   <rect id="number-0" x="61" y="52" width="42" height="34" fill="#F2B544" rx="10" />

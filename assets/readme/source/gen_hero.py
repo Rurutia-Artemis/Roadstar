@@ -17,19 +17,19 @@ COPY = {
     "en": (
         "Roadstar",
         ("Claude plans, splits, verifies,", "Codex writes the code.",
-         "Another vendor's model reviews,", "Scripts enforce the rules."),
+         "Another vendor's model hunts for errors,", "Scripts enforce the rules."),
         "Claude main session",
         (("Codex", "Writes code"), ("Claude subagent", "What Codex can't do"),
          ("Verify", "New session, other vendor")),
-        "Brief incomplete: no dispatch · Unverified: no merge",
+        "Brief missing a field: no dispatch · Unverified: no merge",
     ),
     "ja": (
         "Roadstar",
         ("Claude が設計・分割・検収し、", "Codex がコードを書く。",
-         "別社のモデルが再点検し、", "ルールはスクリプトが止める。"),
+         "別社のモデルが誤りを探し、", "ルール違反はスクリプトが止める。"),
         "Claude メインセッション",
-        (("Codex", "コード実装"), ("Claude サブエージェント", "Codex が不得手な作業"), ("検収", "別セッション・別社")),
-        "欠けた指示書は渡せない · 未検収は取り込めない",
+        (("Codex", "コード実装"), ("Claude サブエージェント", "Codex にできない作業"), ("検収", "別セッション・別社")),
+        "指示書に項目抜け：割り当て不可 · 未検収：マージ不可",
     ),
 }
 
@@ -66,11 +66,16 @@ def hero(lang, version):
     art.star(65, 76, 12)
     art.text("intro", f"CLAUDE CODE SKILL · v{version}", 89, 82, 18, mono=True)
     art.text("intro", title, 48, 167, 49 if lang == "zh-CN" else 74, weight=800)
-    for sentence, y, size in zip(sentences, (226, 264, 321, 352), (27, 27, 20, 20)):
+    for index, (sentence, y, size) in enumerate(zip(sentences, (226, 264, 321, 352), (27, 27, 20, 20))):
         weight = 700 if size == 27 else 500
         if lang == "en" and size == 27:
             size = 24
-        art.text("intro", sentence, 49, y, size, weight=weight)
+        if lang == "en" and index == 2:
+            determiner, vendor, model, action = sentence.split(" ", 3)
+            art.text("intro", f"{determiner} {vendor} {model}", 49, y - 14, size, weight=weight)
+            art.text("intro", action, 49, y + 10, size, weight=weight)
+        else:
+            art.text("intro", sentence, 49, y, size, weight=weight)
 
     art.rect("host-label", 646, 94, 414, 39, BG, radius=0)
     art.add("circle", cx=853, cy=61, r=30, fill=LINE)

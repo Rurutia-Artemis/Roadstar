@@ -1,0 +1,15 @@
+model=gpt-6.2-sol
+effort=high
+sandbox=workspace-write
+root=/Users/rurutia/Documents/RuruCode/运行数据/任务临时/RSH1/repo
+started=2026-11-18T08:07:34Z
+finished=2026-11-18T08:18:49Z
+exit=0
+session_id=01a1edb2-6616-7363-b378-5e06a219a35a
+tokens_used=93349
+resumed_from=
+attempt=1
+max_minutes=40
+timed_out=0
+class=补全
+est_minutes=20

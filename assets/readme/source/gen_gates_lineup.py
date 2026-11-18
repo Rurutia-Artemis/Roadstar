@@ -11,13 +11,13 @@ GATES = {
     ),
     "en": (
         ("Before dispatch", "Brief missing a field: no dispatch"),
-        ("At merge", "No verification record, no merge"),
+        ("At merge", "No verification record, no merge to main"),
         ("At wrap-up", "Loose ends mean not done"),
     ),
     "ja": (
-        ("割り当て前", "指示書に欠けがあれば渡せない"),
-        ("マージ時", "検収記録がなければ main に入れない"),
-        ("仕上げ時", "未完了があれば完了とは言えない"),
+        ("割り当て前", "指示書に項目抜け：割り当て不可"),
+        ("マージ時", "検収記録なし：メインにマージ不可"),
+        ("仕上げ時", "残作業があれば完了にならない"),
     ),
 }
 
@@ -35,7 +35,7 @@ LINEUP = {
     ),
     "ja": (
         "Claude 側", "Codex 側", "別社で検収",
-        ("指示書・最終判断", "検収・代役", "調査・一括処理", "失敗時のみ昇格",
+        ("指示書・最終判断", "検収・代役", "事実確認・一括処理", "ミス時だけ Opus へ",
          "コード実装", "難題・設計レビュー"),
         "クォータが 0 になるまで止めない",
     ),
@@ -56,7 +56,12 @@ def gates(lang):
         art.rect(script_id, 290, y, 276, 80, INK)
         art.text(script_id, script, 428, y + 47, 20, color=BG, mono=True, anchor="middle")
         art.rect(result_id, 578, y, 578, 80, CARD, stroke=LINE)
-        art.text(result_id, result, 605, y + 48, 24, weight=700)
+        if lang == "en" and index == 1:
+            record, outcome = result.split(", ", 1)
+            art.text(result_id, record + ",", 605, y + 35, 24, weight=700)
+            art.text(result_id, outcome, 605, y + 64, 24, weight=700)
+        else:
+            art.text(result_id, result, 605, y + 48, 24, weight=700)
     art.write("gates", lang)
 
 

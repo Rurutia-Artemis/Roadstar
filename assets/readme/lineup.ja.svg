@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" xml:lang="ja" width="1200" height="461" viewBox="0 0 1200 461" role="img" aria-labelledby="title desc">
   <title id="title">Claude 側 · Codex 側</title>
-  <desc id="desc">Fable: 指示書・最終判断 / Sonnet: 検収・代役 / Haiku: 調査・一括処理 / Opus: 失敗時のみ昇格 / Sol: コード実装 / Astra: 難題・設計レビュー / 別社で検収 / クォータが 0 になるまで止めない</desc>
+  <desc id="desc">Fable: 指示書・最終判断 / Sonnet: 検収・代役 / Haiku: 事実確認・一括処理 / Opus: ミス時だけ Opus へ / Sol: コード実装 / Astra: 難題・設計レビュー / 別社で検収 / クォータが 0 になるまで止めない</desc>
   <rect id="base" x="0" y="0" width="1200" height="461" fill="#F7F4EE" rx="28" />
   <rect id="claude" x="44" y="30" width="421" height="46" fill="#F7F4EE" rx="0" />
   <path d="M60,41 Q60,53 72,53 Q60,53 60,65 Q60,53 48,53 Q60,53 60,41 Z" fill="#E07A5F" />
@@ -16,10 +16,10 @@
   <text data-card="claude-1" x="173" y="196" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">検収・代役</text>
   <rect id="claude-2" x="44" y="229" width="421" height="62" fill="#FFFFFF" rx="16" stroke="#E4DED3" stroke-width="2" />
   <text data-card="claude-2" x="66" y="268" font-size="24" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Haiku</text>
-  <text data-card="claude-2" x="173" y="268" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">調査・一括処理</text>
+  <text data-card="claude-2" x="173" y="268" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">事実確認・一括処理</text>
   <rect id="claude-3" x="44" y="301" width="421" height="62" fill="#F7F4EE" rx="16" stroke="#8A8798" stroke-width="2" stroke-dasharray="6 5" />
   <text data-card="claude-3" x="66" y="340" font-size="24" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Opus</text>
-  <text data-card="claude-3" x="173" y="340" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">失敗時のみ昇格</text>
+  <text data-card="claude-3" x="173" y="340" font-size="19" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">ミス時だけ Opus へ</text>
   <rect id="sol" x="735" y="85" width="421" height="204" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
   <rect id="sol-accent" x="757" y="108" width="44" height="6" fill="#3E9C9E" rx="3" />
   <text data-card="sol" x="757" y="194" font-size="70" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Sol</text>

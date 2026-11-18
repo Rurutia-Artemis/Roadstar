@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" xml:lang="ja" width="1200" height="463" viewBox="0 0 1200 463" role="img" aria-labelledby="title desc">
   <title id="title">Roadstar</title>
-  <desc id="desc">Claude が設計・分割・検収し、 Codex がコードを書く。 別社のモデルが再点検し、 ルールはスクリプトが止める。 Claude メインセッション → Codex / コード実装 → Claude サブエージェント / Codex が不得手な作業 → 検収 / 別セッション・別社 欠けた指示書は渡せない · 未検収は取り込めない</desc>
+  <desc id="desc">Claude が設計・分割・検収し、 Codex がコードを書く。 別社のモデルが誤りを探し、 ルール違反はスクリプトが止める。 Claude メインセッション → Codex / コード実装 → Claude サブエージェント / Codex にできない作業 → 検収 / 別セッション・別社 指示書に項目抜け：割り当て不可 · 未検収：マージ不可</desc>
   <rect id="base" x="0" y="0" width="1200" height="463" fill="#F7F4EE" rx="28" />
   <rect id="intro" x="28" y="30" width="490" height="356" fill="#F7F4EE" rx="0" />
   <path d="M65,64 Q65,76 77,76 Q65,76 65,88 Q65,76 53,76 Q65,76 65,64 Z" fill="#F2B544" />
@@ -8,8 +8,8 @@
   <text data-card="intro" x="48" y="167" font-size="74" font-weight="800" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Roadstar</text>
   <text data-card="intro" x="49" y="226" font-size="27" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude が設計・分割・検収し、</text>
   <text data-card="intro" x="49" y="264" font-size="27" font-weight="700" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex がコードを書く。</text>
-  <text data-card="intro" x="49" y="321" font-size="20" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">別社のモデルが再点検し、</text>
-  <text data-card="intro" x="49" y="352" font-size="20" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">ルールはスクリプトが止める。</text>
+  <text data-card="intro" x="49" y="321" font-size="20" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">別社のモデルが誤りを探し、</text>
+  <text data-card="intro" x="49" y="352" font-size="20" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">ルール違反はスクリプトが止める。</text>
   <rect id="host-label" x="646" y="94" width="414" height="39" fill="#F7F4EE" rx="0" />
   <circle cx="853" cy="61" r="30" fill="#E4DED3" />
   <path d="M853,35 Q853,61 879,61 Q853,61 853,87 Q853,61 827,61 Q853,61 853,35 Z" fill="#F2B544" />
@@ -25,7 +25,7 @@
   <rect id="card-T2-badge" x="694" y="191" width="52" height="32" fill="#E07A5F" rx="10" />
   <text data-card="card-T2-badge" x="720" y="213" font-size="17" font-weight="600" fill="#2B2A3D" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">T2</text>
   <text data-card="card-T2" x="695" y="252" font-size="17" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Claude サブエージェント</text>
-  <text data-card="card-T2" x="694" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex が不得手な作業</text>
+  <text data-card="card-T2" x="694" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">Codex にできない作業</text>
   <path d="M853,136 V148 H1043.0 V177" fill="none" stroke="#F2B544" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" />
   <rect id="card-verify" x="930" y="176" width="226" height="132" fill="#FFFFFF" rx="18" stroke="#E4DED3" stroke-width="2" />
   <rect id="card-verify-badge" x="944" y="191" width="52" height="32" fill="#F2B544" rx="10" />
@@ -33,5 +33,5 @@
   <text data-card="card-verify" x="945" y="252" font-size="20" font-weight="750" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">検収</text>
   <text data-card="card-verify" x="944" y="282" font-size="17" font-weight="500" fill="#2B2A3D" text-anchor="start" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">別セッション・別社</text>
   <rect id="footer" x="44" y="382" width="1112" height="50" fill="#2B2A3D" rx="24" />
-  <text data-card="footer" x="600" y="415" font-size="21" font-weight="700" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">欠けた指示書は渡せない · 未検収は取り込めない</text>
+  <text data-card="footer" x="600" y="415" font-size="21" font-weight="700" fill="#F7F4EE" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif">指示書に項目抜け：割り当て不可 · 未検収：マージ不可</text>
 </svg>

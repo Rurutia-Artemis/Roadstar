@@ -8,7 +8,7 @@
 | hero | 标题 | Roadstar 引路星 | Roadstar | Roadstar |
 | hero | 主句 1 | Claude 想方案、拆活、验收， | Claude plans, splits, verifies, | Claude が設計・分割・検収し、 |
 | hero | 主句 2 | Codex 写代码。 | Codex writes the code. | Codex がコードを書く。 |
-| hero | 主句 3 | 换一家模型回头挑错， | Another vendor's model hunts for errors, | 別社のモデルが誤りを探し、 |
+| hero | 主句 3 | 换一家模型回头挑错， | Another vendor's model hunts for errors. | 別社のモデルが誤りを探し、 |
 | hero | 主句 4 | 规矩由脚本卡。 | Scripts enforce the rules. | ルール違反はスクリプトが止める。 |
 | hero | 节点 1 名 | Claude 主会话 | Claude main session | Claude メインセッション |
 | hero | 节点 2 名 / 副 | Codex / 写代码 | Codex / Writes code | Codex / コード実装 |

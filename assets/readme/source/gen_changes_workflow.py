@@ -12,14 +12,14 @@ CHANGES = {
         ("探讨", "默认三轮", "两家各出一轮"),
     ),
     "en": (
-        ("Trigger", "Runs on request", "Runs by default"),
-        ("Rules", "Rules in the text", "Scripts block 3 points"),
+        ("Trigger", "Runs only when named", "Runs by default"),
+        ("Rules", "Rules in the text", "Scripts block at 3 points"),
         ("Body", "224 lines", "54 lines"),
         ("Before work", "Dashboard and strategy prompt", "One-page design"),
         ("Discussion", "Three rounds by default", "One round from each vendor"),
     ),
     "ja": (
-        ("起動", "呼ばれたら動く", "最初から動く"),
+        ("起動", "明示呼び出し時のみ", "既定で動く"),
         ("ルール", "本文に書く", "スクリプトが3か所で止める"),
         ("本文", "224 行", "54 行"),
         ("着手前", "開始パネルと戦略の確認", "1 ページ設計"),
@@ -40,7 +40,7 @@ WORKFLOW = {
     "ja": (
         (("1 ページ設計",), ("難易度の判定",), ("6 項目の指示書",), ("割り当て",),
          ("別セッションで検収",), ("仕上げ",), ("照合",)),
-        (("Claude メインセッション",), ("Codex か", "サブエージェント"), ("別社のモデル",)),
+        (("Claude メインセッション",), ("Codex かサブエージェント",), ("別社のモデル",)),
     ),
 }
 
@@ -107,6 +107,10 @@ def workflow(lang):
         (0, 2, owners[0], LINE), (3, 3, owners[1], LINE),
         (4, 4, owners[2], GOLD), (5, 6, owners[0], LINE),
     ):
+        if lang == "ja" and first == 3:
+            # Break after the particle without inserting a space in the source text.
+            prefix, particle, rest = lines[0].partition("か")
+            lines = (prefix + particle, rest)
         x = lefts[first]
         width = lefts[last] + widths[last] - x
         key = f"owner-{first}"
